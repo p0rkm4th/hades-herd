@@ -125,6 +125,11 @@ seven shell-command executions, without a patch or completed turn. Ollama
 reported about 734 generated tokens at ~9.4 tokens/s and 14,214/16,384 context
 tokens; the Responses route saw no client-visible text/tool chunks before the
 Codex process disconnected. The isolated adapter was configured to map
-`none` to Ollama `think:false` when advertised, but the outbound JSON was not
-captured. This does not establish whether that mapping helped. See the
+`none` to Ollama `think:false` when advertised, but the exact outbound JSON
+during the real inference run was not captured. This does not establish whether that mapping helped. See the
 [sanitized result](../benchmarks/results/2026-11-08-reasoning-none-diagnostic.md).
+- A follow-up fresh-HOME, no-inference Codex transport control confirmed
+  `reasoning.effort=none` becomes boolean `think:false` in the synthetic
+  `/api/chat` request; Codex completed that mock turn. This verifies the mapping
+  path, not the earlier model run or coding quality. Details are in the
+  [reasoning diagnostic](../benchmarks/results/2026-11-08-reasoning-none-diagnostic.md).

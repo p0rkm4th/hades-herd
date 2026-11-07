@@ -47,3 +47,19 @@ models. Raw logs and CLI events remain private.
 Codex reasoning effort names are model-dependent in the [official reasoning
 API guide](https://developers.openai.com/api/docs/guides/reasoning); this local
 model-specific mapping is experimental and is not implied by that API guidance.
+
+## Follow-up no-inference transport control — 2026-11-08
+
+A separate fresh-HOME Codex CLI 0.166.0 request used the same isolated route
+mapping but replaced Ollama with a synthetic streaming client. The capture
+stored only scalar metadata. It confirmed Codex sent `reasoning.effort=none`,
+the adapter mapped it to boolean `think: false`, and the outgoing request was a
+`POST /api/chat` for the expected model. The request had seven tool definitions
+and no explicit `num_ctx`; the profile/catalog carried the configured context.
+Codex received the mock completion and emitted `turn.completed` (exit 0). No
+model was loaded, no prompt/tool arguments were recorded, and no production
+service was contacted.
+
+This verifies the profile-to-adapter mapping path for `none`. It does not
+capture the exact Ollama request from the earlier real-inference attempt and
+does not demonstrate improved coding-task completion.
