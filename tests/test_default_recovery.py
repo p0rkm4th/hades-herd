@@ -1,6 +1,7 @@
 import io
+import json
+import re
 import tempfile
-import tomllib
 import unittest
 from unittest import mock
 from pathlib import Path
@@ -23,6 +24,13 @@ def model(name):
 
 def models():
     return {"available-model": model("available-model")}
+
+
+def read_profile(path):
+    """Read the generated string field without requiring Python 3.11 tomllib."""
+    text = path.read_text()
+    match = re.search(r'^developer_instructions\s*=\s*(".*")$', text, re.MULTILINE)
+    return {"developer_instructions": json.loads(match.group(1))} if match else {}
 
 
 class SyncCatalogDefaultTests(unittest.TestCase):
@@ -85,18 +93,18 @@ class SyncCatalogDefaultTests(unittest.TestCase):
         }
 
         codex_herd.sync_catalog(fleet_models, prefs)
-        config = tomllib.loads(codex_herd.PROFILE.read_text())
+        config = read_profile(codex_herd.PROFILE)
         self.assertEqual(config["developer_instructions"], 'Use `exec_command`; say "done". ☃')
 
         codex_herd.sync_catalog(fleet_models, prefs, "second-model")
-        config = tomllib.loads(codex_herd.PROFILE.read_text())
+        config = read_profile(codex_herd.PROFILE)
         self.assertEqual(config["developer_instructions"], "Inspect once, then implement.")
         self.assertEqual(prefs["default_model"], "available-model")
 
     def test_guidance_is_omitted_when_unset_and_invalid_value_preserves_generated_files(self):
         prefs = {"default_model": "available-model", "models": {}}
         codex_herd.sync_catalog(models(), prefs)
-        config = tomllib.loads(codex_herd.PROFILE.read_text())
+        config = read_profile(codex_herd.PROFILE)
         self.assertNotIn("developer_instructions", config)
 
         generated = {
@@ -123,7 +131,7 @@ class SyncCatalogDefaultTests(unittest.TestCase):
             codex_herd.read_prefs()["models"]["available-model"]["developer_instructions"],
             "Use only exec_command; implement and verify.",
         )
-        saved = tomllib.loads(codex_herd.PROFILE.read_text())
+        saved = read_profile(codex_herd.PROFILE)
         self.assertEqual(
             saved["developer_instructions"],
             "Use only exec_command; implement and verify.",
@@ -133,7 +141,7 @@ class SyncCatalogDefaultTests(unittest.TestCase):
         with mock.patch.object(codex_herd.sys, "stdin", inputs):
             codex_herd.configure("available-model", models(), prefs)
         self.assertNotIn("developer_instructions", codex_herd.read_prefs()["models"]["available-model"])
-        self.assertNotIn("developer_instructions", tomllib.loads(codex_herd.PROFILE.read_text()))
+        self.assertNotIn("developer_instructions", read_profile(codex_herd.PROFILE))
 
 
 if __name__ == "__main__":
