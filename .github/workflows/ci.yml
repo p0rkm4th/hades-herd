@@ -21,4 +21,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m unittest discover -s tests -v
-      - run: python -m py_compile benchmarks/fixtures/mock_codex_tool_router.py benchmarks/fixtures/trace_codex_herd.py
+      - run: python -m py_compile benchmarks/fixtures/mock_codex_tool_router.py benchmarks/fixtures/trace_codex_herd.py benchmarks/fixtures/run_herd_route_tool_roundtrip.py
