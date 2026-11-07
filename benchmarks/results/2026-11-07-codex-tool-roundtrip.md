@@ -37,3 +37,5 @@ function, and the diagnostic was corrected. That initial invalid call is not
 counted as a pass.
 
 Reproduce using the steps in the [benchmark guide](../README.md#deterministic-codex-tool-router-check).
+The repository's 15-test client suite passed locally, and the Python 3.10–3.14
+CI matrix passed in [run 42416133189](https://github.com/p0rkm4th/hades-herd/actions/runs/42416133189).

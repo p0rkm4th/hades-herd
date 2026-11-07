@@ -55,7 +55,8 @@ of the migration is recorded below.
   request, and completed the turn. The paired invalid `read_file` case produced
   an unsupported-call result instead. This isolates Codex client behavior, not
   Herd or model behavior; see the
-  [round-trip evidence](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md).
+  [round-trip evidence](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md);
+  the 15-test local suite and [Python 3.10–3.14 CI](https://github.com/p0rkm4th/hades-herd/actions/runs/42416133189) passed.
 - Herd 0.12.3's no-inference translation check retained prior tool-call/result
   continuity and already adds turn-completion guidance when tools are offered.
   Repeated inspection therefore remains unexplained; truncation and model
