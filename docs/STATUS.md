@@ -39,6 +39,10 @@ of the migration is recorded below.
   leading explanation. The real backend call remains uncaptured.
   The no-inference translator check and sanitized trace are in the [evidence
   report](../benchmarks/results/2026-11-07-reliability-baseline.md).
+- Herd 0.12.3's no-inference translation check retained prior tool-call/result
+  continuity and already adds turn-completion guidance when tools are offered.
+  Repeated inspection therefore remains unexplained; truncation and model
+  behavior still need a real-run trace.
 - Codex reasoning controls are not yet demonstrated end-to-end through Herd's
   adapter. A controlled mock confirms Codex emits `reasoning.effort` only when
   the catalog advertises it and the profile selects it. A no-inference call to

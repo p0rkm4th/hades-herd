@@ -52,6 +52,14 @@ clones, event counts, and cleanup.
   call item was not captured, so this remains a probable rather than proven
   attribution. The reviewed implementation is Ollama Herd's
   [`v0.12.3` Responses translator](https://github.com/geeks-accelerator/ollama-herd/blob/v0.12.3/src/fleet_manager/server/responses_translator.py).
+- A separate no-inference translation check showed that a prior Codex
+  `function_call` and its matching `function_call_output` become an assistant
+  tool call and a tool message with the same call ID and unchanged result
+  content. With tools present, Herd also appends its existing turn-completion
+  guidance to the system message. This lowers the likelihood of lost tool
+  results or absent preamble guidance as causes for repeated inspection or
+  missing final turns, but does not rule out truncation, compaction, or model
+  behavior in a real run.
 - A read-only source audit of Herd 0.12.3 found that the Responses route
   translates and stores the incoming tool definitions in the request body;
   the streaming path retains that body for Ollama. Herd has targeted repairs
