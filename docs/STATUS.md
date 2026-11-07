@@ -50,6 +50,12 @@ of the migration is recorded below.
   expanded, and ordinary callable tools and basic call/result history are
   translated. This does not explain the historical `read_file` event; see the
   [tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md).
+- A deterministic loopback check with Codex CLI 0.166.0 completed one valid
+  advertised `exec_command` call, returned its matching tool result on the next
+  request, and completed the turn. The paired invalid `read_file` case produced
+  an unsupported-call result instead. This isolates Codex client behavior, not
+  Herd or model behavior; see the
+  [round-trip evidence](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md).
 - Herd 0.12.3's no-inference translation check retained prior tool-call/result
   continuity and already adds turn-completion guidance when tools are offered.
   Repeated inspection therefore remains unexplained; truncation and model

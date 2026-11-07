@@ -32,8 +32,13 @@
    tools with a warning; it expands Codex's default `functions` namespace and
    has explicit tool-result continuity translation. Do not treat the hosted-tool
    drop as accidental loss of shell tools. The historical invalid `read_file`
-   source and live inspection/final-turn stalls remain unresolved. See the
-   [sanitized tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md).
+   source and live inspection/final-turn stalls remain unresolved. Codex 0.166.0
+   passes the deterministic valid `exec_command` round trip against a loopback
+   mock, while rejecting the separate unadvertised `read_file` call. Compare
+   that result against a bounded, isolated Herd route before changing the
+   client or server. See the
+   [tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md)
+   and [Codex round-trip result](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md).
    Make further changes only against a reproduced cause; do not infer general
    improvement from a single paired task.
 

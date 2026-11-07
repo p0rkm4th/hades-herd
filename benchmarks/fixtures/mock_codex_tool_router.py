@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Loopback-only deterministic Codex Responses tool-router diagnostic."""
+"""Loopback-only deterministic Codex Responses tool-router diagnostics.
+
+``unsupported-call`` returns an unadvertised ``read_file`` call.
+``tool-roundtrip`` returns a harmless call to the advertised ``exec_command``
+and verifies the matching tool result returns on the next request.
+"""
 import argparse
 import json
 import time
@@ -16,8 +21,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status); self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
     @staticmethod
-    def event(name, seq, **fields):
-        return f"event: {name}\ndata: {json.dumps({'type': name, 'sequence_number': seq, **fields}, separators=(',', ':'))}\n\n"
+    def event(event_type, seq, **fields):
+        return f"event: {event_type}\ndata: {json.dumps({'type': event_type, 'sequence_number': seq, **fields}, separators=(',', ':'))}\n\n"
     def stream(self, events):
         body = "".join(events).encode()
         self.send_response(200); self.send_header("Content-Type", "text/event-stream")
@@ -40,7 +45,15 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/v1/responses":
             self.send_json(404, {"error": "not found"}); return
         req = json.loads(data); Handler.calls += 1
+        input_items = [x for x in req.get("input", []) if isinstance(x, dict)]
         tools = [x for x in req.get("tools", []) if isinstance(x, dict)]
+        tools.extend(
+            tool
+            for item in input_items
+            if item.get("type") == "additional_tools"
+            for tool in item.get("tools", [])
+            if isinstance(tool, dict)
+        )
         names = set()
         for tool in tools:
             if tool.get("name"):
@@ -48,6 +61,18 @@ class Handler(BaseHTTPRequestHandler):
             for nested in tool.get("tools", []):
                 if isinstance(nested, dict) and nested.get("name"):
                     names.add(nested["name"])
+        matching_result = next((
+            x for x in input_items
+            if x.get("type") in ("function_call_output", "custom_tool_call_output")
+            and x.get("call_id") == "call_1"
+        ), None)
+        matching_tool_result = matching_result is not None
+        matching_result_unsupported = bool(
+            matching_result and "unsupported" in str(matching_result.get("output", "")).lower()
+        )
+        matching_result_has_marker = bool(
+            matching_result and "tool-roundtrip-ok" in str(matching_result.get("output", ""))
+        )
         tool_shapes = [
             {
                 "type": tool.get("type"),
@@ -64,6 +89,16 @@ class Handler(BaseHTTPRequestHandler):
             "request_number": Handler.calls, "tool_names": sorted(names),
             "tool_shapes": tool_shapes,
             "read_file_advertised": "read_file" in names,
+            "exec_advertised": "exec" in names,
+            "exec_command_advertised": "exec_command" in names,
+            "input_item_types": sorted({x.get("type", "message") for x in input_items}),
+            "tool_result_count": sum(
+                x.get("type") in ("function_call_output", "custom_tool_call_output")
+                for x in input_items
+            ),
+            "matching_call_1_result_present": matching_tool_result,
+            "matching_call_1_result_unsupported": matching_result_unsupported,
+            "matching_call_1_result_has_marker": matching_result_has_marker,
             "reasoning_effort": req.get("reasoning", {}).get("effort")
                 if isinstance(req.get("reasoning"), dict) else None,
             "think_field_present": "think" in req,
@@ -77,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
         })
         self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
         now = int(time.time()); rid = f"resp_{Handler.calls}"
-        if Handler.calls == 1:
+        if self.server.scenario == "unsupported-call" and Handler.calls == 1:
             args = '{"path":"README.md"}'
             item = {"id": "fc_1", "type": "function_call", "status": "completed",
                 "call_id": "call_1", "name": "read_file", "arguments": args}
@@ -89,8 +124,42 @@ class Handler(BaseHTTPRequestHandler):
                 self.event("response.function_call_arguments.done", 3, output_index=0, item_id="fc_1", arguments=args),
                 self.event("response.output_item.done", 4, output_index=0, item=item),
             ]
+        elif self.server.scenario == "tool-roundtrip" and Handler.calls == 1:
+            if "exec_command" in names:
+                args = json.dumps({"cmd": "printf tool-roundtrip-ok"})
+                call = {
+                    "id": "fc_1", "type": "function_call", "status": "completed",
+                    "call_id": "call_1", "name": "exec_command", "arguments": args,
+                }
+                call_events = [
+                    self.event("response.function_call_arguments.delta", 2, output_index=0, item_id="fc_1", delta=args),
+                    self.event("response.function_call_arguments.done", 3, output_index=0, item_id="fc_1", name="exec_command", arguments=args),
+                ]
+            else:
+                call = {
+                    "id": "fc_1", "type": "function_call", "status": "completed",
+                    "call_id": "call_1", "name": "unadvertised_diagnostic_tool",
+                    "arguments": "{}",
+                }
+                call_events = [
+                    self.event("response.function_call_arguments.delta", 2, output_index=0, item_id="fc_1", delta="{}"),
+                    self.event("response.function_call_arguments.done", 3, output_index=0, item_id="fc_1", name=call["name"], arguments="{}"),
+                ]
+            output = [call]
+            events = [
+                self.event("response.created", 0, response={"id": rid, "object": "response", "status": "in_progress", "created_at": now, "model": MODEL, "output": []}),
+                self.event("response.output_item.added", 1, output_index=0, item={**call, "arguments": "", "status": "in_progress"}),
+                *call_events,
+                self.event("response.output_item.done", 4, output_index=0, item=call),
+            ]
         else:
-            text = "Diagnostic complete."
+            text = (
+                "Tool round trip complete."
+                if self.server.scenario == "tool-roundtrip" and matching_tool_result
+                else "Tool-result continuation missing."
+                if self.server.scenario == "tool-roundtrip"
+                else "Diagnostic complete."
+            )
             item = {"id": "msg_2", "type": "message", "status": "completed", "role": "assistant",
                 "content": [{"type": "output_text", "text": text, "annotations": []}]}
             output = [item]
@@ -111,8 +180,10 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--capture", type=Path, default=Path("/tmp/codex-tool-router-capture.json"))
+    p.add_argument("--scenario", choices=("unsupported-call", "tool-roundtrip"), default="unsupported-call")
     args = p.parse_args()
     server = HTTPServer(("127.0.0.1", args.port), Handler)
+    server.scenario = args.scenario
     server.capture_path = args.capture; server.capture = {"requests": []}
     print(f"Loopback mock Herd: http://127.0.0.1:{server.server_port}", flush=True)
     print(f"Sanitized request summary: {server.capture_path}", flush=True)

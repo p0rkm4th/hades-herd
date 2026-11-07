@@ -68,6 +68,24 @@ of a function name that was not advertised. It does not prove what a real model
 emitted or whether Herd's output translator caused that name; use an Ollama-side
 request/response trace to establish that.
 
+To test a valid tool round trip with the installed Codex CLI, start the same
+fixture with `--scenario tool-roundtrip` and use a fresh isolated Codex home:
+
+```sh
+python3 benchmarks/fixtures/mock_codex_tool_router.py \
+  --scenario tool-roundtrip --port 8765 \
+  --capture /tmp/codex-tool-roundtrip-summary.json
+```
+
+Then run Codex against that loopback endpoint as above, changing the task to
+`Use exec_command once; then confirm it completed.` The mock answers with the
+advertised `exec_command` function and a harmless `printf` command. A pass has
+two Responses requests, a matching `function_call_output` for `call_1` without
+an unsupported-call marker, and a completed Codex turn. The summary records
+only tool names/types and result-presence booleans, not command output or raw
+schemas. This isolates Codex's tool execution and continuation; it does not
+exercise Herd or a model.
+
 For reasoning experiments, the fixture records only the scalar
 `reasoning.effort` and whether a `think` field is present. The committed client
 catalog intentionally advertises no effort levels until the server mapping is
