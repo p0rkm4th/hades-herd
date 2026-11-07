@@ -67,7 +67,7 @@ of the migration is recorded below.
 - An isolated, un-deployed Herd 0.12.3 patch carries explicit Codex effort
   through translation, checks the selected backend's `/api/show`, and forwards
   only an exact advertised string as Ollama `think`; unsupported requests fail
-  visibly. The upstream full suite passed 1,993 tests (5 skipped), with 99
+  visibly. The upstream full suite passed 1,994 tests (5 skipped), with 99
   focused tests passing. Source Ruff/format checks passed. A bounded live check
   through the patched in-process router verified `reasoning.effort: "low"`
   became `think: "low"` on Nyx `/api/chat`; the Responses stream completed in
@@ -106,6 +106,12 @@ of the migration is recorded below.
   hardware change, or production route/default change is planned during this
   reliability phase.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
+- A no-inference preflight with installed Codex CLI 0.166.0 parsed an isolated
+  custom Responses provider and generated model catalog, then reached a local
+  stub endpoint. The attempt to advertise `supported_reasoning_levels` as plain
+  strings failed catalog validation; Codex expects structured effort presets.
+  No production profile or catalog was changed. Native `/model` reasoning
+  picker metadata remains unresolved.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
   string field with the standard library; the follow-up
