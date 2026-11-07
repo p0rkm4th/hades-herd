@@ -5,8 +5,8 @@
 1. Address source-review findings before collecting more model scores. A
    focused branch now fixes clean-install/default precedence, configured versus
    loaded context metadata, launcher subprocess coverage, repeated call
-   counting, and atomic model-isolated profile generation. Review and CI are
-   still pending.
+   counting, and atomic model-isolated profile generation. The 3.10–3.14 CI
+   matrix passed; independent PR review is pending.
 2. Capture sanitized Codex request/response metadata and identify the exact
    advertised tool list, attempted tool name, Herd translation, execution
    result, and tool-result continuation. **Partial evidence:** one live
