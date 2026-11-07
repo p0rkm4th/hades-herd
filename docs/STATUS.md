@@ -86,8 +86,10 @@ of the migration is recorded below.
   `codex-herd/show-thinking-controls` contains the capability display, tested
   upstream adapter patch, and MIT notice. The adapter-artifact commit `c4aca60`
   passed Python 3.10–3.14 CI in [run 42410262261](https://github.com/p0rkm4th/hades-herd/actions/runs/42410262261).
-  The live-check documentation update `e240346` also passed CI in
-  [run 42411177569](https://github.com/p0rkm4th/hades-herd/actions/runs/42411177569).
+  The output-cap patch commit `b11fbb6` passed CI in
+  [run 42411900091](https://github.com/p0rkm4th/hades-herd/actions/runs/42411900091);
+  live-check documentation commit `981c81b` passed in
+  [run 42412085746](https://github.com/p0rkm4th/hades-herd/actions/runs/42412085746).
   A pull request has not been opened: the connected GitHub integration returned
   HTTP 403 when asked to create it. The [branch comparison](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/show-thinking-controls?expand=1)
   is public for review.
