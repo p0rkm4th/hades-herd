@@ -48,6 +48,20 @@ clones, event counts, and cleanup.
   for a couple of known call patterns, but no general repair for arbitrary
   unknown tool names. This makes a model-emitted undeclared name plausible; the
   real Ollama response body was not captured, so this is not proven.
+- Reasoning control was tested with the same loopback mock and isolated Codex
+  home. The helper's generated catalog advertises no reasoning levels, and the
+  request carried neither `reasoning.effort` nor Ollama's `think` field. After
+  manually adding only `low` to that disposable model entry and selecting
+  `model_reasoning_effort = "low"` in its generated profile, Codex sent
+  `reasoning.effort: "low"`; it still did not send `think`. This proves the
+  client can emit the Responses field when its catalog advertises support, not
+  that Herd 0.12.3 forwards or maps it. The local Codex profile exposes no
+  control because Herd does not currently demonstrate that mapping. Codex's
+  [configuration reference](https://developers.openai.com/codex/config-reference)
+  documents `model_reasoning_effort`; Ollama's [thinking API](https://github.com/ollama/ollama/blob/main/docs/capabilities/thinking.mdx)
+  accepts a boolean or an exact model-supported level. A safe adapter change
+  would need to map only values confirmed by the selected model's metadata and
+  leave the default request unchanged.
 - Repeated reads may reflect model planning, task prompting, or context/state
   handling. Existing evidence does not identify the cause.
 - The installed Herd Responses adapter's Codex catalog advertises no reasoning

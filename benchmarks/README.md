@@ -37,9 +37,10 @@ for a concise baseline.
 `fixtures/mock_codex_tool_router.py` is a loopback-only mock for separating a
 Codex tool-router rejection from real model behavior. It advertises one mock
 model and returns an undeclared `read_file` function call, followed by a normal
-final response. It records only the tool names Codex advertised and whether
-Codex sent an unsupported-call output; it does not save prompts or full tool
-schemas.
+final response. It records only the tool names Codex advertised, whether
+Codex sent an unsupported-call output, the scalar `reasoning.effort`, and
+whether a `think` field was present. It does not save prompts, full tool
+schemas, or other request fields.
 It never contacts Herd or an Ollama backend.
 
 Run the mock in one terminal:

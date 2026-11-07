@@ -44,6 +44,9 @@ class Handler(BaseHTTPRequestHandler):
         self.server.capture["requests"].append({
             "request_number": Handler.calls, "tool_names": names,
             "read_file_advertised": "read_file" in names,
+            "reasoning_effort": req.get("reasoning", {}).get("effort")
+                if isinstance(req.get("reasoning"), dict) else None,
+            "think_field_present": "think" in req,
             "rejected_call_result_present": any(
                 x.get("type") == "function_call_output" and x.get("call_id") == "call_1"
                 for x in req.get("input", []) if isinstance(x, dict)),
