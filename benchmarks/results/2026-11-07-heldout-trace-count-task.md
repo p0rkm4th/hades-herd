@@ -20,12 +20,12 @@ retries. An external 180-second process timeout bounded the run.
 
 ## Result
 
-Codex exited 124 at the 180-second cap. Its event stream contained four
-completed shell-command items, no function-call items, no source edits, and no
-`turn.completed` event. The held-out worktree's tracked diff remained empty.
-No independent implementation tests were applicable because no patch was
-produced. The model appeared to make limited repository inspection without
-progressing to implementation; this is consistent with earlier traces but does
+Codex exited 124 at the 180-second cap after executing four shell commands
+(three file-reading commands and one Python command). The event stream had no
+source edits or `turn.completed` event, and the held-out worktree's tracked diff
+remained empty. No independent implementation tests were applicable because no
+patch was produced. The model used its shell tool for limited repository
+inspection without progressing to implementation; this is consistent with earlier traces but does
 not identify the cause or establish a general model limitation.
 
 Classify this as incomplete/no-progress diagnostic evidence, excluded from
