@@ -38,7 +38,7 @@ of the migration is recorded below.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
   string field with the standard library; the follow-up
-  [matrix run passed Python 3.10–3.14](https://github.com/p0rkm4th/hades-herd/actions/runs/42402247981).
+  [matrix run passed Python 3.10–3.14](https://github.com/p0rkm4th/hades-herd/actions/runs/42402317435).
 
 ## Current decision
 
