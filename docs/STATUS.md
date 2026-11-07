@@ -17,7 +17,7 @@ model; the launcher has a subprocess smoke test; and trace metadata counts
 distinct same-name tool calls without persisting call IDs. Local test suite:
 19 tests pass on Python 3.10 and 3.14, including a clean-home fake-Herd/fake-Codex
 launch. GitHub Actions passed the full configured matrix in
-[run 42420220912](https://github.com/p0rkm4th/hades-herd/actions/runs/42420220912).
+[run 42420280034](https://github.com/p0rkm4th/hades-herd/actions/runs/42420280034).
 This branch is not yet merged or deployed, and no live Herd profile behavior
 was changed.
 
