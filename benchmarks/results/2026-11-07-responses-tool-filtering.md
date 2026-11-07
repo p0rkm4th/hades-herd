@@ -38,9 +38,11 @@ what happened in the earlier historical `read_file` trace.
 - Relevant implementation: `src/fleet_manager/server/responses_translator.py`,
   `_expand_default_namespace`, `_tools_to_openai`, `responses_to_openai_body`,
   and `responses_input_to_messages`.
-- Existing upstream tests cover hosted-tool removal, warning visibility,
-  default-namespace exposure, and tool-call/result continuity in
-  `tests/test_server/test_responses_translator.py`.
+- The upstream translator and route modules passed **65 tests** in a disposable
+  Python 3.13.14 / pytest 9.2.0 environment:
+  `pytest -q tests/test_server/test_responses_translator.py tests/test_server/test_responses_route.py`.
+  This includes hosted-tool removal, warning visibility, default-namespace
+  exposure, and tool-call/result continuity.
 - Direct import-level checks against the inspected source confirmed that a
   Codex request containing `exec_command` plus `web_search` becomes an Ollama
   request retaining `exec_command`; an Ollama `exec_command` result becomes a
@@ -50,9 +52,9 @@ what happened in the earlier historical `read_file` trace.
   logs remain private. No raw prompts, arguments, messages, hostnames, or LAN
   details are included here.
 
-The exact upstream pytest cases were inspected but not rerun in this check
-because the local Python environment lacks Herd's test dependencies. This is
-source and direct-function evidence, not a new full-suite run.
+No Herd source was modified. This focused upstream suite and direct function
+check do not constitute a full Herd suite or a live HTTP route test with a
+mock Ollama backend.
 
 ## Next diagnostic
 

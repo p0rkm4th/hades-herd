@@ -50,6 +50,9 @@ of the migration is recorded below.
   expanded, and ordinary callable tools and basic call/result history are
   translated. This does not explain the historical `read_file` event; see the
   [tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md).
+  Focused upstream Herd v0.12.3 Responses translator and route modules passed
+  65 tests in a disposable environment; this is not a full suite or live route
+  test with a mock Ollama backend.
 - A deterministic loopback check with Codex CLI 0.166.0 completed one valid
   advertised `exec_command` call, returned its matching tool result on the next
   request, and completed the turn. The paired invalid `read_file` case produced
