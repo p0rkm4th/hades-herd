@@ -28,6 +28,12 @@ of the migration is recorded below.
   edits; the Qwen run made two shell calls and generated near 11 tokens/s.
   These results point to an execution/progress problem on this task, not a
   general intelligence ranking.
+- A one-variable MiMo retry added a two-command inspection cap and required an
+  edit within those calls. It also timed out at 180 seconds, making 22 shell
+  calls (21 unique; one repeated twice), with no edits. The focused baseline
+  passed 15 tests. This prompt-only intervention did not resolve the issue;
+  the fixture is retired from further retries. It is diagnostic evidence, not
+  a model-quality score.
 - Qwen3.8 has successful task-specific 8K registry and multi-file results, but
   many distinct 16K Codex attempts did not complete a full agent turn.
 - Earlier traces include unsupported `read_file` attempts, repeated source
@@ -52,6 +58,8 @@ of the migration is recorded below.
   evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
 - Commit `d6692c2` passed fixture syntax and Python 3.10–3.14 tests in
   [CI run 42403984189](https://github.com/p0rkm4th/hades-herd/actions/runs/42403984189).
+- The latest main commit before this status refresh is `0529333`; follow-up CI
+  status is linked with the commit and the GitHub Actions history.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
