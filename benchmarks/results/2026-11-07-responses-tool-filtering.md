@@ -41,8 +41,11 @@ what happened in the earlier historical `read_file` trace.
 - Existing upstream tests cover hosted-tool removal, warning visibility,
   default-namespace exposure, and tool-call/result continuity in
   `tests/test_server/test_responses_translator.py`.
-- A direct import-level check against the inspected source confirmed the hosted
-  tool is absent from the Ollama request while `exec_command` remains.
+- Direct import-level checks against the inspected source confirmed that a
+  Codex request containing `exec_command` plus `web_search` becomes an Ollama
+  request retaining `exec_command`; an Ollama `exec_command` result becomes a
+  Responses `function_call`; and the next Responses call/result pair maps back
+  to Ollama messages with the same call ID and a completed response event.
 - The prior isolated task log reported a `web_search` drop, but its raw router
   logs remain private. No raw prompts, arguments, messages, hostnames, or LAN
   details are included here.
