@@ -36,9 +36,9 @@ of the migration is recorded below.
   adapter. Do not claim `reasoning.effort` or Ollama `think` settings apply.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
-  3.10 because the tests imported `tomllib`. The tests now parse only the
-  generated string field with standard-library JSON decoding; a follow-up CI
-  run is pending.
+  3.10 because the tests imported `tomllib`. The tests now decode the generated
+  string field with the standard library; the follow-up
+  [matrix run passed Python 3.10–3.14](https://github.com/p0rkm4th/hades-herd/actions/runs/42402247981).
 
 ## Current decision
 
