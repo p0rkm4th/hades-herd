@@ -43,9 +43,9 @@ of the migration is recorded below.
   the catalog advertises it and the profile selects it. The default generated
   catalog advertises none; Herd-to-Ollama mapping is unverified, so no user
   control is enabled. The probe is recorded in the [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
-- Fixture syntax and Python 3.10–3.14 tests passed in
-  [CI run 42403502154](https://github.com/p0rkm4th/hades-herd/actions/runs/42403502154)
-  on commit `1f2d3f7`.
+- Latest commit `3bd1f8f` passed the fixture syntax check and Python
+  3.10–3.14 tests in
+  [CI run 42403927973](https://github.com/p0rkm4th/hades-herd/actions/runs/42403927973).
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
