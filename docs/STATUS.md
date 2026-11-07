@@ -44,6 +44,12 @@ of the migration is recorded below.
   unsupported-call error, so the historical event's origin is still unproven.
   Herd's translator preserves unknown Ollama tool names unchanged. See the
   [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
+- Investigation of the logged `web_search` drop found it is intentional in
+  Herd 0.12.3: hosted search/file/MCP tools have no Ollama implementation and
+  are removed with a warning. The default Codex `functions` namespace is
+  expanded, and ordinary callable tools and basic call/result history are
+  translated. This does not explain the historical `read_file` event; see the
+  [tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md).
 - Herd 0.12.3's no-inference translation check retained prior tool-call/result
   continuity and already adds turn-completion guidance when tools are offered.
   Repeated inspection therefore remains unexplained; truncation and model

@@ -27,8 +27,13 @@
    See the
    [patch notes](https://github.com/p0rkm4th/hades-herd/blob/codex-herd/show-thinking-controls/patches/README.md) and
    [sanitized task evidence](../benchmarks/results/2026-11-07-adapter-coding-task-pair.md).
-6. Continue reliability diagnosis: inspect the dropped `web_search` metadata,
-   classify invalid tool calls, and trace repeated inspection/final-turn stalls.
+6. Classify invalid tool calls and trace repeated inspection/final-turn stalls.
+   **Finding:** Herd v0.12.3 intentionally drops hosted `web_search`/`file_search`
+   tools with a warning; it expands Codex's default `functions` namespace and
+   has explicit tool-result continuity translation. Do not treat the hosted-tool
+   drop as accidental loss of shell tools. The historical invalid `read_file`
+   source and live inspection/final-turn stalls remain unresolved. See the
+   [sanitized tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md).
    Make further changes only against a reproduced cause; do not infer general
    improvement from a single paired task.
 
