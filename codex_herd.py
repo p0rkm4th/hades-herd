@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -115,6 +116,13 @@ def write_json(path: Path, value: object) -> None:
             os.unlink(tmp)
 
 
+def model_profile_paths(name: str) -> tuple[str, Path, Path]:
+    """Return isolated Codex profile/catalog paths for one model session."""
+    suffix = hashlib.sha256(name.encode("utf-8")).hexdigest()[:12]
+    profile_name = f"herd-{suffix}"
+    return profile_name, CODEX_HOME / f"{profile_name}.config.toml", CODEX_HOME / f"model-catalog-{suffix}.json"
+
+
 def read_prefs() -> dict:
     if not PREFS.exists():
         return {"default_model": None, "models": {}}
@@ -209,9 +217,30 @@ def fetch() -> tuple[dict[str, dict], dict]:
 def codex_entry(model: dict, prefs: dict) -> dict:
     name = model["name"]
     live_contexts = [x["context_length"] for x in model["loaded"] if x.get("context_length")]
-    metadata_context = min(live_contexts) if live_contexts else 4096
     override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
-    context = override or metadata_context
+    configured_contexts = []
+    for node_id in model.get("online_nodes", []):
+        parameters = model.get("model_parameters", {}).get(node_id, "")
+        if isinstance(parameters, str):
+            for line in parameters.splitlines():
+                key, _, value = line.partition(" ")
+                if key == "num_ctx" and value.strip().isdigit():
+                    configured_contexts.append(int(value.strip()))
+                    break
+        elif isinstance(parameters, dict):
+            value = parameters.get("num_ctx")
+            if isinstance(value, int) and value > 0:
+                configured_contexts.append(value)
+    online_nodes = set(model.get("online_nodes", []))
+    loaded_nodes = {item.get("node") for item in model.get("loaded", []) if item.get("context_length")}
+    if override:
+        context, context_source = override, "user override"
+    elif live_contexts and online_nodes and online_nodes <= loaded_nodes:
+        context, context_source = min(live_contexts), "loaded allocation on all online nodes"
+    elif online_nodes and len(configured_contexts) == len(online_nodes):
+        context, context_source = min(configured_contexts), "Ollama configured num_ctx on all online nodes"
+    else:
+        context, context_source = 4096, "unverified safe fallback"
     modalities = ["text"]
     if "vision" in model["capabilities"]:
         modalities.append("image")
@@ -219,6 +248,7 @@ def codex_entry(model: dict, prefs: dict) -> dict:
         "slug": name,
         "display_name": name,
         "context_window": context,
+        "context_source": context_source,
         "shell_type": "default",
         "visibility": "list",
         "supported_in_api": True,
@@ -262,10 +292,10 @@ def sync_catalog(models: dict[str, dict], prefs: dict, default: str | None = Non
     if not selectable:
         raise HerdError("Herd returned no non-embedding tool-capable models")
     saved_default = prefs.get("default_model")
-    if saved_default is None:
-        default = selectable[0]["name"]
-    elif default is None:
-        default = saved_default
+    online_defaults = sorted(m["name"] for m in selectable if m["online_nodes"])
+    default_candidates = online_defaults or sorted(m["name"] for m in selectable)
+    if default is None:
+        default = saved_default or default_candidates[0]
     if default not in {m["name"] for m in selectable}:
         raise HerdError(
             f"Saved default_model {default!r} is no longer selectable. "
@@ -280,10 +310,12 @@ def sync_catalog(models: dict[str, dict], prefs: dict, default: str | None = Non
         else ""
     )
     CODEX_HOME.mkdir(parents=True, exist_ok=True)
-    write_json(CATALOG, {"models": [codex_entry(m, prefs) for m in sorted(selectable, key=lambda x: x["name"])]})
+    _, profile_path, catalog_path = model_profile_paths(default)
+    catalog_models = [codex_entry(m, prefs) for m in sorted(selectable, key=lambda x: x["name"])]
+    write_json(catalog_path, {"models": [{k: v for k, v in entry.items() if k != "context_source"} for entry in catalog_models]})
     config = f'''model = {json.dumps(default)}
 model_provider = "herd"
-model_catalog_json = {json.dumps(str(CATALOG))}
+model_catalog_json = {json.dumps(str(catalog_path))}
 {instruction_block}
 
 [model_providers.herd]
@@ -299,9 +331,24 @@ stream_max_retries = 0
 [model_providers.herd.http_headers]
 "X-Fleet-No-Fallback" = "true"
 '''
-    PROFILE.write_text(config)
-    os.chmod(PROFILE, 0o600)
+    atomic_write_text(profile_path, config)
     write_json(INVENTORY, {"endpoint": base, "models": models})
+    if saved_default is None and default == default_candidates[0]:
+        prefs["default_model"] = default
+        write_json(PREFS, prefs)
+
+
+def atomic_write_text(path: Path, value: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as out:
+            out.write(value)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
 
 
 def eligible(name: str, models: dict[str, dict]) -> dict:
@@ -327,7 +374,8 @@ def display_list(models: dict[str, dict], prefs: dict, fleet: dict) -> None:
         loaded = ", ".join(f"{x['node']} ({x.get('context_length', '?'):,} ctx)" for x in m["loaded"]) or "unloaded"
         override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
         contexts = [x["context_length"] for x in m["loaded"] if x.get("context_length")]
-        codex_ctx = str(override or (min(contexts) if contexts else "4,096 safe fallback"))
+        entry = codex_entry(m, prefs)
+        codex_ctx = f"{entry['context_window']:,} ({entry['context_source']})"
         availability = "online" if m["online_nodes"] else "offline"
         tools = (f"{m['tool_status']} ({m['tool_status_detail']})" if m["tool_status"] == "mixed" else m["tool_status"]) if m["tool_capable"] else ("embedding" if m["embedding_only"] else "not advertised")
         max_context = f"{m['model_context_window']:,}" if m["model_context_window"] else "unknown"
@@ -459,9 +507,10 @@ def configure(name: str, models: dict[str, dict], prefs: dict) -> None:
 def launch(name: str, args: list[str], models: dict[str, dict], prefs: dict) -> int:
     eligible(name, models)
     sync_catalog(models, prefs, name)
+    profile_name, _, _ = model_profile_paths(name)
     env = os.environ.copy()
     env["CODEX_HOME"] = str(CODEX_HOME)
-    os.execvpe("codex", ["codex", "--no-daemon", "--profile", "herd", "--model", name, "--config", 'model_provider="herd"', *args], env)
+    os.execvpe("codex", ["codex", "--no-daemon", "--profile", profile_name, "--model", name, "--config", 'model_provider="herd"', *args], env)
     return 127
 
 
@@ -473,7 +522,16 @@ def main(argv: list[str]) -> int:
         models, fleet = fetch()
         prefs = read_prefs()
         if not argv or argv[0] == "--":
-            name = prefs.get("default_model")
+            selectable = sorted(
+                m["name"] for m in models.values()
+                if not m["embedding_only"] and m["tool_capable"] and m["online_nodes"]
+            )
+            name = prefs.get("default_model") or (selectable[0] if selectable else None)
+            if name is None:
+                raise HerdError("Herd returned no online Codex-eligible models")
+            if prefs.get("default_model") is None:
+                prefs["default_model"] = name
+                write_json(PREFS, prefs)
             return launch(name, argv[1:] if argv[:1] == ["--"] else [], models, prefs)
         command = argv[0]
         if command == "list":

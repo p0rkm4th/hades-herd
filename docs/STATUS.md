@@ -6,6 +6,18 @@ workstation launcher now uses this checkout as its canonical source. The live
 endpoint and digest evidence remain in local user configuration. Verification
 of the migration is recorded below.
 
+## Code-review fixes in progress
+
+On branch `codex-herd/review-launcher-context` based on reviewed `main` at
+`19396a2`: clean-install launches now resolve and save an online default;
+explicit model selection takes precedence over a saved default; Codex context
+uses complete online-host `num_ctx` configuration when unloaded and otherwise
+labels the safe fallback; profile/catalog files are atomic and isolated by
+model; the launcher has a subprocess smoke test; and trace metadata counts
+distinct same-name tool calls without persisting call IDs. Local test suite:
+19 tests pass, including a clean-home fake-Herd/fake-Codex launch. This branch
+is not yet merged or deployed, and no live Herd profile behavior was changed.
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
