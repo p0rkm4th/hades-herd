@@ -55,8 +55,9 @@ of the migration is recorded below.
   `think` while retaining messages and tools. The actual downstream HTTP body
   was not intercepted; no client control is enabled. See the [sanitized
   evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
-- Commit `3ede06d` passed fixture syntax and Python 3.10–3.14 tests in
-  [CI run 42406780108](https://github.com/p0rkm4th/hades-herd/actions/runs/42406780108).
+- Latest published diagnostic commit is `d17c55b`; CI passed the Python
+  3.10–3.14 matrix and fixture syntax in
+  [run 42408427998](https://github.com/p0rkm4th/hades-herd/actions/runs/42408427998).
 - The loopback trace proxy passed a real bounded Codex/Herd run. It observed 30
   successful Responses calls before the 180-second timeout and 27 unique shell
   calls, with no code edits. Sixteen requests carried nine tool entries; 14
