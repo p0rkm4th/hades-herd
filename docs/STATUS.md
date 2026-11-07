@@ -86,8 +86,9 @@ the mock turn; see the [sanitized profile smoke result](../benchmarks/results/20
 - An offline reconciliation of this run found 27 completed Codex
   `command_execution` events versus 21 Responses `function_call` items. The
   streams lack a shared correlation key, so six events remain unexplained;
-  future traces need timestamped sanitized indices before associating
-  empty-tool responses with executed commands.
+  a timestamped metadata-only Codex event capture and proxy request/response
+  timestamps are now implemented and tested. They have not yet been exercised
+  in a live model run.
 - The owner-provided model study is summarized in the [model matrix](MODEL_MATRIX.md).
   Published scores remain directional only; no offload experiment, model pull,
   hardware change, or production route/default change is planned during this

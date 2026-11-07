@@ -155,8 +155,10 @@ event stream contains command text that is intentionally not published. All
 `tools` as the array of tools the model may call ([official reference](https://developers.openai.com/api/reference/cli/resources/responses/methods/create)).
 Five of their responses contained an `exec_command` item, but the count
 mismatch means we cannot establish which calls corresponded to executed shell
-commands. Future live traces need a timestamped, sanitized cross-stream event
-index before interpreting this relationship.
+commands. The review branch now adds monotonic request/response timestamps to
+the proxy and a process-group-bounded Codex JSONL capture helper that stores raw
+streams privately and emits a content-free event timeline. This instrumentation
+has passed offline tests but has not yet been used in a live model run.
 
 This run does not reproduce the historical unsupported `read_file` event and
 does not explain why the task stalled. In particular, it does not prove that

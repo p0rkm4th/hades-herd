@@ -16,9 +16,10 @@
    narrows the wire behavior but does not explain the prior rejection or task
    stalls. See the [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
    An offline reconciliation found 27 completed Codex command events but only
-   21 Responses function-call items; add a timestamped sanitized event index
-   to the next live capture before associating tool-less responses with
-   executed commands.
+   21 Responses function-call items. A process-group-bounded Codex event
+   capture helper and proxy monotonic timestamps are now tested offline; next,
+   use them on one distinct bounded coding task and reconcile the event streams
+   before associating tool-less responses with executed commands.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior
