@@ -24,8 +24,8 @@ from pathlib import Path
 from typing import Any
 
 MODEL = "mock-codex:latest"
-MARKER = "tool-roundtrip-ok"
-TOOL_CALL_ID = "codex-herd-roundtrip-1"
+MARKERS = ("route-step-one-ok", "route-step-two-ok")
+TOOL_CALL_IDS = ("codex-herd-roundtrip-1", "codex-herd-roundtrip-2")
 
 
 def _mock_ollama_handler(calls: list[dict[str, Any]]):
@@ -56,7 +56,15 @@ def _mock_ollama_handler(calls: list[dict[str, Any]]):
                 tool_results.append(
                     {
                         "call_id": message.get("tool_call_id"),
-                        "marker_present": MARKER in str(message.get("content", "")),
+                        "marker_present": any(
+                            marker in str(message.get("content", ""))
+                            for marker in MARKERS
+                        ),
+                        "content_markers": [
+                            marker
+                            for marker in MARKERS
+                            if marker in str(message.get("content", ""))
+                        ],
                     }
                 )
         tool_names = sorted(
@@ -72,16 +80,17 @@ def _mock_ollama_handler(calls: list[dict[str, Any]]):
             }
         )
 
-        if len(calls) == 1:
+        if len(calls) in (1, 2):
+            step = len(calls) - 1
             chunks = [
                 {
                     "message": {
                         "tool_calls": [
                             {
-                                "id": TOOL_CALL_ID,
+                                "id": TOOL_CALL_IDS[step],
                                 "function": {
                                     "name": "exec_command",
-                                    "arguments": {"cmd": f"printf {MARKER}"},
+                                    "arguments": {"cmd": f"printf {MARKERS[step]}"},
                                 },
                             }
                         ]
@@ -252,25 +261,63 @@ def run(herd_source: Path, client_source: Path, artifacts: Path, timeout: int) -
         )
         (artifacts / "exit-status.txt").write_text(f"{codex.returncode}\n")
 
+        expected_history = [
+            (
+                [
+                    {"id": call_id, "name": "exec_command"}
+                    for call_id in TOOL_CALL_IDS[:1]
+                ],
+                [
+                    {
+                        "call_id": TOOL_CALL_IDS[0],
+                        "marker_present": True,
+                        "content_markers": [MARKERS[0]],
+                    }
+                ],
+            ),
+            (
+                [{"id": call_id, "name": "exec_command"} for call_id in TOOL_CALL_IDS],
+                [
+                    {
+                        "call_id": TOOL_CALL_IDS[0],
+                        "marker_present": True,
+                        "content_markers": [MARKERS[0]],
+                    },
+                    {
+                        "call_id": TOOL_CALL_IDS[1],
+                        "marker_present": True,
+                        "content_markers": [MARKERS[1]],
+                    },
+                ],
+            ),
+        ]
         passed = (
             codex.returncode == 0
             and '"type":"turn.completed"' in output
-            and len(ollama_calls) == 2
+            and len(ollama_calls) == 3
             and "exec_command" in ollama_calls[0]["tool_names"]
-            and ollama_calls[1]["assistant_calls"]
-            == [{"id": TOOL_CALL_ID, "name": "exec_command"}]
-            and ollama_calls[1]["tool_results"]
-            == [{"call_id": TOOL_CALL_ID, "marker_present": True}]
+            and all(
+                ollama_calls[index + 1]["assistant_calls"] == assistant_calls
+                and ollama_calls[index + 1]["tool_results"] == tool_results
+                for index, (assistant_calls, tool_results) in enumerate(
+                    expected_history
+                )
+            )
         )
         print(
             f"Codex exit 0 and turn.completed: {'PASS' if codex.returncode == 0 and 'turn.completed' in output else 'FAIL'}"
         )
-        print(f"Herd calls to mock Ollama: {len(ollama_calls)} (expected 2)")
+        print(f"Herd calls to mock Ollama: {len(ollama_calls)} (expected 3)")
         print(
-            f"Advertised exec_command reached Ollama: {'PASS' if ollama_calls and 'exec_command' in ollama_calls[0]['tool_names'] else 'FAIL'}"
+            "exec_command advertised per backend call: "
+            + ", ".join(
+                "yes" if "exec_command" in call["tool_names"] else "no"
+                for call in ollama_calls
+            )
         )
         print(
-            f"Matching tool call/result ID and output returned: {'PASS' if len(ollama_calls) == 2 and ollama_calls[1]['assistant_calls'] == [{'id': TOOL_CALL_ID, 'name': 'exec_command'}] and ollama_calls[1]['tool_results'] == [{'call_id': TOOL_CALL_ID, 'marker_present': True}] else 'FAIL'}"
+            "Two matching tool call/result IDs and outputs returned: "
+            f"{'PASS' if len(ollama_calls) == 3 and all(ollama_calls[index + 1]['assistant_calls'] == assistant_calls and ollama_calls[index + 1]['tool_results'] == tool_results for index, (assistant_calls, tool_results) in enumerate(expected_history)) else 'FAIL'}"
         )
         print(f"Codex version: {codex_version}")
         print(f"Run artifacts: {artifacts}")

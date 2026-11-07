@@ -110,9 +110,11 @@ The fixture starts the upstream test app on loopback, registers one synthetic
 model, and attaches an `httpx.MockTransport` instead of contacting Ollama. It
 launches `codex-herd` with temporary HOME/CODEX_HOME, a read-only Codex
 sandbox, a 45-second process timeout, and an explicit loopback endpoint. The
-mock Ollama returns one advertised `exec_command` call, then verifies that
-Codex's second request contains the matching call/result ID and the fixed
-`printf` marker. It makes no model requests. The required artifact directory
+mock Ollama returns two sequential `exec_command` calls, then verifies that
+Codex's second and third requests contain the accumulated matching call/result
+IDs and fixed `printf` markers. It also reports whether each backend request
+carried the `exec_command` definition, to make empty-tool-list turns visible.
+It makes no model requests. The required artifact directory
 must not already exist; it contains Codex stdout/events, stderr, exit status,
 and a sanitized mock-backend summary. These files stay local and must be
 reviewed and sanitized before sharing. This covers the client, Herd Responses

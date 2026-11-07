@@ -60,10 +60,12 @@ of the migration is recorded below.
   Herd or model behavior; see the
   [round-trip evidence](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md);
   the 15-test local suite and [Python 3.10–3.14 CI](https://github.com/p0rkm4th/hades-herd/actions/runs/42416133189) passed.
-- The valid `exec_command` round trip also passed through Herd v0.12.3's actual
-  `/v1/responses` route and translator with a mock Ollama backend: call/result
-  IDs and output were preserved, and Codex completed. This rules out a general
-  route failure for that tool shape, not model behavior or every tool path. See
+- Two sequential `exec_command` calls also passed through Herd v0.12.3's actual
+  `/v1/responses` route and mock Ollama backend: accumulated call/result IDs and
+  both outputs were preserved, and Codex completed. All three backend requests
+  carried the tool definition in this deterministic run; empty tool arrays in
+  the separate live trace remain unexplained. This rules out a general route
+  failure for this shape, not model behavior or every tool path. See
   the [integrated route result](../benchmarks/results/2026-11-07-herd-route-tool-roundtrip.md).
 - Herd 0.12.3's no-inference translation check retained prior tool-call/result
   continuity and already adds turn-completion guidance when tools are offered.
