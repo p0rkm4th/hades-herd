@@ -37,13 +37,15 @@ implementation and test fixtures, all 27 tests passed independently and
 
 ## Trace reconciliation
 
-The new capture recorded 10 Responses `function_call` items named
-`exec_command` and 10 completed Codex `command_execution` events. The final
-request returned a message; Codex emitted `turn.completed`, and the process
-did not hit its timeout. All 11 Responses requests carried the nine-item tool
-catalog; none had an empty tool list. This shows the new timeline can reconcile
-a normal tool-using run exactly. It does not explain the empty-tool requests
-from the earlier HTTPie trace.
+The proxy observed 13 HTTP requests total: two discovery GETs (`/api/tags` and
+`/fleet/status`) followed by 11 `POST /v1/responses` requests. Each Responses
+request carried the nine-entry tool catalog (13 callable names including the
+nested namespace); none sent `tools: []`. The new capture recorded 10 Responses
+`function_call` items named `exec_command` and 10 completed Codex
+`command_execution` events. The final request returned a message; Codex emitted
+`turn.completed`, and the process did not hit its timeout. This shows the new
+timeline can reconcile a normal tool-using run exactly. It does not explain the
+empty-tool requests from the earlier HTTPie trace.
 
 Hecate was unloaded after the run; Herd reported 7/7 nodes online and idle. No
 production configuration changed. Raw events and stderr remain in private
