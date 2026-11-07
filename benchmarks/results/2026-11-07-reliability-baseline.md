@@ -62,6 +62,15 @@ clones, event counts, and cleanup.
   accepts a boolean or an exact model-supported level. A safe adapter change
   would need to map only values confirmed by the selected model's metadata and
   leave the default request unchanged.
+- A no-inference call to the installed Herd 0.12.3
+  `responses_to_openai_body` translator with a synthetic Responses request
+  confirmed the conversion boundary: the output retained the function tool
+  and message body, but had neither `reasoning` nor `think`. The route stores
+  this translated body for inference and the streaming path uses that body.
+  This localizes the missing control to Herd's Responses-to-chat translation;
+  the actual downstream `/api/chat` network body was not intercepted. The
+  unsupported `read_file` response remains a separate question: no event trace
+  captured the real model's emitted function-call item.
 - Repeated reads may reflect model planning, task prompting, or context/state
   handling. Existing evidence does not identify the cause.
 - The installed Herd Responses adapter's Codex catalog advertises no reasoning

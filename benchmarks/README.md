@@ -67,3 +67,9 @@ sanitized request summary defaults to
 of a function name that was not advertised. It does not prove what a real model
 emitted or whether Herd's output translator caused that name; use an Ollama-side
 request/response trace to establish that.
+
+For reasoning experiments, the fixture records only the scalar
+`reasoning.effort` and whether a `think` field is present. The committed client
+catalog intentionally advertises no effort levels until the server mapping is
+verified. The mock cannot establish what Herd sends to Ollama; the result report
+records a separate no-inference translator check.

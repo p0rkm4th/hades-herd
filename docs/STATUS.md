@@ -40,12 +40,13 @@ of the migration is recorded below.
   its Python 3.10–3.14 test matrix passed.
 - Codex reasoning controls are not yet demonstrated end-to-end through Herd's
   adapter. A controlled mock confirms Codex emits `reasoning.effort` only when
-  the catalog advertises it and the profile selects it. The default generated
-  catalog advertises none; Herd-to-Ollama mapping is unverified, so no user
-  control is enabled. The probe is recorded in the [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
-- Latest commit `3bd1f8f` passed the fixture syntax check and Python
-  3.10–3.14 tests in
-  [CI run 42403927973](https://github.com/p0rkm4th/hades-herd/actions/runs/42403927973).
+  the catalog advertises it and the profile selects it. A no-inference call to
+  the installed Herd 0.12.3 Responses translator omitted both `reasoning` and
+  `think` while retaining messages and tools. The actual downstream HTTP body
+  was not intercepted; no client control is enabled. See the [sanitized
+  evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
+- Commit `d6692c2` passed fixture syntax and Python 3.10–3.14 tests in
+  [CI run 42403984189](https://github.com/p0rkm4th/hades-herd/actions/runs/42403984189).
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
