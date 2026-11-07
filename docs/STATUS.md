@@ -109,5 +109,11 @@ A fresh Qwen3.8 Q4/Nyx attempt on the trace call-count bug timed out at 180s
 (exit 124) after four completed shell commands (three reads and one Python
 command), but without a patch or completed Codex turn. This is incomplete
 diagnostic evidence, excluded from model pass rates. It does not identify whether
-the cause is model behavior, context/protocol handling, or agent workflow. Nyx was unloaded and released;
-production Herd remained idle. See the [sanitized held-out result](../benchmarks/results/2026-11-07-heldout-trace-count-task.md).
+the cause is model behavior, context/protocol handling, or agent workflow. Nyx was
+unloaded and released; production Herd remained idle. See the [sanitized held-out
+result](../benchmarks/results/2026-11-07-heldout-trace-count-task.md).
+- A 2026-11-08 synthetic control verified the normal Codex Responses sequence:
+  advertised `exec_command`, execution, tool result, then final turn. Both
+  requests included the complete local tool catalog; the live trace's empty
+  tool-list pattern was not reproduced. See the [control result]
+  (../benchmarks/results/2026-11-07-real-codex-profile-smoke.md).
