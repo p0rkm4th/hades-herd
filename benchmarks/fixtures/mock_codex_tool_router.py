@@ -155,7 +155,9 @@ class Handler(BaseHTTPRequestHandler):
         else:
             text = (
                 "Tool round trip complete."
-                if self.server.scenario == "tool-roundtrip" and matching_tool_result
+                if self.server.scenario == "tool-roundtrip"
+                and matching_result_has_marker
+                and not matching_result_unsupported
                 else "Tool-result continuation missing."
                 if self.server.scenario == "tool-roundtrip"
                 else "Diagnostic complete."
