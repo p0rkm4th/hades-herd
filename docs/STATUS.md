@@ -77,10 +77,11 @@ of the migration is recorded below.
   exposed an output-cap gap: Responses `max_output_tokens` becomes top-level
   `max_tokens`, not Ollama `options.num_predict`. The isolated patch now maps
   that field and has a regression test; the full upstream suite passes 1,994
-  tests (5 skipped). A regression test also confirms the explicit Responses
-  ceiling is not inflated for thinking models. This mapping has not been
-  live-verified, so the earlier request did not establish an enforced generation
-  cap. See the [patch review notes](../patches/README.md).
+  tests (5 skipped). A follow-up live body capture verified the patched route
+  sent `options.num_predict: 64` with `think: "low"`; it completed in 9.18
+  seconds and the node returned to idle. The earlier pre-fix request did not
+  carry the cap. This confirms request serialization, not coding quality or
+  daily-driver behavior. See the [patch review notes](../patches/README.md).
 - `main` remains at `19396a2`. The review branch
   `codex-herd/show-thinking-controls` contains the capability display, tested
   upstream adapter patch, and MIT notice. The adapter-artifact commit `c4aca60`
