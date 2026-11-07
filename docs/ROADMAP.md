@@ -17,12 +17,18 @@
    stalls. See the [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
    An offline reconciliation found 27 completed Codex command events but only
    21 Responses function-call items. A process-group-bounded Codex event
-   capture helper and proxy monotonic timestamps are now tested offline; next,
-   use them on one distinct bounded coding task and reconcile the event streams
-   before associating tool-less responses with executed commands. **Smoke
-   result:** the normal Hecate tool workflow matched 10 Responses tool calls to
-   10 Codex command events, but produced no empty-tool request. The agent patch
-   required human correction; see the [smoke report](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
+   capture helper and proxy monotonic timestamps are now tested offline. The
+   normal live tool workflow matched 10 Responses calls to 10 Codex command
+   events; all 11 Responses requests advertised tools. See the
+   [smoke report](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
+   A deterministic import of pinned Herd v0.12.3 reproduces the adapter path:
+   an empty Codex tool list omits Ollama's `tools` field, while the response
+   converter still emits synthetic Ollama tool calls as Responses
+   `function_call` items. This is consistent with five tool-call outputs on
+   tool-less requests, but the live Ollama boundary was not captured. Evidence
+   and limits: [source-level reproduction](../benchmarks/results/2026-11-08-herd-empty-tools-translator-repro.md).
+   Next, test an explicit-empty-allowlist fix in an isolated upstream checkout;
+   do not change production behavior until that regression suite passes.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior

@@ -34,6 +34,13 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - Repeated inspection, long completion times, and patch-without-final-turn
   failures remain unresolved. Codex reasoning-effort mapping through the live
   Herd adapter is not verified end to end.
+- A deterministic import of the pinned Herd v0.12.3 translator reproduces a
+  protocol mismatch: `tools: []` becomes an Ollama body with no `tools` field,
+  but a synthetic Ollama `exec_command` call still becomes a Responses
+  `function_call`. This is consistent with five tool-call outputs on tool-less
+  requests in the HTTPie trace, but the live Ollama request/response body was
+  not captured. No adapter patch or deployment was made. See the
+  [source-level reproduction](../benchmarks/results/2026-11-08-herd-empty-tools-translator-repro.md).
 
 ## Decision and review handoff
 
@@ -43,7 +50,8 @@ Creating a draft PR through the connected GitHub integration returned 403
 (`Resource not accessible by integration`); use the
 [compare page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
 
-Next: obtain independent review of this branch, then use timestamp-correlated
-traces on a distinct bounded task to investigate the earlier empty-tool
-requests before changing model or agent behavior. Full sanitized results and
-failed attempts are in [`benchmarks/results/`](../benchmarks/results/).
+Next: prepare and test a minimal explicit-empty-allowlist fix in a disposable
+upstream checkout, including streaming and non-streaming cases. Only then use
+timestamp-correlated live evidence on a distinct bounded task. Do not change
+production behavior without that evidence. Full sanitized results and failed
+attempts are in [`benchmarks/results/`](../benchmarks/results/).
