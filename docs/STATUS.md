@@ -39,12 +39,11 @@ of the migration is recorded below.
 - Earlier traces include unsupported `read_file` attempts, repeated source
   inspection, patches without a final response, and test-fixture errors.
 - A deterministic loopback test confirms Codex 0.166.0 rejects an unadvertised
-  `read_file` call locally and reports the rejection on the next request. The
-  tool catalog contains no `read_file`, and Herd's output translator preserves
-  unknown Ollama tool names unchanged, making model-emitted `read_file` the
-  leading explanation. The real backend call remains uncaptured.
-  The no-inference translator check and sanitized trace are in the [evidence
-  report](../benchmarks/results/2026-11-07-reliability-baseline.md).
+  `read_file` call locally and reports the rejection on the next request. A
+  corrected live Responses trace on HTTPie #1958 saw no `read_file` result or
+  unsupported-call error, so the historical event's origin is still unproven.
+  Herd's translator preserves unknown Ollama tool names unchanged. See the
+  [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
 - Herd 0.12.3's no-inference translation check retained prior tool-call/result
   continuity and already adds turn-completion guidance when tools are offered.
   Repeated inspection therefore remains unexplained; truncation and model
@@ -56,12 +55,16 @@ of the migration is recorded below.
   `think` while retaining messages and tools. The actual downstream HTTP body
   was not intercepted; no client control is enabled. See the [sanitized
   evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
-- Commit `d6692c2` passed fixture syntax and Python 3.10–3.14 tests in
-  [CI run 42403984189](https://github.com/p0rkm4th/hades-herd/actions/runs/42403984189).
-- A loopback-only live trace proxy now has offline tests that verify streamed
-  Responses bytes pass through unchanged while its capture omits prompts, tool
-  schemas, arguments, results, response text, IDs, and headers. It is not yet
-  used on a real Herd request.
+- Commit `3ede06d` passed fixture syntax and Python 3.10–3.14 tests in
+  [CI run 42406780108](https://github.com/p0rkm4th/hades-herd/actions/runs/42406780108).
+- The loopback trace proxy passed a real bounded Codex/Herd run. It observed 30
+  successful Responses calls before the 180-second timeout and 27 unique shell
+  calls, with no code edits. Sixteen requests carried nine tool entries; 14
+  carried an empty list, and five of those still returned `exec_command`. Full
+  stateless input had 26 prior tool calls and 26 results; no `previous_response_id`
+  appeared. This is an observed wire pattern, not a proven cause of the stall.
+  The proxy's tests verify unchanged SSE forwarding and omit prompts, schemas,
+  arguments, results, response text, IDs, and headers from the capture.
 - The owner-provided model study is summarized in the [model matrix](MODEL_MATRIX.md).
   Published scores remain directional only; no offload experiment, model pull,
   hardware change, or production route/default change is planned during this

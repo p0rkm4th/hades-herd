@@ -4,7 +4,12 @@
 
 1. Capture sanitized Codex request/response metadata and identify the exact
    advertised tool list, attempted tool name, Herd translation, execution
-   result, and tool-result continuation.
+   result, and tool-result continuation. **Partial evidence:** one live
+   HTTPie #1958 trace captured the Codex↔Herd boundary; it did not reproduce a
+   `read_file` call, but did show that some requests carried an empty tools
+   array while the full stateless input included prior calls/results. This
+   narrows the wire behavior but does not explain the prior rejection or task
+   stalls. See the [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
 2. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 3. Trace repeated inspection across consecutive messages to test whether prior

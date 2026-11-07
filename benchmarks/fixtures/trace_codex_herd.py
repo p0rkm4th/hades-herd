@@ -100,18 +100,27 @@ def request_metadata(body: bytes) -> dict[str, Any]:
         return {"json_request": False}
     if not isinstance(request, dict):
         return {"json_request": False}
-    names, shapes = tool_names(request.get("tools"))
     input_items = request.get("input", [])
+    top_level_tools = request.get("tools", [])
+    additional_tools: list[dict[str, Any]] = []
     prior_calls = []
     tool_results = 0
+    input_item_types: list[str] = []
     if isinstance(input_items, list):
         for item in input_items:
             if not isinstance(item, dict):
                 continue
+            if isinstance(item.get("type"), str):
+                input_item_types.append(item["type"])
+            if item.get("type") == "additional_tools" and isinstance(item.get("tools"), list):
+                additional_tools.extend(tool for tool in item["tools"] if isinstance(tool, dict))
             if item.get("type") == "function_call":
                 prior_calls.append(item.get("name"))
             elif item.get("type") == "function_call_output":
                 tool_results += 1
+    top_names, top_shapes = tool_names(top_level_tools)
+    additional_names, additional_shapes = tool_names(additional_tools)
+    names = sorted(set(top_names) | set(additional_names))
     reasoning = request.get("reasoning")
     effort = reasoning.get("effort") if isinstance(reasoning, dict) else None
     if effort not in {"none", "minimal", "low", "medium", "high", "xhigh"}:
@@ -119,7 +128,11 @@ def request_metadata(body: bytes) -> dict[str, Any]:
     return {
         "json_request": True,
         "tool_names": names,
-        "tool_shapes": shapes,
+        "top_level_tool_count": len(top_level_tools) if isinstance(top_level_tools, list) else 0,
+        "additional_tool_count": len(additional_tools),
+        "tools_field_present": "tools" in request,
+        "additional_tools_present": bool(additional_tools),
+        "tool_shapes": top_shapes + additional_shapes,
         "read_file_advertised": "read_file" in names,
         "tool_choice_type": (request.get("tool_choice") or {}).get("type")
             if isinstance(request.get("tool_choice"), dict) else None,
@@ -127,7 +140,9 @@ def request_metadata(body: bytes) -> dict[str, Any]:
         "think_field_present": "think" in request,
         "prior_function_call_names": prior_calls,
         "tool_result_count": tool_results,
+        "input_item_types": input_item_types,
         "input_item_count": len(input_items) if isinstance(input_items, list) else None,
+        "previous_response_id_present": bool(request.get("previous_response_id")),
     }
 
 

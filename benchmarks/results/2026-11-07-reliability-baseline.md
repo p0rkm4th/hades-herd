@@ -119,3 +119,36 @@ continued, and the instruction did not fix it. It is excluded from any model
 pass-rate or model ranking and this exact fixture will not be retried. Private
 run data remains on the workstation; no raw Codex events or commands are
 published. No production configuration changed.
+
+## Live HTTPie #1958 Responses trace (2026-11-07)
+
+A fresh isolated Codex CLI 0.166.0 run on the same public issue/task and HTTPie
+base commit `5b604c37c6c67e18e7c3e9aee6c88a8c22b98345` used the loopback
+metadata-only proxy. The focused baseline again passed 121 tests with 3
+expected xfails. MiMo 9B Q4 / configured 16K / workspace-write / no approvals /
+180-second OS timeout remained unchanged. The task turn timed out (124) with no
+code or test edits after 27 unique shell calls. This is incomplete and not a
+model pass.
+
+The proxy saw 30 `/v1/responses` calls; all returned HTTP 200. Response items
+included 21 `function_call` and 13 `message` items. All function-call names
+were `exec_command`; no `read_file` response item or Codex unsupported-call
+error occurred in this attempt. Across these calls, 16 requests contained nine
+top-level tool entries and 14 carried an empty `tools` array. Five of the 14
+empty-list requests returned `exec_command`; the remaining nine returned
+messages. Each request carried full stateless input: 26 prior function-call
+items and 26 tool outputs were observed, with no `previous_response_id`.
+The Responses usage counters totalled 114,472 input tokens and 12,293 output
+tokens. The deployed Herd 0.12.3 translator source supports both top-level
+`tools` and Codex `additional_tools` input items; this capture used only the
+top-level field. An earlier trace parser failed to account for those alternate
+locations; v2 corrected that parser and supersedes its incomplete catalog
+counts. Source audit reference: [Herd v0.12.3 Responses translator](https://github.com/geeks-accelerator/ollama-herd/blob/v0.12.3/src/fleet_manager/server/responses_translator.py).
+
+This run does not reproduce the historical unsupported `read_file` event and
+does not explain why the task stalled. In particular, it does not prove that
+empty tool lists caused the repeated investigation or that the model's tool
+selection was invalid. It establishes that Codex/Herd successfully exchanged
+stateless call/result history while some requests omitted tool definitions;
+what that pattern means for model behavior remains open. Raw requests,
+responses, arguments, commands, and prompts were not published.

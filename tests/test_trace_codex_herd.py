@@ -14,12 +14,12 @@ import trace_codex_herd
 class TraceMetadataTests(unittest.TestCase):
     def test_request_summary_keeps_tool_metadata_but_not_prompt_or_tool_arguments(self):
         summary = trace_codex_herd.request_metadata(json.dumps({
-            "tools": [
-                {"type": "function", "name": "exec_command", "parameters": {"secret_schema": "discard"}},
-                {"type": "namespace", "name": "multi_agent_v1", "tools": [{"name": "spawn_agent"}]},
-            ],
             "input": [
                 {"type": "message", "content": "PRIVATE PROMPT SENTINEL"},
+                {"type": "additional_tools", "role": "developer", "tools": [
+                    {"type": "function", "name": "exec_command", "parameters": {"secret_schema": "discard"}},
+                    {"type": "namespace", "name": "multi_agent_v1", "tools": [{"name": "spawn_agent"}]},
+                ]},
                 {"type": "function_call", "name": "read_file", "arguments": "PRIVATE ARGUMENT SENTINEL"},
                 {"type": "function_call_output", "output": "PRIVATE TOOL RESULT SENTINEL"},
             ],
@@ -28,6 +28,10 @@ class TraceMetadataTests(unittest.TestCase):
         serialized = json.dumps(summary)
         self.assertEqual(summary["tool_names"], ["exec_command", "multi_agent_v1", "spawn_agent"])
         self.assertFalse(summary["read_file_advertised"])
+        self.assertFalse(summary["tools_field_present"])
+        self.assertTrue(summary["additional_tools_present"])
+        self.assertEqual(summary["additional_tool_count"], 2)
+        self.assertIn("additional_tools", summary["input_item_types"])
         self.assertEqual(summary["prior_function_call_names"], ["read_file"])
         self.assertEqual(summary["tool_result_count"], 1)
         self.assertEqual(summary["reasoning_effort"], "low")
@@ -98,8 +102,12 @@ class TraceProxyTests(unittest.TestCase):
             try:
                 url = f"http://127.0.0.1:{proxy.server_port}/v1/responses"
                 request_body = json.dumps({
-                    "tools": [{"type": "function", "name": "exec_command"}],
-                    "input": [{"type": "message", "content": "private prompt"}],
+                    "input": [
+                        {"type": "message", "content": "private prompt"},
+                        {"type": "additional_tools", "role": "developer", "tools": [
+                            {"type": "function", "name": "exec_command", "parameters": {"secret": "private schema"}}
+                        ]},
+                    ],
                 }).encode()
                 request = Request(url, data=request_body, headers={"Content-Type": "application/json"})
                 with urlopen(request, timeout=3) as response:
@@ -107,8 +115,9 @@ class TraceProxyTests(unittest.TestCase):
                 capture = json.loads(Path(capture_path).read_text())
                 summary = json.dumps(capture)
                 self.assertEqual(capture["requests"][0]["request"]["tool_names"], ["exec_command"])
+                self.assertTrue(capture["requests"][0]["request"]["additional_tools_present"])
                 self.assertEqual(capture["requests"][0]["response_items"][0]["name"], "read_file")
-                for sentinel in ("private prompt", "private-args", "private response", "private-id"):
+                for sentinel in ("private prompt", "private schema", "private-args", "private response", "private-id"):
                     self.assertNotIn(sentinel, summary)
             finally:
                 proxy.shutdown()
