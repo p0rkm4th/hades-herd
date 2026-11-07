@@ -6,7 +6,7 @@ workstation launcher now uses this checkout as its canonical source. The live
 endpoint and digest evidence remain in local user configuration. Verification
 of the migration is recorded below.
 
-## Code-review fixes in progress
+## Code-review fixes on review branch
 
 On branch `codex-herd/review-launcher-context` based on reviewed `main` at
 `19396a2`: clean-install launches now resolve and save an online default;
@@ -133,3 +133,13 @@ during the real inference run was not captured. This does not establish whether 
   `/api/chat` request; Codex completed that mock turn. This verifies the mapping
   path, not the earlier model run or coding quality. Details are in the
   [reasoning diagnostic](../benchmarks/results/2026-11-08-reasoning-none-diagnostic.md).
+- The November 7 source-review findings are covered on branch
+  `codex-herd/review-launcher-context`: clean-install default selection,
+  explicit-model precedence, unloaded configured-context reporting,
+  end-to-end launcher smoke coverage, distinct same-name trace call counts,
+  and atomic model-specific profiles. Latest local run on 2026-11-08:
+  `python3 -m unittest discover -s tests -v` passed all 19 tests. GitHub Actions
+  passed on commit `3802aee` in [run 42423933976](https://github.com/p0rkm4th/hades-herd/actions/runs/42423933976).
+  PR creation was denied by the connected GitHub integration (403
+  `Resource not accessible by integration`); use the
+  [compare-and-create-PR page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
