@@ -51,8 +51,8 @@ of the migration is recorded below.
   translated. This does not explain the historical `read_file` event; see the
   [tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md).
   Focused upstream Herd v0.12.3 Responses translator and route modules passed
-  65 tests in a disposable environment; this is not a full suite or live route
-  test with a mock Ollama backend.
+  65 tests in a disposable environment. The separate integrated route result
+  below uses a mock Ollama backend; neither check evaluates a real model.
 - A deterministic loopback check with Codex CLI 0.166.0 completed one valid
   advertised `exec_command` call, returned its matching tool result on the next
   request, and completed the turn. The paired invalid `read_file` case produced
@@ -60,6 +60,11 @@ of the migration is recorded below.
   Herd or model behavior; see the
   [round-trip evidence](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md);
   the 15-test local suite and [Python 3.10–3.14 CI](https://github.com/p0rkm4th/hades-herd/actions/runs/42416133189) passed.
+- The valid `exec_command` round trip also passed through Herd v0.12.3's actual
+  `/v1/responses` route and translator with a mock Ollama backend: call/result
+  IDs and output were preserved, and Codex completed. This rules out a general
+  route failure for that tool shape, not model behavior or every tool path. See
+  the [integrated route result](../benchmarks/results/2026-11-07-herd-route-tool-roundtrip.md).
 - Herd 0.12.3's no-inference translation check retained prior tool-call/result
   continuity and already adds turn-completion guidance when tools are offered.
   Repeated inspection therefore remains unexplained; truncation and model

@@ -92,6 +92,35 @@ catalog intentionally advertises no effort levels until the server mapping is
 verified. The mock cannot establish what Herd sends to Ollama; the result report
 records a separate no-inference translator check.
 
+## Full isolated Herd route check
+
+To test Codex through Herd's actual `/v1/responses` route without a model or
+production backend, use a local Ollama Herd v0.12.3 source checkout with its
+development dependencies installed (`uv sync --extra dev`) and Codex CLI on
+`PATH`:
+
+```sh
+cd /path/to/ollama-herd
+uv run python /path/to/hades-herd/benchmarks/fixtures/run_herd_route_tool_roundtrip.py \
+  --herd-source "$PWD" \
+  --artifacts /tmp/herd-route-roundtrip-run-01
+```
+
+The fixture starts the upstream test app on loopback, registers one synthetic
+model, and attaches an `httpx.MockTransport` instead of contacting Ollama. It
+launches `codex-herd` with temporary HOME/CODEX_HOME, a read-only Codex
+sandbox, a 45-second process timeout, and an explicit loopback endpoint. The
+mock Ollama returns one advertised `exec_command` call, then verifies that
+Codex's second request contains the matching call/result ID and the fixed
+`printf` marker. It makes no model requests. The required artifact directory
+must not already exist; it contains Codex stdout/events, stderr, exit status,
+and a sanitized mock-backend summary. These files stay local and must be
+reviewed and sanitized before sharing. This covers the client, Herd Responses
+route, translator, queue/streaming path, and mock backend together; it does
+not evaluate a model.
+
+See the [isolated route result](results/2026-11-07-herd-route-tool-roundtrip.md).
+
 ## Sanitized live Responses trace
 
 `fixtures/trace_codex_herd.py` is an optional loopback-only forwarding proxy for

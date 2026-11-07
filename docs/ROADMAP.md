@@ -36,9 +36,11 @@
    passes the deterministic valid `exec_command` round trip against a loopback
    mock, while rejecting the separate unadvertised `read_file` call. Compare
    that result against a bounded, isolated Herd route before changing the
-   client or server. See the
+   client or server. A valid function-call round trip now passes through the
+   actual Herd route with mock Ollama; investigate a real model's unsupported
+   call and inspection/final-turn stalls next. See the
    [tool-filtering evidence](../benchmarks/results/2026-11-07-responses-tool-filtering.md)
-   and [Codex round-trip result](../benchmarks/results/2026-11-07-codex-tool-roundtrip.md).
+   and [Codex/Herd route round-trip result](../benchmarks/results/2026-11-07-herd-route-tool-roundtrip.md).
    Make further changes only against a reproduced cause; do not infer general
    improvement from a single paired task.
 
