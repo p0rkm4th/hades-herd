@@ -19,7 +19,9 @@ distinct same-name tool calls without persisting call IDs. Local test suite:
 launch. GitHub Actions passed the full configured matrix in
 [run 42420280034](https://github.com/p0rkm4th/hades-herd/actions/runs/42420280034).
 This branch is not yet merged or deployed, and no live Herd profile behavior
-was changed.
+was changed. The installed Codex CLI 0.166.0 also accepted the hashed
+model-specific profile against the deterministic loopback fixture and completed
+the mock turn; see the [sanitized profile smoke result](../benchmarks/results/2026-11-07-real-codex-profile-smoke.md).
 
 ## Works
 
