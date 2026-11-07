@@ -25,8 +25,8 @@ Codex exited 124 at the 180-second cap after executing four shell commands
 source edits or `turn.completed` event, and the held-out worktree's tracked diff
 remained empty. No independent implementation tests were applicable because no
 patch was produced. The model used its shell tool for limited repository
-inspection without progressing to implementation; this is consistent with earlier traces but does
-not identify the cause or establish a general model limitation.
+inspection without progressing to implementation. This is consistent with earlier
+traces but does not identify the cause or establish a general model limitation.
 
 Classify this as incomplete/no-progress diagnostic evidence, excluded from
 pass-rate scores. Do not rerun this fixture absent a materially changed,
