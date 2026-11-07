@@ -35,6 +35,9 @@ of the migration is recorded below.
 - A deterministic loopback test confirms Codex 0.166.0 rejects an unadvertised
   `read_file` call locally and reports the rejection on the next request; the
   real model-side call remains uncaptured, so the source of that name is open.
+  The reproduction and docs are in commit
+  [`cf88988`](https://github.com/p0rkm4th/hades-herd/commit/cf889881fd167aca1475cae1d0d74ee2debec1fa);
+  its Python 3.10–3.14 test matrix passed.
 - Codex reasoning controls are not yet demonstrated end-to-end through Herd's
   adapter. Do not claim `reasoning.effort` or Ollama `think` settings apply.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
