@@ -103,3 +103,19 @@ clones, event counts, and cleanup.
 Next: inspect sanitized wire-level tool schemas/results and Herd conversation
 reconstruction, then make a deterministic minimal reproducer. No model default,
 production routing, or server behavior changed as part of this baseline.
+
+## Follow-up: bounded inspection instruction (2026-11-07)
+
+One additional MiMo/Hecate trial used the same disposable Rich checkout at
+`3a109ccdffe5b2d0e30684a304fbd388e99ce57b`, same task, Q4 digest, 16K
+context, workspace-write sandbox, no-approval policy, and 180-second OS timeout
+as the prior MiMo Rich attempt. The only changed variable was a developer
+instruction limiting pre-edit inspection to two shell commands and requiring
+the first edit within those calls. Focused preflight: 15 tests passed. Result:
+Codex timed out (exit 124) after 22 shell calls, 21 unique command hashes,
+one repeated command, and no source or test edits. Four command items failed;
+18 completed successfully. The trial did not establish why inspection
+continued, and the instruction did not fix it. It is excluded from any model
+pass-rate or model ranking and this exact fixture will not be retried. Private
+run data remains on the workstation; no raw Codex events or commands are
+published. No production configuration changed.
