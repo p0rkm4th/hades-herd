@@ -78,10 +78,12 @@ of the migration is recorded below.
   top-level Ollama `max_tokens`, while the Ollama body had no documented
   `options.num_predict`. Do not count that request as having a verified
   generation cap. See the [patch review notes](../patches/README.md).
-- `main` remains at `19396a2`. The latest review branch is
-  `codex-herd/show-thinking-controls` at `c4aca60`, with the capability display,
-  tested upstream adapter patch, and MIT notice. Its Python 3.10–3.14 CI matrix
-  passed in [run 42410262261](https://github.com/p0rkm4th/hades-herd/actions/runs/42410262261).
+- `main` remains at `19396a2`. The review branch
+  `codex-herd/show-thinking-controls` contains the capability display, tested
+  upstream adapter patch, and MIT notice. The adapter-artifact commit `c4aca60`
+  passed Python 3.10–3.14 CI in [run 42410262261](https://github.com/p0rkm4th/hades-herd/actions/runs/42410262261).
+  The live-check documentation update `e240346` also passed CI in
+  [run 42411177569](https://github.com/p0rkm4th/hades-herd/actions/runs/42411177569).
   A pull request has not been opened: the connected GitHub integration returned
   HTTP 403 when asked to create it. The [branch comparison](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/show-thinking-controls?expand=1)
   is public for review.
