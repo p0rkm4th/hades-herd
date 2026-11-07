@@ -17,9 +17,13 @@ with the visible message.
 ## Verification limits
 
 - The complete upstream translator test file passed: 61 tests.
-- The complete upstream suite passed: 1,990 passed, 5 skipped, with 3 existing
+- A route-level test with fake Ollama output passed for both streamed and
+  non-streamed requests. It verified the empty tool list stayed absent from
+  the request sent into inference and the synthetic `exec_command` did not
+  appear in the Responses output.
+- The complete upstream suite passed: 1,992 passed, 5 skipped, with 3 existing
   `RuntimeWarning`s in unrelated `queue_manager` tests. The suite ran against
-  the patched disposable clone.
+  the patched disposable clone, including the two new route cases.
 - Tests ran in a `.venv` created inside that clone with `uv sync --extra dev`;
   no system Python or production service was changed. Python compilation and
   `git diff --check` passed.
@@ -27,12 +31,11 @@ with the visible message.
   calls were expected to pass through despite not being advertised. The
   expectation and misleading log wording were corrected, then all 61 tests
   passed.
-- No isolated Herd HTTP route with a mocked Ollama backend, live inference,
-  held-out coding task, or production deployment was run.
+- The route test stubs Ollama output; it does not run a full Herd process or
+  live inference. No held-out coding task or production deployment was run.
 
 This establishes that the proposed distinction is implementable at the
-translator-function level and passes both the focused translator tests and
-the full upstream suite. It does not prove the guard improves Codex task
-completion or that the historical live calls followed this exact path. Keep
-the prototype isolated until a mocked-route test and an end-to-end task
-establish the behavior.
+translator-function and HTTP-route levels and passes the full upstream suite.
+It does not prove the guard improves Codex task completion or that the
+historical live calls followed this exact path. Keep the prototype isolated
+until an end-to-end task establishes the behavior.
