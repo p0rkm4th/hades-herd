@@ -117,3 +117,14 @@ result](../benchmarks/results/2026-11-07-heldout-trace-count-task.md).
   requests included the complete local tool catalog; the live trace's empty
   tool-list pattern was not reproduced. See the [control result]
   (../benchmarks/results/2026-11-07-real-codex-profile-smoke.md).
+
+## Reasoning control diagnostic — 2026-11-08
+
+A single same-task Qwen3.8 Q4/Nyx comparison with Codex `none` exited 124 after
+seven shell-command executions, without a patch or completed turn. Ollama
+reported about 734 generated tokens at ~9.4 tokens/s and 14,214/16,384 context
+tokens; the Responses route saw no client-visible text/tool chunks before the
+Codex process disconnected. The isolated adapter was configured to map
+`none` to Ollama `think:false` when advertised, but the outbound JSON was not
+captured. This does not establish whether that mapping helped. See the
+[sanitized result](../benchmarks/results/2026-11-08-reasoning-none-diagnostic.md).
