@@ -1,5 +1,10 @@
 # Current status — 2026-11-07
 
+The initial public-ready source and evidence are committed locally, but have not
+reached GitHub: the connected GitHub app rejected write access (HTTP 403), and
+this workstation has no noninteractive Git credential. The existing GitHub
+repository is still empty. The local client path has therefore not been migrated.
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
