@@ -2,18 +2,21 @@ diff --git a/src/fleet_manager/server/responses_translator.py b/src/fleet_manage
 index 6aa2aeb..a6f9bdb 100644
 --- a/src/fleet_manager/server/responses_translator.py
 +++ b/src/fleet_manager/server/responses_translator.py
-@@ -573,0 +574,6 @@ def responses_to_openai_body(body: dict) -> dict:
+@@ -573,2 +573,8 @@ def responses_to_openai_body(body: dict) -> dict:
+     }
 +    # Keep Codex's requested effort private to the Responses route until it
 +    # knows which Ollama node won. That route can then validate an exact
 +    # model-advertised value before adding Ollama's native `think` field.
 +    reasoning = body.get("reasoning")
 +    if isinstance(reasoning, dict) and reasoning.get("effort") is not None:
 +        out["_codex_reasoning_effort"] = reasoning["effort"]
+     # Tools may arrive top-level (per the docs) or inside an `additional_tools`
 diff --git a/src/fleet_manager/server/routes/responses_compat.py b/src/fleet_manager/server/routes/responses_compat.py
 index 5b49975..262ba58 100644
 --- a/src/fleet_manager/server/routes/responses_compat.py
 +++ b/src/fleet_manager/server/routes/responses_compat.py
-@@ -68,0 +69,18 @@ def _error(status: int, message: str, etype: str = "invalid_request_error") -> J
+@@ -68,2 +68,20 @@ def _error(status: int, message: str, etype: str = "invalid_request_error") -> J
+ 
 +def _apply_requested_reasoning_effort(body: dict, effort, controls: dict | None) -> None:
 +    """Map explicit Codex effort only when Ollama advertises it verbatim."""
 +    if effort is None:
@@ -32,9 +35,13 @@ index 5b49975..262ba58 100644
 +    body["think"] = effort
 +
 +
-@@ -138,0 +157 @@ async def responses(request: Request):
+ @router.post("/v1/responses")
+@@ -138,2 +156,3 @@ async def responses(request: Request):
+     openai_body = responses_to_openai_body({**body, "model": local_model})
 +    requested_reasoning_effort = openai_body.pop("_codex_reasoning_effort", None)
-@@ -238,0 +258,8 @@ async def responses(request: Request):
+     # Which tools arrived as Responses `custom` tools. Pulled off the body so it
+@@ -238,2 +257,10 @@ async def responses(request: Request):
+     winner = results[0]
 +    if requested_reasoning_effort is not None:
 +        controls = await proxy.get_thinking_controls(winner.node_id, actual_model)
 +        try:
@@ -43,18 +50,24 @@ index 5b49975..262ba58 100644
 +            )
 +        except ValueError as exc:
 +            return _error(400, str(exc))
+     logger.info(f"Responses[{rid}] routed to node={winner.node_id} score={int(winner.score)}")
 diff --git a/src/fleet_manager/server/streaming.py b/src/fleet_manager/server/streaming.py
-index 755e860..e2d4ff6 100644
+index 755e860..54ff925 100644
 --- a/src/fleet_manager/server/streaming.py
 +++ b/src/fleet_manager/server/streaming.py
-@@ -178,0 +179,4 @@ class StreamingProxy:
+@@ -178,2 +178,6 @@ class StreamingProxy:
+         self._settings = settings
 +        # Short-lived metadata cache for explicit Codex reasoning controls.
 +        # The selected node/model pair matters because Ollama levels vary by
 +        # model and duplicate models can have different backend metadata.
 +        self._thinking_controls: dict[tuple[str, str], tuple[float, dict | None]] = {}
-@@ -232,0 +237 @@ class StreamingProxy:
+         # Token counts extracted from Ollama final chunks, keyed by request_id
+@@ -232,2 +236,3 @@ class StreamingProxy:
+             del self._clients[node_id]
 +            self._clear_thinking_controls(node_id)
-@@ -241,0 +247,37 @@ class StreamingProxy:
+ 
+@@ -241,2 +246,39 @@ class StreamingProxy:
+ 
 +    async def get_thinking_controls(self, node_id: str, model: str) -> dict | None:
 +        """Read the selected Ollama model's advertised thinking values.
 +
@@ -92,17 +105,66 @@ index 755e860..e2d4ff6 100644
 +        self._thinking_controls[key] = (now, controls)
 +        return controls
 +
-@@ -254,0 +297,5 @@ class StreamingProxy:
+     def _invalidate_client(self, node_id: str):
+@@ -254,2 +296,7 @@ class StreamingProxy:
+             self._client_urls.pop(node_id, None)
 +        self._clear_thinking_controls(node_id)
 +
 +    def _clear_thinking_controls(self, node_id: str):
 +        for key in [key for key in self._thinking_controls if key[0] == node_id]:
 +            del self._thinking_controls[key]
+ 
+@@ -1641,2 +1688,23 @@ class StreamingProxy:
+             body.pop("fallback_models", None)
++            # Responses and OpenAI chat bodies normalize their requested output
++            # cap to `max_tokens`. Ollama's `/api/chat` reads this as
++            # `options.num_predict`; leaving it at top level silently fails to
++            # apply the client's requested limit.
++            strict_output_limit = (
++                request.original_format == RequestFormat.RESPONSES
++                and request.max_tokens is not None
++            )
++            if "max_tokens" in body:
++                max_tokens = body.pop("max_tokens")
++                options = body.get("options")
++                if not isinstance(options, dict):
++                    options = {}
++                options["num_predict"] = max_tokens
++                body["options"] = options
++            if strict_output_limit:
++                # Responses max_output_tokens includes reasoning tokens. Do not
++                # inflate this explicit API ceiling for thinking models.
++                if not isinstance(body.get("options"), dict):
++                    body["options"] = {}
++                body["options"]["num_predict"] = request.max_tokens
+             # Keep models loaded permanently — the router manages model lifecycle,
+@@ -1647,3 +1715,4 @@ class StreamingProxy:
+             # Auto-inflate num_predict for thinking models
+-            self._apply_thinking_overhead(body, request.model, node_id)
++            if not strict_output_limit:
++                self._apply_thinking_overhead(body, request.model, node_id)
+             return body
+diff --git a/tests/test_server/test_context_protection_every_format.py b/tests/test_server/test_context_protection_every_format.py
+index 923f688..f2cfbbc 100644
+--- a/tests/test_server/test_context_protection_every_format.py
++++ b/tests/test_server/test_context_protection_every_format.py
+@@ -129,3 +129,3 @@ class TestTheCallIsNotDuplicated:
+     def test_thinking_overhead_also_once(self, monkeypatch):
+-        """It was already in both branches; make sure the fix did not double it."""
++        """Call once except Responses' explicit ceiling, which must stay strict."""
+         proxy = _make_proxy_with_loaded_model(
+@@ -143,3 +143,4 @@ class TestTheCallIsNotDuplicated:
+             proxy._build_ollama_body(_req(fmt), "test-node")
+-            assert len(calls) == 1
++            expected_calls = 0 if fmt == RequestFormat.RESPONSES else 1
++            assert len(calls) == expected_calls
+ 
 diff --git a/tests/test_server/test_responses_route.py b/tests/test_server/test_responses_route.py
 index 9a14918..fc97612 100644
 --- a/tests/test_server/test_responses_route.py
 +++ b/tests/test_server/test_responses_route.py
-@@ -54,0 +55,14 @@ def client():
+@@ -54,2 +54,16 @@ def client():
+ 
 +def test_requested_reasoning_effort_requires_exact_advertised_value():
 +    body = {"model": "qwen3.8:27b", "messages": []}
 +    responses_compat._apply_requested_reasoning_effort(
@@ -117,11 +179,13 @@ index 9a14918..fc97612 100644
 +        responses_compat._apply_requested_reasoning_effort({}, "low", None)
 +
 +
+ def test_invalid_json_is_400(client):
 diff --git a/tests/test_server/test_responses_translator.py b/tests/test_server/test_responses_translator.py
 index 2186513..ee5816a 100644
 --- a/tests/test_server/test_responses_translator.py
 +++ b/tests/test_server/test_responses_translator.py
-@@ -103,0 +104,17 @@ def test_reasoning_items_are_dropped():
+@@ -103,2 +103,19 @@ def test_reasoning_items_are_dropped():
+ 
 +def test_explicit_reasoning_effort_is_carried_for_target_node_validation():
 +    body = responses_to_openai_body({
 +        "model": "qwen3.8:27b",
@@ -139,11 +203,13 @@ index 2186513..ee5816a 100644
 +    assert "think" not in body
 +
 +
+ def test_tools_are_nested_under_function_for_openai():
 diff --git a/tests/test_server/test_streaming.py b/tests/test_server/test_streaming.py
-index 1a0ff6c..d854aef 100644
+index 1a0ff6c..1107931 100644
 --- a/tests/test_server/test_streaming.py
 +++ b/tests/test_server/test_streaming.py
-@@ -117,0 +118,15 @@ class TestBuildOllamaBody:
+@@ -117,2 +117,35 @@ class TestBuildOllamaBody:
+         assert body["model"] == "phi4:14b"
 +        assert "think" not in body
 +
 +    def test_responses_think_control_reaches_ollama_body_only_when_set(self, proxy):
@@ -159,7 +225,27 @@ index 1a0ff6c..d854aef 100644
 +        )
 +        body = proxy._build_ollama_body(req, "some-node")
 +        assert body["think"] == "xhigh"
-@@ -620,0 +636,28 @@ def test_build_ollama_body_normalizes_tool_call_history_for_openai_format():
++
++    def test_responses_max_tokens_maps_to_ollama_num_predict(self, proxy):
++        req = InferenceRequest(
++            model="deepseek-r1:8b",
++            messages=[{"role": "user", "content": "Hi"}],
++            original_format=RequestFormat.RESPONSES,
++            raw_body={
++                "model": "deepseek-r1:8b",
++                "messages": [{"role": "user", "content": "Hi"}],
++                "max_tokens": 64,
++                "options": {"temperature": 0.2},
++            },
++            max_tokens=64,
++        )
++        body = proxy._build_ollama_body(req, "some-node")
++        assert body["options"]["num_predict"] == 64
++        assert body["options"]["temperature"] == 0.2
++        assert "max_tokens" not in body
+ 
+@@ -620,2 +653,30 @@ def test_build_ollama_body_normalizes_tool_call_history_for_openai_format():
+ 
 +@pytest.mark.asyncio
 +async def test_thinking_controls_are_read_from_selected_node_and_cached():
 +    import httpx
@@ -188,3 +274,4 @@ index 1a0ff6c..d854aef 100644
 +        await proxy.close()
 +
 +
+ def test_finish_reason_survives_the_route_popping_request_meta():

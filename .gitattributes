@@ -1,0 +1,2 @@
+# Unified diff artifacts need trailing spaces on blank context lines to apply.
+patches/*.patch whitespace=-blank-at-eol

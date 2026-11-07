@@ -16,10 +16,13 @@ Default requests remain unchanged. Metadata is cached per node/model for 60
 seconds and cleared when the node's Ollama connection is invalidated.
 
 The patch was tested in a disposable source clone only. It has **not** been
-installed on the HADES router. The full upstream suite passed (1,993 passed,
-5 skipped); targeted translator, Responses-route, and streaming tests passed
-(99 passed); Ruff check and format passed for the modified source files. Three
-existing queue-test coroutine warnings remain in the upstream suite output.
+installed on the HADES router. The full upstream suite passed (1,994 passed,
+5 skipped); three targeted translator/route/streaming regression tests passed;
+Ruff check and format passed for the modified production source. Three existing
+queue-test coroutine warnings remain in the upstream suite output. A
+thinking-model output-cap regression also verifies the Responses limit is not
+inflated by Herd's reasoning-overhead heuristic. The expanded patch applies
+cleanly to a fresh worktree at the pinned v0.12.3 commit.
 
 On 2026-11-07, an isolated in-process router using this patch sent one explicit
 `reasoning.effort: "low"` Responses request to the Nyx Ollama backend. A
@@ -36,7 +39,11 @@ idle. No production Herd router or client configuration was involved. This
 verifies field pass-through for one supported reasoning value only; it does not
 demonstrate a coding-task improvement or validate unsupported-value handling
 against a live backend. Correct output-limit translation is a separate
-follow-up before using such caps as benchmark controls.
+The review patch now maps a present `max_tokens` into
+`options.num_predict`, preserves other Ollama options, and includes a regression
+test. That mapping passed unit tests but was not in place during the live check;
+verify it on the isolated live route before using output limits as benchmark
+controls.
 
 Codex's HADES model catalog still advertises no reasoning levels in the
 production profile. In particular, this patch alone does not enable the
