@@ -106,12 +106,15 @@ of the migration is recorded below.
   hardware change, or production route/default change is planned during this
   reliability phase.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
-- A no-inference preflight with installed Codex CLI 0.166.0 parsed an isolated
-  custom Responses provider and generated model catalog, then reached a local
-  stub endpoint. The attempt to advertise `supported_reasoning_levels` as plain
-  strings failed catalog validation; Codex expects structured effort presets.
-  No production profile or catalog was changed. Native `/model` reasoning
-  picker metadata remains unresolved.
+- A no-inference preflight with Codex CLI 0.166.0 loaded a temporary custom
+  Responses provider and model catalog with structured
+  `supported_reasoning_levels` entries (`effort` plus `description`).
+  `codex debug models` exposed the entries, and two requests to the local
+  synthetic mock carried `reasoning.effort: low` and completed the mock turn.
+  This validates catalog parsing and request serialization only; the
+  interactive `/model` picker and backend inference remain unverified. No
+  production profile or catalog was changed. The earlier plain-string catalog
+  attempt was invalid and is not evidence against the supported schema.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
   string field with the standard library; the follow-up
