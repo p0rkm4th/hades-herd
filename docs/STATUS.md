@@ -48,14 +48,25 @@ of the migration is recorded below.
   continuity and already adds turn-completion guidance when tools are offered.
   Repeated inspection therefore remains unexplained; truncation and model
   behavior still need a real-run trace.
-- Codex reasoning controls are not yet demonstrated end-to-end through Herd's
-  adapter. A controlled mock confirms Codex emits `reasoning.effort` only when
-  the catalog advertises it and the profile selects it. A no-inference call to
-  the installed Herd 0.12.3 Responses translator omitted both `reasoning` and
-  `think` while retaining messages and tools. The actual downstream HTTP body
-  was not intercepted; no client control is enabled. See the [sanitized
-  evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
-- Latest published diagnostic commit is `d17c55b`; CI passed the Python
+- An un-deployed Herd 0.12.3 patch now validates `reasoning.effort` against the
+  selected model's `/api/show` values and maps it to Ollama `think`; it also
+  maps Responses `max_output_tokens` to Ollama `options.num_predict`. Full
+  upstream tests passed (1,994 passed, 5 skipped), and an isolated live-body
+  capture verified both fields. Codex 0.166.0 accepted structured effort
+  catalog entries and emitted `low` to a local mock. In one matched coding-task
+  pair, stock Herd timed out after a patch without a final turn; the patched
+  route completed and its patch passed the full client suite (18/18). This is
+  one stochastic task pair, not causal or general reliability proof. The
+  adapter patch is not deployed, dynamic client catalogs still advertise no
+  efforts, and the interactive `/model` picker is not validated. See the
+  [paired task evidence](../benchmarks/results/2026-11-07-adapter-coding-task-pair.md)
+  and the
+  [patch review artifact](https://github.com/p0rkm4th/hades-herd/blob/codex-herd/show-thinking-controls/patches/ollama-herd-v0.12.3-reasoning-effort.patch).
+- The client now rejects non-root paths in `CODEX_HERD_URL`, consistent with
+  its documented origin contract. A disposable Codex task produced the fix and
+  tests; the stock route timed out, while the patched route completed. Details
+  are in the paired task evidence above.
+- The earlier sanitized trace-parser commit `d17c55b` passed the Python
   3.10–3.14 matrix and fixture syntax in
   [run 42408427998](https://github.com/p0rkm4th/hades-herd/actions/runs/42408427998).
 - The loopback trace proxy passed a real bounded Codex/Herd run. It observed 30
@@ -79,9 +90,11 @@ of the migration is recorded below.
 ## Current decision
 
 Keep the deployed default unchanged. Use local profiles experimentally with
-independent patch review. The immediate engineering work is protocol tracing,
-inspection-loop diagnosis, runner validation, and a minimal controlled fix—not
-adding models or changing production routes.
+independent patch review. Next, investigate the dropped `web_search` tool
+metadata and repeat the reasoning-control task only if it will distinguish
+adapter behavior from inference variance. Inspection loops and final-turn
+stalls remain unresolved; no production router or Codex catalog change is
+planned until the adapter patch has independent review.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)
 and the [roadmap](ROADMAP.md).

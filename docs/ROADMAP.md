@@ -17,10 +17,20 @@
    continuity and final-turn completion.
 4. Validate each benchmark runner's sandbox-visible task, test environment,
    hard timeout, artifacts, and independent verification before scoring.
-5. Isolate reasoning-control handling. Preserve defaults and verify the actual
-   Ollama request field before benchmarking any behavior change.
-6. Make one minimal reversible change only after a root cause is demonstrated;
-   compare before/after on the same task and model.
+5. Reasoning-control handling has an isolated review patch and live request
+   evidence: the backend-advertised effort is forwarded as Ollama `think`, and
+   the Responses output cap becomes `options.num_predict`. Codex's structured
+   catalog schema is verified. One matched task pair completed through the
+   patch but timed out through stock Herd; one pair is directional evidence,
+   not a causal result. The patch is not deployed, dynamic catalogs still
+   expose no effort choices, and the interactive `/model` picker is untested.
+   See the
+   [patch notes](https://github.com/p0rkm4th/hades-herd/blob/codex-herd/show-thinking-controls/patches/README.md) and
+   [sanitized task evidence](../benchmarks/results/2026-11-07-adapter-coding-task-pair.md).
+6. Continue reliability diagnosis: inspect the dropped `web_search` metadata,
+   classify invalid tool calls, and trace repeated inspection/final-turn stalls.
+   Make further changes only against a reproduced cause; do not infer general
+   improvement from a single paired task.
 
 ## Then: daily-driver qualification
 

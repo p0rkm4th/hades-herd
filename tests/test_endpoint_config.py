@@ -39,6 +39,17 @@ class HerdEndpointConfigTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {"CODEX_HERD_URL": "https://herd.example.test:11435/"}, clear=True):
             self.assertEqual(codex_herd.herd_base_url(), "https://herd.example.test:11435")
 
+    def test_rejects_non_root_path_in_endpoint(self):
+        for value in (
+            "http://herd.example.test:11435/prefix",
+            "http://herd.example.test:11435/prefix/",
+        ):
+            with self.subTest(value=value), mock.patch.dict(
+                os.environ, {"CODEX_HERD_URL": value}, clear=True
+            ):
+                with self.assertRaisesRegex(codex_herd.HerdError, "origin.*path"):
+                    codex_herd.herd_base_url()
+
     def test_rejects_credentials_and_non_http_urls(self):
         for value in ("ftp://herd.example.test", "http://user:password@herd.example.test", "", "http://herd.example.test?token=x"):
             with self.subTest(value=value), mock.patch.dict(os.environ, {"CODEX_HERD_URL": value}, clear=True):

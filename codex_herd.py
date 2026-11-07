@@ -62,13 +62,15 @@ def herd_base_url() -> str:
     if (
         parsed.scheme not in {"http", "https"}
         or not parsed.netloc
+        or parsed.path
         or parsed.username is not None
         or parsed.password is not None
         or parsed.query
         or parsed.fragment
     ):
         raise HerdError(
-            f"{HERD_URL_ENV} must be an http(s) origin without credentials, query, or fragment."
+            f"{HERD_URL_ENV} must be an http(s) origin without "
+            "credentials, path, query, or fragment."
         )
     return value
 
