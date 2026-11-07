@@ -145,6 +145,19 @@ top-level field. An earlier trace parser failed to account for those alternate
 locations; v2 corrected that parser and supersedes its incomplete catalog
 counts. Source audit reference: [Herd v0.12.3 Responses translator](https://github.com/geeks-accelerator/ollama-herd/blob/v0.12.3/src/fleet_manager/server/responses_translator.py).
 
+An offline count of the same run's local Codex JSON event stream found 27
+completed `command_execution` items, while the proxy summary captured 21
+Responses `function_call` items. The six-item difference is not reconciled:
+the two artifacts have no shared response/call correlation key, and the raw
+event stream contains command text that is intentionally not published. All
+14 empty-tool requests explicitly carried `tools: []`; none carried
+`additional_tools`, and none set `tool_choice`. The Responses API defines
+`tools` as the array of tools the model may call ([official reference](https://developers.openai.com/api/reference/cli/resources/responses/methods/create)).
+Five of their responses contained an `exec_command` item, but the count
+mismatch means we cannot establish which calls corresponded to executed shell
+commands. Future live traces need a timestamped, sanitized cross-stream event
+index before interpreting this relationship.
+
 This run does not reproduce the historical unsupported `read_file` event and
 does not explain why the task stalled. In particular, it does not prove that
 empty tool lists caused the repeated investigation or that the model's tool

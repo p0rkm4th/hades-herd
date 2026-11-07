@@ -83,6 +83,11 @@ the mock turn; see the [sanitized profile smoke result](../benchmarks/results/20
   appeared. This is an observed wire pattern, not a proven cause of the stall.
   The proxy's tests verify unchanged SSE forwarding and omit prompts, schemas,
   arguments, results, response text, IDs, and headers from the capture.
+- An offline reconciliation of this run found 27 completed Codex
+  `command_execution` events versus 21 Responses `function_call` items. The
+  streams lack a shared correlation key, so six events remain unexplained;
+  future traces need timestamped sanitized indices before associating
+  empty-tool responses with executed commands.
 - The owner-provided model study is summarized in the [model matrix](MODEL_MATRIX.md).
   Published scores remain directional only; no offload experiment, model pull,
   hardware change, or production route/default change is planned during this
