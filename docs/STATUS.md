@@ -17,8 +17,8 @@ model; the launcher has a subprocess smoke test; and trace metadata counts
 distinct same-name tool calls without persisting call IDs. The review-only
 suite passed 19 tests; after adding trace-capture and CRLF regressions, the
 current suite passes 27 tests, including a clean-home fake-Herd/fake-Codex
-launch. CI matrix results are linked below. GitHub Actions passed the full configured matrix in
-[run 42420280034](https://github.com/p0rkm4th/hades-herd/actions/runs/42420280034).
+launch. GitHub Actions passed the full configured matrix on commit `5a90083`
+in [run 42425964504](https://github.com/p0rkm4th/hades-herd/actions/runs/42425964504).
 This branch is not yet merged or deployed, and no live Herd profile behavior
 was changed. The installed Codex CLI 0.166.0 also accepted the hashed
 model-specific profile against the deterministic loopback fixture and completed
