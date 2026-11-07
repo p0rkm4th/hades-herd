@@ -53,9 +53,20 @@ class SSEMetadata:
 
     def feed(self, chunk: bytes) -> None:
         self._buffer += chunk
-        while b"\n\n" in self._buffer:
-            frame, self._buffer = self._buffer.split(b"\n\n", 1)
-            self._frame(frame)
+        while True:
+            # Search the entire buffer: ordinary line endings occur before the
+            # blank-line frame delimiter. Keeping the bytes intact also handles
+            # either delimiter being split across feed() calls.
+            markers = [
+                (position, delimiter)
+                for delimiter in (b"\n\n", b"\r\n\r\n")
+                if (position := self._buffer.find(delimiter)) >= 0
+            ]
+            if not markers:
+                return
+            marker, delimiter = min(markers, key=lambda pair: pair[0])
+            frame, self._buffer = self._buffer[:marker], self._buffer[marker + len(delimiter):]
+            self._frame(frame.replace(b"\r\n", b"\n"))
 
     def _frame(self, frame: bytes) -> None:
         data = b"\n".join(line[5:].lstrip() for line in frame.splitlines() if line.startswith(b"data:"))

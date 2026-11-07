@@ -19,7 +19,10 @@
    21 Responses function-call items. A process-group-bounded Codex event
    capture helper and proxy monotonic timestamps are now tested offline; next,
    use them on one distinct bounded coding task and reconcile the event streams
-   before associating tool-less responses with executed commands.
+   before associating tool-less responses with executed commands. **Smoke
+   result:** the normal Hecate tool workflow matched 10 Responses tool calls to
+   10 Codex command events, but produced no empty-tool request. The agent patch
+   required human correction; see the [smoke report](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior

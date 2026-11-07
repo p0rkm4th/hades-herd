@@ -85,6 +85,75 @@ class TraceMetadataTests(unittest.TestCase):
         self.assertNotIn("PRIVATE ARGUMENT", serialized)
 
 
+    def test_sse_summary_accepts_crlf_framing(self):
+        parser = trace_codex_herd.SSEMetadata()
+        frame = (
+            b'event: response.output_item.done\r\ndata: {"type":"response.output_item.done",'
+            b'"item":{"type":"function_call","name":"read_file","call_id":"call-secret",'
+            b'"arguments":"PRIVATE ARGUMENT SENTINEL"}}\r\n\r\n'
+            b'event: response.completed\r\ndata: {"type":"response.completed","response":'
+            b'{"status":"completed","output":[{"type":"message","content":'
+            b'[{"type":"output_text","text":"PRIVATE RESPONSE SENTINEL"}]}],"usage":'
+            b'{"input_tokens":12,"output_tokens":4,"total_tokens":16}}}\r\n\r\n'
+        )
+        parser.feed(frame[:31])
+        parser.feed(frame[31:])
+        self.assertEqual(parser.items, [
+            {"type": "function_call", "name": "read_file", "call_id_present": True},
+            {"type": "message"},
+        ])
+        self.assertEqual(parser.terminal_status, "completed")
+        self.assertEqual(parser.usage, {"input_tokens": 12, "output_tokens": 4, "total_tokens": 16})
+        for sentinel in ("PRIVATE ARGUMENT", "PRIVATE RESPONSE", "call-secret"):
+            self.assertNotIn(sentinel, json.dumps({"items": parser.items, "status": parser.terminal_status, "usage": parser.usage}))
+
+    def test_sse_summary_accepts_mixed_lf_and_crlf_framing(self):
+        parser = trace_codex_herd.SSEMetadata()
+        parser.feed(
+            b'event: response.output_item.added\ndata: {"type":"response.output_item.added",'
+            b'"item":{"type":"function_call","name":"exec_command","call_id":"id-one",'
+            b'"arguments":"PRIVATE ARGUMENT"}}\n\n'
+            b'event: response.completed\r\ndata: {"type":"response.completed","response":'
+            b'{"status":"completed","output":[{"type":"function_call","name":"exec_command","call_id":"id-one"}],'
+            b'"usage":{"input_tokens":7,"output_tokens":2,"total_tokens":9}}}\r\n\r\n'
+        )
+        self.assertEqual(parser.items, [
+            {"type": "function_call", "name": "exec_command", "call_id_present": True},
+        ])
+        self.assertEqual(parser.usage, {"input_tokens": 7, "output_tokens": 2, "total_tokens": 9})
+        self.assertNotIn("PRIVATE ARGUMENT", json.dumps(parser.items))
+
+    def test_sse_summary_handles_crlf_delimiter_split_across_chunks(self):
+        frame = (
+            b'event: response.output_item.done\r\ndata: {"type":"response.output_item.done",'
+            b'"item":{"type":"function_call","name":"read_file","call_id":"call-secret",'
+            b'"arguments":"PRIVATE ARGUMENT SENTINEL"}}\r\n\r\n'
+        )
+        split = frame.index(b"\r\n\r\n") - 1
+        parser = trace_codex_herd.SSEMetadata()
+        parser.feed(frame[:split])
+        parser.feed(frame[split:])
+        self.assertEqual(parser.items, [
+            {"type": "function_call", "name": "read_file", "call_id_present": True},
+        ])
+        self.assertEqual(parser.terminal_status, None)
+        self.assertNotIn("PRIVATE ARGUMENT", json.dumps(parser.items))
+
+    def test_sse_summary_handles_lf_delimiter_split_across_chunks(self):
+        frame = (
+            b'event: response.output_item.done\ndata: {"type":"response.output_item.done",'
+            b'"item":{"type":"function_call","name":"read_file","call_id":"call-secret",'
+            b'"arguments":"PRIVATE ARGUMENT SENTINEL"}}\n\n'
+        )
+        parser = trace_codex_herd.SSEMetadata()
+        parser.feed(frame[:27])
+        parser.feed(frame[27:])
+        self.assertEqual(parser.items, [
+            {"type": "function_call", "name": "read_file", "call_id_present": True},
+        ])
+        self.assertNotIn("PRIVATE ARGUMENT", json.dumps(parser.items))
+
+
 class TraceProxyTests(unittest.TestCase):
     def test_proxy_forwards_sse_and_writes_only_sanitized_summary(self):
         response_body = (

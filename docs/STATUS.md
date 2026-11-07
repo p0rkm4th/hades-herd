@@ -14,9 +14,10 @@ explicit model selection takes precedence over a saved default; Codex context
 uses complete online-host `num_ctx` configuration when unloaded and otherwise
 labels the safe fallback; profile/catalog files are atomic and isolated by
 model; the launcher has a subprocess smoke test; and trace metadata counts
-distinct same-name tool calls without persisting call IDs. Local test suite:
-19 tests pass on Python 3.10 and 3.14, including a clean-home fake-Herd/fake-Codex
-launch. GitHub Actions passed the full configured matrix in
+distinct same-name tool calls without persisting call IDs. The review-only
+suite passed 19 tests; after adding trace-capture and CRLF regressions, the
+current suite passes 27 tests, including a clean-home fake-Herd/fake-Codex
+launch. CI matrix results are linked below. GitHub Actions passed the full configured matrix in
 [run 42420280034](https://github.com/p0rkm4th/hades-herd/actions/runs/42420280034).
 This branch is not yet merged or deployed, and no live Herd profile behavior
 was changed. The installed Codex CLI 0.166.0 also accepted the hashed
@@ -149,3 +150,11 @@ during the real inference run was not captured. This does not establish whether 
   PR creation was denied by the connected GitHub integration (403
   `Resource not accessible by integration`); use the
   [compare-and-create-PR page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
+- The trace parser now accepts LF and CRLF SSE frames, including delimiters
+  split across chunks. A bounded Codex/Herd smoke run completed but the agent's
+  first patch regressed LF parsing and added invalid test expectations; human
+  corrections were required, so this is not a model pass. The new timeline
+  exactly reconciled 10 Responses `exec_command` calls with 10 Codex shell
+  events in that run; all requests advertised tools, so the earlier empty-tool
+  behavior remains unexplained. The corrected 27-test suite passes locally.
+  See the [smoke report](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
