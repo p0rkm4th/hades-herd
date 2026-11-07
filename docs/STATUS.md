@@ -64,14 +64,20 @@ of the migration is recorded below.
   not work. Ollama documents that values are model-specific and unsupported
   names silently resolve to the model default, so forwarding must be validated
   against the chosen backend. See the [Ollama thinking API](https://github.com/ollama/ollama/blob/main/docs/capabilities/thinking.mdx).
-- An isolated, un-deployed Herd 0.12.3 patch now carries explicit Codex effort
+- An isolated, un-deployed Herd 0.12.3 patch carries explicit Codex effort
   through translation, checks the selected backend's `/api/show`, and forwards
   only an exact advertised string as Ollama `think`; unsupported requests fail
   visibly. The upstream full suite passed 1,993 tests (5 skipped), with 99
-  focused tests passing. Source Ruff/format checks passed. It does not change
-  omitted/default effort. The patch has not been deployed or tested against a
-  live `/api/chat` request; the client catalog still advertises no effort levels.
-  See the [patch review notes](../patches/README.md).
+  focused tests passing. Source Ruff/format checks passed. A bounded live check
+  through the patched in-process router verified `reasoning.effort: "low"`
+  became `think: "low"` on Nyx `/api/chat`; the Responses stream completed in
+  9.92 seconds. The model was unloaded and the fleet returned idle. This is
+  control-path evidence, not a coding-quality result. The patch is not deployed
+  and the client catalog still advertises no effort levels. The same check
+  exposed a separate output-cap issue: Codex `max_output_tokens` becomes a
+  top-level Ollama `max_tokens`, while the Ollama body had no documented
+  `options.num_predict`. Do not count that request as having a verified
+  generation cap. See the [patch review notes](../patches/README.md).
 - `main` remains at `19396a2`. The latest review branch is
   `codex-herd/show-thinking-controls` at `c4aca60`, with the capability display,
   tested upstream adapter patch, and MIT notice. Its Python 3.10–3.14 CI matrix
