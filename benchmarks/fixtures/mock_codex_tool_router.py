@@ -40,9 +40,29 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/v1/responses":
             self.send_json(404, {"error": "not found"}); return
         req = json.loads(data); Handler.calls += 1
-        names = sorted(x["name"] for x in req.get("tools", []) if x.get("name"))
+        tools = [x for x in req.get("tools", []) if isinstance(x, dict)]
+        names = set()
+        for tool in tools:
+            if tool.get("name"):
+                names.add(tool["name"])
+            for nested in tool.get("tools", []):
+                if isinstance(nested, dict) and nested.get("name"):
+                    names.add(nested["name"])
+        tool_shapes = [
+            {
+                "type": tool.get("type"),
+                "name": tool.get("name"),
+                "nested_names": sorted(
+                    nested.get("name")
+                    for nested in tool.get("tools", [])
+                    if isinstance(nested, dict) and nested.get("name")
+                ),
+            }
+            for tool in tools
+        ]
         self.server.capture["requests"].append({
-            "request_number": Handler.calls, "tool_names": names,
+            "request_number": Handler.calls, "tool_names": sorted(names),
+            "tool_shapes": tool_shapes,
             "read_file_advertised": "read_file" in names,
             "reasoning_effort": req.get("reasoning", {}).get("effort")
                 if isinstance(req.get("reasoning"), dict) else None,

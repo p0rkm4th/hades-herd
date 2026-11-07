@@ -38,10 +38,20 @@ clones, event counts, and cleanup.
   then returns an undeclared `read_file` call. Codex 0.166.0 reproduced the
   same local `unsupported call` rejection, did not execute the call, included
   a synthetic unsupported-call result in the next request, and accepted the
-  subsequent final response. Its captured request listed eight named tools
-  and did not include `read_file`. This validates the Codex-side mechanism,
-  not the origin of the name in the real MiMo trace. See the reproducible
+  subsequent final response. Its first capture listed eight top-level named
+  entries and did not include `read_file`. This validates the Codex-side
+  mechanism, not the origin of the name in the real MiMo trace. See the reproducible
   [fixture instructions](../README.md#deterministic-codex-tool-router-check).
+- The fixture's sanitized catalog shape shows seven top-level function tools,
+  one `multi_agent_v1` namespace with five nested tools, and one `web_search`
+  hosted tool. None is `read_file`. A no-inference call to the installed Herd
+  0.12.3 translator preserved representative function definitions, kept nested
+  namespace tools out of the direct function list, and returned an Ollama
+  `read_file` tool name unchanged as a Responses `function_call`. The most
+  likely cause is that the model emitted an undeclared name; the real Ollama
+  call item was not captured, so this remains a probable rather than proven
+  attribution. The reviewed implementation is Ollama Herd's
+  [`v0.12.3` Responses translator](https://github.com/geeks-accelerator/ollama-herd/blob/v0.12.3/src/fleet_manager/server/responses_translator.py).
 - A read-only source audit of Herd 0.12.3 found that the Responses route
   translates and stores the incoming tool definitions in the request body;
   the streaming path retains that body for Ollama. Herd has targeted repairs

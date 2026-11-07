@@ -33,11 +33,12 @@ of the migration is recorded below.
 - Earlier traces include unsupported `read_file` attempts, repeated source
   inspection, patches without a final response, and test-fixture errors.
 - A deterministic loopback test confirms Codex 0.166.0 rejects an unadvertised
-  `read_file` call locally and reports the rejection on the next request; the
-  real model-side call remains uncaptured, so the source of that name is open.
-  The reproduction and docs are in commit
-  [`cf88988`](https://github.com/p0rkm4th/hades-herd/commit/cf889881fd167aca1475cae1d0d74ee2debec1fa);
-  its Python 3.10–3.14 test matrix passed.
+  `read_file` call locally and reports the rejection on the next request. The
+  tool catalog contains no `read_file`, and Herd's output translator preserves
+  unknown Ollama tool names unchanged, making model-emitted `read_file` the
+  leading explanation. The real backend call remains uncaptured.
+  The no-inference translator check and sanitized trace are in the [evidence
+  report](../benchmarks/results/2026-11-07-reliability-baseline.md).
 - Codex reasoning controls are not yet demonstrated end-to-end through Herd's
   adapter. A controlled mock confirms Codex emits `reasoning.effort` only when
   the catalog advertises it and the profile selects it. A no-inference call to
