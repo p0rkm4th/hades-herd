@@ -101,6 +101,22 @@ def get_url_json(url: str, timeout: float = 3.0) -> dict | None:
         return None
 
 
+def ollama_thinking_controls(shown: dict) -> dict | None:
+    """Return model-declared Ollama thinking values without inventing levels."""
+    controls = shown.get("thinking")
+    if not isinstance(controls, dict):
+        return None
+    values = controls.get("values")
+    if not isinstance(values, list) or not values:
+        return None
+    if any(type(value) not in (bool, str) for value in values):
+        return None
+    default = controls.get("default")
+    if default is not None and (type(default) not in (bool, str) or default not in values):
+        return None
+    return {"values": values, "default": default}
+
+
 def write_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
@@ -157,6 +173,7 @@ def fetch() -> tuple[dict[str, dict], dict]:
         caps = item.get("capabilities", [])
         model_contexts = []
         model_parameters = {}
+        thinking_controls = {}
         local_digests = {node_id: node_tags.get(node_id, {}).get(name) for node_id in nodes}
         for node_id in nodes:
             endpoint = endpoints.get(node_id)
@@ -169,6 +186,9 @@ def fetch() -> tuple[dict[str, dict], dict]:
             model_contexts.extend(v for k, v in info.items() if k.endswith(".context_length") and isinstance(v, int))
             if shown.get("parameters"):
                 model_parameters[node_id] = shown["parameters"]
+            node_thinking = ollama_thinking_controls(shown)
+            if node_thinking:
+                thinking_controls[node_id] = node_thinking
         expected_digest = verified_tool_digests.get(name)
         known_inconsistent = inconsistent_tool_digests.get(name)
         observed_digests = [digest for digest in local_digests.values() if digest]
@@ -197,6 +217,7 @@ def fetch() -> tuple[dict[str, dict], dict]:
             "loaded": loaded.get(name, []),
             "model_context_window": min(model_contexts) if model_contexts else None,
             "model_parameters": model_parameters,
+            "ollama_thinking_controls": thinking_controls,
             "capabilities": caps,
             "embedding_only": bool(caps) and set(caps) <= {"embedding"},
             "tool_capable": "tools" in caps,
@@ -397,7 +418,17 @@ def config_show(name: str, models: dict[str, dict], prefs: dict) -> None:
     else:
         print("  unavailable (model metadata could not be read)")
     print("Per-model Codex sampling controls (temperature/top-p/top-k/repeat penalty/seed): unsupported; no saved values")
-    print("Reasoning effort/thinking controls: not configured; Codex catalog advertises no selectable effort because Herd 0.12.3 does not map Codex reasoning_effort to Ollama think")
+    thinking_controls = model.get("ollama_thinking_controls", {})
+    if thinking_controls:
+        controls = "; ".join(
+            f"{node}: values={data['values']!r}, default={data['default']!r}"
+            for node, data in sorted(thinking_controls.items())
+        )
+        print(f"Ollama /api/show thinking controls (read-only): {controls}")
+        print("Codex reasoning effort: unavailable; Herd 0.12.3 does not forward reasoning.effort to Ollama think")
+    else:
+        print("Ollama thinking controls: not advertised by /api/show")
+        print("Codex reasoning effort: unavailable; Herd 0.12.3 does not forward reasoning.effort to Ollama think")
     print("Preferred node/routing score/priority/concurrency/keep-alive: not model-specific client controls in this Herd/Codex path")
     print("Max generated tokens: controlled by Codex model catalog/request; no separate per-model preference is exposed")
     print("Compaction: Codex manages history compaction using catalog context; no per-model override is exposed")

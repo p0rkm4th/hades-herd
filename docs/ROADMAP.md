@@ -17,8 +17,11 @@
    continuity and final-turn completion.
 4. Validate each benchmark runner's sandbox-visible task, test environment,
    hard timeout, artifacts, and independent verification before scoring.
-5. Isolate reasoning-control handling. Preserve defaults and verify the actual
-   Ollama request field before benchmarking any behavior change.
+5. Isolate reasoning-control handling. `/api/show` now exposes model-specific
+   accepted `think` values on the two candidate nodes, and `codex-herd config
+   show` reports them without advertising a nonfunctional Codex control. Next,
+   validate a router-side pass-through against the selected node's metadata and
+   observe the actual `/api/chat` request before any behavior benchmark.
 6. Make one minimal reversible change only after a root cause is demonstrated;
    compare before/after on the same task and model.
 

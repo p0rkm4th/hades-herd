@@ -152,3 +152,27 @@ selection was invalid. It establishes that Codex/Herd successfully exchanged
 stateless call/result history while some requests omitted tool definitions;
 what that pattern means for model behavior remains open. Raw requests,
 responses, arguments, commands, and prompts were not published.
+
+## Follow-up: live Ollama reasoning metadata and CLI disclosure — 2026-11-07
+
+Read-only `POST /api/show` checks to each model's documented Ollama endpoint
+returned explicit `thinking.values` metadata on Ollama 0.40.15:
+
+| Candidate | Advertised `think` values | Default |
+|---|---|---|
+| MiMo-V2.6 9B Q4 on Hecate | `false`, `true` | `true` |
+| Qwen3.8 27B Q4 on Nyx | `false`, `low`, `medium`, `xhigh` | `medium` |
+
+Ollama's [thinking API documentation](https://github.com/ollama/ollama/blob/main/docs/capabilities/thinking.mdx)
+says accepted values are model-specific and an unsupported named value uses the
+model default. The `codex-herd config show MODEL` client now displays the
+observed per-node values, but deliberately leaves Codex's
+`supported_reasoning_levels` empty. Codex can emit `reasoning.effort` when a
+profile advertises it, but Herd 0.12.3's Responses translator currently drops
+that field; advertising it would present a nonfunctional setting. This is a
+client disclosure improvement, not an inference or agent-completion result.
+
+Validation: Python unit suite 16/16 passed; `py_compile` and `git diff --check`
+passed. Live `codex-herd config show` displayed the two expected node-specific
+value sets and continued to report the Codex control unavailable. No inference
+request, model load, route/default change, or service modification was made.

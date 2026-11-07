@@ -9,6 +9,30 @@ import codex_herd
 
 
 class HerdEndpointConfigTests(unittest.TestCase):
+    def test_ollama_thinking_controls_require_advertised_values(self):
+        self.assertEqual(
+            codex_herd.ollama_thinking_controls({
+                "thinking": {"values": [False, "low", "high"], "default": "low"},
+            }),
+            {"values": [False, "low", "high"], "default": "low"},
+        )
+        self.assertEqual(
+            codex_herd.ollama_thinking_controls({
+                "thinking": {"values": [False, True], "default": True},
+            }),
+            {"values": [False, True], "default": True},
+        )
+
+    def test_ollama_thinking_controls_reject_missing_or_invalid_metadata(self):
+        for shown in (
+            {},
+            {"thinking": {"values": []}},
+            {"thinking": {"values": [1], "default": 1}},
+            {"thinking": {"values": ["low"], "default": "high"}},
+        ):
+            with self.subTest(shown=shown):
+                self.assertIsNone(codex_herd.ollama_thinking_controls(shown))
+
     def test_digest_evidence_is_local_and_validated(self):
         with tempfile.TemporaryDirectory() as directory:
             evidence = Path(directory) / "model-digests.json"

@@ -55,6 +55,15 @@ of the migration is recorded below.
   `think` while retaining messages and tools. The actual downstream HTTP body
   was not intercepted; no client control is enabled. See the [sanitized
   evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
+- On 2026-11-07, read-only live `/api/show` checks on the MiMo 9B Hecate alias
+  returned `think` values `[false, true]` (default `true`); Qwen3.8 27B on Nyx
+  returned `[false, low, medium, xhigh]` (default `medium`). `codex-herd
+  config show` now displays these backend-advertised values per node while
+  keeping Codex's selectable reasoning levels empty: Herd still drops
+  `reasoning.effort`, so exposing a selector would imply a control that does
+  not work. Ollama documents that values are model-specific and unsupported
+  names silently resolve to the model default, so forwarding must be validated
+  against the chosen backend. See the [Ollama thinking API](https://github.com/ollama/ollama/blob/main/docs/capabilities/thinking.mdx).
 - Latest published diagnostic commit is `d17c55b`; CI passed the Python
   3.10–3.14 matrix and fixture syntax in
   [run 42408427998](https://github.com/p0rkm4th/hades-herd/actions/runs/42408427998).
