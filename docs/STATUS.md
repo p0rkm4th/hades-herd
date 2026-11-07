@@ -102,3 +102,12 @@ adding models or changing production routes.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)
 and the [roadmap](ROADMAP.md).
+
+## Latest held-out diagnostic — 2026-11-07
+
+A fresh Qwen3.8 Q4/Nyx attempt on the trace call-count bug timed out at 180s
+(exit 124) after four completed shell commands, with no tool calls, patch, or
+completed Codex turn. This is incomplete diagnostic evidence, excluded from
+model pass rates; it does not identify whether the cause is model behavior,
+context/protocol handling, or agent workflow. Nyx was unloaded and released;
+production Herd remained idle. See the [sanitized held-out result](../benchmarks/results/2026-11-07-heldout-trace-count-task.md).
