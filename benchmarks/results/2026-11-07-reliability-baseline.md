@@ -34,6 +34,20 @@ clones, event counts, and cleanup.
   local tool router rejected that name; it does not establish whether the model
   emitted an undeclared name or Herd altered the advertised schema. Capture a
   sanitized tool-schema and function-call trace before changing the adapter.
+- A loopback deterministic fixture now advertises Codex's actual tool catalog,
+  then returns an undeclared `read_file` call. Codex 0.166.0 reproduced the
+  same local `unsupported call` rejection, did not execute the call, included
+  a synthetic unsupported-call result in the next request, and accepted the
+  subsequent final response. Its captured request listed eight named tools
+  and did not include `read_file`. This validates the Codex-side mechanism,
+  not the origin of the name in the real MiMo trace. See the reproducible
+  [fixture instructions](../README.md#deterministic-codex-tool-router-check).
+- A read-only source audit of Herd 0.12.3 found that the Responses route
+  translates and stores the incoming tool definitions in the request body;
+  the streaming path retains that body for Ollama. Herd has targeted repairs
+  for a couple of known call patterns, but no general repair for arbitrary
+  unknown tool names. This makes a model-emitted undeclared name plausible; the
+  real Ollama response body was not captured, so this is not proven.
 - Repeated reads may reflect model planning, task prompting, or context/state
   handling. Existing evidence does not identify the cause.
 - The installed Herd Responses adapter's Codex catalog advertises no reasoning

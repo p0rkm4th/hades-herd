@@ -32,6 +32,9 @@ of the migration is recorded below.
   many distinct 16K Codex attempts did not complete a full agent turn.
 - Earlier traces include unsupported `read_file` attempts, repeated source
   inspection, patches without a final response, and test-fixture errors.
+- A deterministic loopback test confirms Codex 0.166.0 rejects an unadvertised
+  `read_file` call locally and reports the rejection on the next request; the
+  real model-side call remains uncaptured, so the source of that name is open.
 - Codex reasoning controls are not yet demonstrated end-to-end through Herd's
   adapter. Do not claim `reasoning.effort` or Ollama `think` settings apply.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
