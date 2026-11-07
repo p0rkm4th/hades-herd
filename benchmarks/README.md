@@ -73,3 +73,32 @@ For reasoning experiments, the fixture records only the scalar
 catalog intentionally advertises no effort levels until the server mapping is
 verified. The mock cannot establish what Herd sends to Ollama; the result report
 records a separate no-inference translator check.
+
+## Sanitized live Responses trace
+
+`fixtures/trace_codex_herd.py` is an optional loopback-only forwarding proxy for
+one bounded Codex/Herd diagnosis. It forwards request and streamed response
+bytes unchanged. The summary records only HTTP status/path, advertised tool
+names and nesting, reasoning-effort enum, input item counts, prior tool-call
+names/result counts, response item types/function names, terminal status, and
+token counts. It never writes message text, tool schemas, arguments, tool
+results, response text, IDs, or request headers. Raw request/response bodies
+exist only in process memory while being forwarded. `read_file` names are
+captured on both sides so a Codex-local rejection can be compared with what
+Herd returned to Codex.
+
+Run it with the private upstream URL supplied only in the local environment:
+
+```sh
+HERD_TRACE_UPSTREAM="http://<private-herd-host>:11435" \
+  python3 benchmarks/fixtures/trace_codex_herd.py --port 8766 \
+  --capture /tmp/codex-herd-trace-summary.json
+```
+
+In the isolated Codex process, set `CODEX_HERD_URL=http://127.0.0.1:8766`.
+The helper's discovery calls and Responses API are transparently forwarded;
+the Codex-generated provider profile points back through the proxy. The proxy
+rejects upstream URLs with embedded credentials and binds only to `127.0.0.1`.
+Do not publish raw Codex logs from a trial. Verify the summary has no task text
+before sharing it. The fixture requires no model download and does not change
+Herd or Ollama configuration.

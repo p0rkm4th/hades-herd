@@ -58,8 +58,14 @@ of the migration is recorded below.
   evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
 - Commit `d6692c2` passed fixture syntax and Python 3.10–3.14 tests in
   [CI run 42403984189](https://github.com/p0rkm4th/hades-herd/actions/runs/42403984189).
-- The latest main commit before this status refresh is `0529333`; follow-up CI
-  status is linked with the commit and the GitHub Actions history.
+- A loopback-only live trace proxy now has offline tests that verify streamed
+  Responses bytes pass through unchanged while its capture omits prompts, tool
+  schemas, arguments, results, response text, IDs, and headers. It is not yet
+  used on a real Herd request.
+- The owner-provided model study is summarized in the [model matrix](MODEL_MATRIX.md).
+  Published scores remain directional only; no offload experiment, model pull,
+  hardware change, or production route/default change is planned during this
+  reliability phase.
 - No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
