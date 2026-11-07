@@ -72,9 +72,13 @@ of the migration is recorded below.
   omitted/default effort. The patch has not been deployed or tested against a
   live `/api/chat` request; the client catalog still advertises no effort levels.
   See the [patch review notes](../patches/README.md).
-- Latest published diagnostic commit is `d17c55b`; CI passed the Python
-  3.10–3.14 matrix and fixture syntax in
-  [run 42408427998](https://github.com/p0rkm4th/hades-herd/actions/runs/42408427998).
+- `main` remains at `19396a2`. The latest review branch is
+  `codex-herd/show-thinking-controls` at `c4aca60`, with the capability display,
+  tested upstream adapter patch, and MIT notice. Its Python 3.10–3.14 CI matrix
+  passed in [run 42410262261](https://github.com/p0rkm4th/hades-herd/actions/runs/42410262261).
+  A pull request has not been opened: the connected GitHub integration returned
+  HTTP 403 when asked to create it. The [branch comparison](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/show-thinking-controls?expand=1)
+  is public for review.
 - The loopback trace proxy passed a real bounded Codex/Herd run. It observed 30
   successful Responses calls before the 180-second timeout and 27 unique shell
   calls, with no code edits. Sixteen requests carried nine tool entries; 14
