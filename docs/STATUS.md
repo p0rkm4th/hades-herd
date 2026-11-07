@@ -64,6 +64,14 @@ of the migration is recorded below.
   not work. Ollama documents that values are model-specific and unsupported
   names silently resolve to the model default, so forwarding must be validated
   against the chosen backend. See the [Ollama thinking API](https://github.com/ollama/ollama/blob/main/docs/capabilities/thinking.mdx).
+- An isolated, un-deployed Herd 0.12.3 patch now carries explicit Codex effort
+  through translation, checks the selected backend's `/api/show`, and forwards
+  only an exact advertised string as Ollama `think`; unsupported requests fail
+  visibly. The upstream full suite passed 1,993 tests (5 skipped), with 99
+  focused tests passing. Source Ruff/format checks passed. It does not change
+  omitted/default effort. The patch has not been deployed or tested against a
+  live `/api/chat` request; the client catalog still advertises no effort levels.
+  See the [patch review notes](../patches/README.md).
 - Latest published diagnostic commit is `d17c55b`; CI passed the Python
   3.10–3.14 matrix and fixture syntax in
   [run 42408427998](https://github.com/p0rkm4th/hades-herd/actions/runs/42408427998).

@@ -1,0 +1,190 @@
+diff --git a/src/fleet_manager/server/responses_translator.py b/src/fleet_manager/server/responses_translator.py
+index 6aa2aeb..a6f9bdb 100644
+--- a/src/fleet_manager/server/responses_translator.py
++++ b/src/fleet_manager/server/responses_translator.py
+@@ -573,0 +574,6 @@ def responses_to_openai_body(body: dict) -> dict:
++    # Keep Codex's requested effort private to the Responses route until it
++    # knows which Ollama node won. That route can then validate an exact
++    # model-advertised value before adding Ollama's native `think` field.
++    reasoning = body.get("reasoning")
++    if isinstance(reasoning, dict) and reasoning.get("effort") is not None:
++        out["_codex_reasoning_effort"] = reasoning["effort"]
+diff --git a/src/fleet_manager/server/routes/responses_compat.py b/src/fleet_manager/server/routes/responses_compat.py
+index 5b49975..262ba58 100644
+--- a/src/fleet_manager/server/routes/responses_compat.py
++++ b/src/fleet_manager/server/routes/responses_compat.py
+@@ -68,0 +69,18 @@ def _error(status: int, message: str, etype: str = "invalid_request_error") -> J
++def _apply_requested_reasoning_effort(body: dict, effort, controls: dict | None) -> None:
++    """Map explicit Codex effort only when Ollama advertises it verbatim."""
++    if effort is None:
++        return
++    if not isinstance(effort, str) or not effort:
++        raise ValueError("reasoning.effort must be a non-empty string")
++    values = controls.get("values") if isinstance(controls, dict) else None
++    if not isinstance(values, list):
++        values = []
++    if effort not in values:
++        available = ", ".join(repr(value) for value in values) or "none reported"
++        raise ValueError(
++            f"Ollama model does not advertise reasoning effort {effort!r}; "
++            f"accepted think values: {available}"
++        )
++    body["think"] = effort
++
++
+@@ -138,0 +157 @@ async def responses(request: Request):
++    requested_reasoning_effort = openai_body.pop("_codex_reasoning_effort", None)
+@@ -238,0 +258,8 @@ async def responses(request: Request):
++    if requested_reasoning_effort is not None:
++        controls = await proxy.get_thinking_controls(winner.node_id, actual_model)
++        try:
++            _apply_requested_reasoning_effort(
++                inference_req.raw_body, requested_reasoning_effort, controls
++            )
++        except ValueError as exc:
++            return _error(400, str(exc))
+diff --git a/src/fleet_manager/server/streaming.py b/src/fleet_manager/server/streaming.py
+index 755e860..e2d4ff6 100644
+--- a/src/fleet_manager/server/streaming.py
++++ b/src/fleet_manager/server/streaming.py
+@@ -178,0 +179,4 @@ class StreamingProxy:
++        # Short-lived metadata cache for explicit Codex reasoning controls.
++        # The selected node/model pair matters because Ollama levels vary by
++        # model and duplicate models can have different backend metadata.
++        self._thinking_controls: dict[tuple[str, str], tuple[float, dict | None]] = {}
+@@ -232,0 +237 @@ class StreamingProxy:
++            self._clear_thinking_controls(node_id)
+@@ -241,0 +247,37 @@ class StreamingProxy:
++    async def get_thinking_controls(self, node_id: str, model: str) -> dict | None:
++        """Read the selected Ollama model's advertised thinking values.
++
++        This runs only when a client explicitly requests reasoning effort. A
++        short cache avoids an extra metadata request for every streamed turn.
++        Missing or malformed metadata means the request cannot be applied.
++        """
++        key = (node_id, model)
++        now = time.monotonic()
++        cached = self._thinking_controls.get(key)
++        if cached and now - cached[0] < 60:
++            return cached[1]
++        client = self._get_client(node_id)
++        try:
++            response = await client.post(
++                "/api/show",
++                json={"model": model},
++                timeout=httpx.Timeout(connect=5.0, read=10.0, write=5.0, pool=5.0),
++            )
++            response.raise_for_status()
++            shown = response.json()
++        except (httpx.HTTPError, ValueError):
++            self._thinking_controls.pop(key, None)
++            return None
++        thinking = shown.get("thinking") if isinstance(shown, dict) else None
++        values = thinking.get("values") if isinstance(thinking, dict) else None
++        default = thinking.get("default") if isinstance(thinking, dict) else None
++        valid = (
++            isinstance(values, list)
++            and bool(values)
++            and all(type(value) in (bool, str) for value in values)
++            and (default is None or (type(default) in (bool, str) and default in values))
++        )
++        controls = {"values": values, "default": default} if valid else None
++        self._thinking_controls[key] = (now, controls)
++        return controls
++
+@@ -254,0 +297,5 @@ class StreamingProxy:
++        self._clear_thinking_controls(node_id)
++
++    def _clear_thinking_controls(self, node_id: str):
++        for key in [key for key in self._thinking_controls if key[0] == node_id]:
++            del self._thinking_controls[key]
+diff --git a/tests/test_server/test_responses_route.py b/tests/test_server/test_responses_route.py
+index 9a14918..fc97612 100644
+--- a/tests/test_server/test_responses_route.py
++++ b/tests/test_server/test_responses_route.py
+@@ -54,0 +55,14 @@ def client():
++def test_requested_reasoning_effort_requires_exact_advertised_value():
++    body = {"model": "qwen3.8:27b", "messages": []}
++    responses_compat._apply_requested_reasoning_effort(
++        body, "xhigh", {"values": [False, "low", "medium", "xhigh"]}
++    )
++    assert body["think"] == "xhigh"
++    with pytest.raises(ValueError, match="accepted think values"):
++        responses_compat._apply_requested_reasoning_effort(
++            {}, "high", {"values": [False, "low", "medium", "xhigh"]}
++        )
++    with pytest.raises(ValueError, match="none reported"):
++        responses_compat._apply_requested_reasoning_effort({}, "low", None)
++
++
+diff --git a/tests/test_server/test_responses_translator.py b/tests/test_server/test_responses_translator.py
+index 2186513..ee5816a 100644
+--- a/tests/test_server/test_responses_translator.py
++++ b/tests/test_server/test_responses_translator.py
+@@ -103,0 +104,17 @@ def test_reasoning_items_are_dropped():
++def test_explicit_reasoning_effort_is_carried_for_target_node_validation():
++    body = responses_to_openai_body({
++        "model": "qwen3.8:27b",
++        "input": "Fix the bug",
++        "reasoning": {"effort": "xhigh"},
++    })
++    assert body["_codex_reasoning_effort"] == "xhigh"
++    assert "reasoning" not in body
++    assert "think" not in body
++
++
++def test_absent_reasoning_effort_preserves_default_request_shape():
++    body = responses_to_openai_body({"model": "qwen3.8:27b", "input": "Fix the bug"})
++    assert "_codex_reasoning_effort" not in body
++    assert "think" not in body
++
++
+diff --git a/tests/test_server/test_streaming.py b/tests/test_server/test_streaming.py
+index 1a0ff6c..d854aef 100644
+--- a/tests/test_server/test_streaming.py
++++ b/tests/test_server/test_streaming.py
+@@ -117,0 +118,15 @@ class TestBuildOllamaBody:
++        assert "think" not in body
++
++    def test_responses_think_control_reaches_ollama_body_only_when_set(self, proxy):
++        req = InferenceRequest(
++            model="qwen3.8:27b",
++            messages=[{"role": "user", "content": "Hi"}],
++            original_format=RequestFormat.RESPONSES,
++            raw_body={
++                "model": "qwen3.8:27b",
++                "messages": [{"role": "user", "content": "Hi"}],
++                "think": "xhigh",
++            },
++        )
++        body = proxy._build_ollama_body(req, "some-node")
++        assert body["think"] == "xhigh"
+@@ -620,0 +636,28 @@ def test_build_ollama_body_normalizes_tool_call_history_for_openai_format():
++@pytest.mark.asyncio
++async def test_thinking_controls_are_read_from_selected_node_and_cached():
++    import httpx
++
++    proxy = _make_proxy_with_loaded_model("qwen3.8:27b")
++    calls = []
++
++    def handler(request):
++        calls.append(request)
++        return httpx.Response(200, json={
++            "thinking": {"values": [False, "low", "medium", "xhigh"], "default": "medium"},
++        })
++
++    client = httpx.AsyncClient(
++        base_url="http://localhost:11434", transport=httpx.MockTransport(handler)
++    )
++    proxy._clients["test-node"] = client
++    proxy._client_urls["test-node"] = "http://localhost:11434"
++    try:
++        expected = {"values": [False, "low", "medium", "xhigh"], "default": "medium"}
++        assert await proxy.get_thinking_controls("test-node", "qwen3.8:27b") == expected
++        assert await proxy.get_thinking_controls("test-node", "qwen3.8:27b") == expected
++        assert len(calls) == 1
++        assert calls[0].url.path == "/api/show"
++    finally:
++        await proxy.close()
++
++

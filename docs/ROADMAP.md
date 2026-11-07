@@ -20,8 +20,10 @@
 5. Isolate reasoning-control handling. `/api/show` now exposes model-specific
    accepted `think` values on the two candidate nodes, and `codex-herd config
    show` reports them without advertising a nonfunctional Codex control. Next,
-   validate a router-side pass-through against the selected node's metadata and
-   observe the actual `/api/chat` request before any behavior benchmark.
+   a tested Herd 0.12.3 patch artifact validates the selected backend's exact
+   advertised value and carries it to Ollama. Apply it only in an isolated
+   router, capture the real `/api/chat` body, then add matching client catalog
+   metadata before any behavior benchmark. See [patch notes](../patches/README.md).
 6. Make one minimal reversible change only after a root cause is demonstrated;
    compare before/after on the same task and model.
 
