@@ -27,8 +27,11 @@
    `function_call` items. This is consistent with five tool-call outputs on
    tool-less requests, but the live Ollama boundary was not captured. Evidence
    and limits: [source-level reproduction](../benchmarks/results/2026-11-08-herd-empty-tools-translator-repro.md).
-   Next, test an explicit-empty-allowlist fix in an isolated upstream checkout;
-   do not change production behavior until that regression suite passes.
+   A disposable guard prototype passes 61 translator tests and the full
+   upstream suite (1,990 passed, 5 skipped); no mocked route or live task has
+   exercised it. See the [prototype record](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
+   Next, test an isolated HTTP route against mocked Ollama, then run a bounded
+   held-out coding task only if it passes. Do not change production behavior.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior

@@ -41,6 +41,12 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   requests in the HTTPie trace, but the live Ollama request/response body was
   not captured. No adapter patch or deployment was made. See the
   [source-level reproduction](../benchmarks/results/2026-11-08-herd-empty-tools-translator-repro.md).
+- A disposable guard prototype distinguishes explicit-empty from unknown
+  offered-tool metadata and suppresses unadvertised calls in streamed and
+  non-streamed results. Its translator tests pass 61/61; the full upstream
+  suite passes 1,990 tests (5 skipped, 3 existing queue-manager warnings).
+  No mocked route or live coding task has tested the patch. Details:
+  [guard prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
 
 ## Decision and review handoff
 
@@ -50,8 +56,8 @@ Creating a draft PR through the connected GitHub integration returned 403
 (`Resource not accessible by integration`); use the
 [compare page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
 
-Next: prepare and test a minimal explicit-empty-allowlist fix in a disposable
-upstream checkout, including streaming and non-streaming cases. Only then use
-timestamp-correlated live evidence on a distinct bounded task. Do not change
-production behavior without that evidence. Full sanitized results and failed
-attempts are in [`benchmarks/results/`](../benchmarks/results/).
+Next: add a mocked-Ollama isolated HTTP route test for the guard. If it passes,
+evaluate it on one distinct bounded task using a timestamp-correlated trace.
+Do not change production behavior without that evidence. Full sanitized
+results and failed attempts are in
+[`benchmarks/results/`](../benchmarks/results/).
