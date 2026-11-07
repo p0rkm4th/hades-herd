@@ -88,8 +88,10 @@ the mock turn; see the [sanitized profile smoke result](../benchmarks/results/20
   `command_execution` events versus 21 Responses `function_call` items. The
   streams lack a shared correlation key, so six events remain unexplained;
   a timestamped metadata-only Codex event capture and proxy request/response
-  timestamps are now implemented and tested. They have not yet been exercised
-  in a live model run.
+  timestamps are now implemented and tested. A later bounded live run exactly
+  reconciled 10 Responses calls with 10 Codex shell events; all requests carried
+  the tool catalog. This confirms the capture works for that ordinary sequence,
+  but does not explain the earlier six-event discrepancy or empty-tool requests.
 - The owner-provided model study is summarized in the [model matrix](MODEL_MATRIX.md).
   Published scores remain directional only; no offload experiment, model pull,
   hardware change, or production route/default change is planned during this
@@ -158,3 +160,14 @@ during the real inference run was not captured. This does not establish whether 
   events in that run; all requests advertised tools, so the earlier empty-tool
   behavior remains unexplained. The corrected 27-test suite passes locally.
   See the [smoke report](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
+
+## Review handoff
+
+The fix branch is pushed at `73723a181014bb6faae79889b571f8d76e457cdd`.
+The 27-test local suite passes. CI passed on the code commit `5a90083` in
+[run 42425964504](https://github.com/p0rkm4th/hades-herd/actions/runs/42425964504);
+`73723a1` only refreshes this status page. Opening a draft PR through the
+connected GitHub integration returned HTTP 403 (`Resource not accessible by
+integration`). The branch is ready for review at the
+[compare page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
+No changes are merged or deployed.
