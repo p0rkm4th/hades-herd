@@ -27,10 +27,13 @@ clones, event counts, and cleanup.
 
 - Tool transport is not the sole explanation: multiple runs successfully
   invoked Codex shell execution, and one MiMo task completed end to end.
-- `read_file` failures are observed in some event traces, but we have not yet
-  proven whether those were model-selected names outside Codex's advertised
-  tools or an adapter/serialization defect. Do not patch the server on this
-  evidence alone.
+- In the HTTPie #1958 run, Codex stderr records two
+  `codex_core::tools::router` errors: `unsupported call: read_file`. The
+  exported event stream contains shell command events but not the rejected
+  call payload or the Responses request/response body. This proves Codex's
+  local tool router rejected that name; it does not establish whether the model
+  emitted an undeclared name or Herd altered the advertised schema. Capture a
+  sanitized tool-schema and function-call trace before changing the adapter.
 - Repeated reads may reflect model planning, task prompting, or context/state
   handling. Existing evidence does not identify the cause.
 - The installed Herd Responses adapter's Codex catalog advertises no reasoning
