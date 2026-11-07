@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+.codex/
+preferences.json
+inventory.json
+model-catalog.json
+herd.config.toml
+codex-home/
+*.log
