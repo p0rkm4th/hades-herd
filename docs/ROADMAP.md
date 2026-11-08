@@ -62,9 +62,14 @@
    had zero content characters and 44,418 thinking characters total. The last
    backend response finished about 25 seconds after Codex was killed. This
    supports an inspection-loop diagnosis but not a causal claim about hidden
-   reasoning. Next, test thinking-only response handling and request
-   cancellation deterministically, not with another task retry. See the
+   reasoning. The deterministic thinking-only probe now shows that stock
+   v0.12.3 returns completed empty Responses output in both stream modes. A
+   content-free trace-proxy test also verifies downstream EOF detection and
+   closure of its upstream stream, but says nothing about production Herd/Ollama
+   cancellation. Next, verify Codex's behavior on completed empty output and
+   test cancellation in Herd's actual route. See the
    [shape report](../benchmarks/results/2026-11-08-guided-httpie-1965-response-shape.md).
+   New evidence: [thinking-only/disconnect report](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
    Do not repeat HTTPie #1958 or #1965 without a new response-shape hypothesis;
    production behavior remains unchanged.
    A timestamped trace correlator now joins non-overlapping Responses

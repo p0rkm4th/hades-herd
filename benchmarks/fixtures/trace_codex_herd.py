@@ -7,6 +7,8 @@ import argparse
 import http.client
 import json
 import os
+import select
+import socket
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -194,6 +196,11 @@ class TraceHandler(BaseHTTPRequestHandler):
         connection_type = http.client.HTTPSConnection if target.scheme == "https" else http.client.HTTPConnection
         connection = connection_type(target.hostname, target.port, timeout=600)
         response_started = False
+        response = None
+        summary: dict[str, Any] | None = None
+        monitor_stop = threading.Event()
+        client_disconnected = threading.Event()
+        monitor: threading.Thread | None = None
         headers = {
             key: value for key, value in self.headers.items()
             if key.lower() not in {"host", "connection", "transfer-encoding", "content-length"}
@@ -215,7 +222,7 @@ class TraceHandler(BaseHTTPRequestHandler):
             response_started = True
 
             metadata = request_metadata(body) if self.command == "POST" else {"json_request": False}
-            summary: dict[str, Any] = {
+            summary = {
                 "request_sequence": request_sequence,
                 "request_started_monotonic_ns": request_started_ns,
                 "method": self.command,
@@ -223,6 +230,26 @@ class TraceHandler(BaseHTTPRequestHandler):
                 "http_status": response.status,
                 "request": metadata,
             }
+            def watch_client() -> None:
+                # The proxy may be blocked reading a slow upstream SSE stream
+                # after Codex exits. Detect EOF independently and cancel that
+                # upstream read; merely noticing a later BrokenPipe is too late.
+                while not monitor_stop.is_set():
+                    try:
+                        readable, _, _ = select.select([self.connection], [], [], 0.05)
+                        if readable and self.connection.recv(1, socket.MSG_PEEK) == b"":
+                            client_disconnected.set()
+                            response.close()
+                            connection.close()
+                            return
+                    except (OSError, ValueError):
+                        client_disconnected.set()
+                        response.close()
+                        connection.close()
+                        return
+
+            monitor = threading.Thread(target=watch_client, daemon=True)
+            monitor.start()
             sse = SSEMetadata()
             is_sse = "text/event-stream" in response.getheader("Content-Type", "")
             while True:
@@ -239,16 +266,24 @@ class TraceHandler(BaseHTTPRequestHandler):
                 summary["terminal_status"] = sse.terminal_status
                 summary["usage"] = sse.usage
                 summary["response_finished_monotonic_ns"] = time.monotonic_ns()
-            with self.server.capture_lock:
-                self.server.capture["requests"].append(summary)
-                self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
-        except Exception:
+        except Exception as exc:
+            if summary is not None:
+                summary["error_type"] = type(exc).__name__
             if not response_started and not self.wfile.closed:
                 try:
                     self.send_error(502, "upstream request failed")
                 except (BrokenPipeError, ConnectionResetError):
                     pass
         finally:
+            monitor_stop.set()
+            if monitor is not None:
+                monitor.join(timeout=0.2)
+            if summary is not None:
+                summary["client_disconnected"] = client_disconnected.is_set()
+                summary.setdefault("response_finished_monotonic_ns", time.monotonic_ns())
+                with self.server.capture_lock:
+                    self.server.capture["requests"].append(summary)
+                    self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
             connection.close()
 
     do_GET = _forward

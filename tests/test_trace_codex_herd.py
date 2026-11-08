@@ -1,7 +1,9 @@
 import json
+import socket
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -217,6 +219,71 @@ class TraceProxyTests(unittest.TestCase):
                 self.assertEqual(capture["requests"][0]["response_items"][0]["name"], "read_file")
                 for sentinel in ("private prompt", "private schema", "private-args", "private response", "private-id"):
                     self.assertNotIn(sentinel, summary)
+            finally:
+                proxy.shutdown()
+                proxy.server_close()
+        upstream.shutdown()
+        upstream.server_close()
+
+    def test_client_disconnect_cancels_upstream_stream_and_records_safe_summary(self):
+        upstream_stopped = threading.Event()
+
+        class SlowUpstreamHandler(BaseHTTPRequestHandler):
+            def log_message(self, *_args):
+                pass
+
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get("Content-Length", "0")))
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream")
+                self.send_header("Connection", "close")
+                self.end_headers()
+                try:
+                    self.wfile.write(b"data: {\"type\":\"response.created\",\"private\":\"SENTINEL\"}\n\n")
+                    self.wfile.flush()
+                    for _ in range(100):
+                        time.sleep(0.03)
+                        self.wfile.write(b": keepalive\n\n")
+                        self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    upstream_stopped.set()
+
+        upstream = ThreadingHTTPServer(("127.0.0.1", 0), SlowUpstreamHandler)
+        upstream_thread = threading.Thread(target=upstream.serve_forever, daemon=True)
+        upstream_thread.start()
+        with tempfile.TemporaryDirectory() as directory:
+            capture_path = str(Path(directory) / "summary.json")
+            proxy = trace_codex_herd.TraceServer(
+                0, f"http://127.0.0.1:{upstream.server_port}", capture_path
+            )
+            proxy_thread = threading.Thread(target=proxy.serve_forever, daemon=True)
+            proxy_thread.start()
+            try:
+                client = socket.create_connection(("127.0.0.1", proxy.server_port), timeout=3)
+                client.sendall(
+                    b"POST /v1/responses HTTP/1.1\r\nHost: localhost\r\n"
+                    b"Content-Type: application/json\r\nContent-Length: 12\r\n\r\n"
+                    b'{"input":[]}'
+                )
+                received = b""
+                while b"\r\n\r\n" not in received:
+                    received += client.recv(4096)
+                self.assertIn(b"200 OK", received)
+                client.shutdown(socket.SHUT_RDWR)
+                client.close()
+
+                deadline = time.monotonic() + 2
+                while not Path(capture_path).exists() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertTrue(Path(capture_path).exists(), "proxy did not record the interrupted stream")
+                capture = json.loads(Path(capture_path).read_text())
+                self.assertEqual(len(capture["requests"]), 1)
+                summary = capture["requests"][0]
+                self.assertTrue(summary["client_disconnected"])
+                self.assertTrue(upstream_stopped.wait(2), "upstream connection was not closed")
+                serialized = json.dumps(capture)
+                self.assertNotIn("SENTINEL", serialized)
+                self.assertNotIn("input", summary.get("request", {}))
             finally:
                 proxy.shutdown()
                 proxy.server_close()

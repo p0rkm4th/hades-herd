@@ -56,6 +56,13 @@ failing HTTPie #1958 task. It timed out and its independent tests failed, so it
 is not a model pass or evidence that the guard improves autonomy. See the
 [sanitized live attempt](results/2026-11-08-guarded-httpie-1958-live-task.md).
 
+The [thinking-only route probe](fixtures/probe_herd_thinking_only_route.py)
+and [disconnect probe report](results/2026-11-08-thinking-only-and-disconnect-probes.md)
+cover the next deterministic response-shape checks. Herd v0.12.3 returns a
+completed empty Responses output for thinking-only Ollama output. The trace
+proxy now detects downstream EOF and closes its upstream stream; this does not
+verify cancellation in Herd or Ollama.
+
 ### Ollama-side metadata capture
 
 `fixtures/trace_ollama_chat.py` is a loopback-only forward proxy for an isolated

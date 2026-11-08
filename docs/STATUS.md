@@ -132,6 +132,16 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   agent task failure. The patch is public for review and remains unapplied.
   See the [paired report](../benchmarks/results/2026-11-08-herd-empty-tools-route-paired.md)
   and [patch notes](../benchmarks/fixtures/patches/README.md).
+- A deterministic route probe shows that pinned Herd v0.12.3 turns an Ollama
+  completion with empty content/tool calls and non-empty `thinking` into HTTP
+  200 with a completed Responses object and `output: []` in both stream modes;
+  the thinking text is not exposed. A local trace-proxy test also confirms
+  downstream EOF now closes its upstream stream and records a content-free
+  disconnect summary. This is diagnostic-proxy evidence only; Codex's handling
+  of the empty result and real Herd/Ollama cancellation remain unverified.
+  Details: [thinking-only and disconnect probes](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
+- The expanded offline public-repository test suite now passes **37 tests**;
+  the pinned upstream Herd thinking-only route probe separately passes **2/2**.
 
 ## Decision and review handoff
 
@@ -148,8 +158,9 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: make a deterministic reproduction of unsupported-tool selection using
-the unchanged advertised tool catalog, then test one minimal supported
-mitigation. Do not repeat HTTPie #1958, rerun #1965 without a new hypothesis,
-or deploy the guard based on these incomplete tasks. Full sanitized results and failed attempts are in
+Next: run Codex against a deterministic completed-empty-output response, then
+test tool-result continuity and final-turn handling. Separately verify
+cancellation in Herd's actual route; the trace-proxy result is not evidence of
+backend cancellation. Do not repeat HTTPie #1958, rerun #1965 without a new
+hypothesis, or deploy the guard based on these incomplete tasks. Full sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).
