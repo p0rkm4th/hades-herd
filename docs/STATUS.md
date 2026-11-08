@@ -40,6 +40,12 @@ first-run default or trace-count tasks; its context task timed out at 180s and
 the independent regression still failed. Since 0/3 makes the 4/5 smoke target
 unreachable, that campaign stopped. See the [Level A scorecard](../benchmarks/results/2026-11-08-level-a-fast-smoke.md).
 
+A single controlled repeat of the first-run task added a supported Codex
+developer-instructions value to the isolated model profile. It still timed out
+at 180s after 35 shell calls; the partial patch violated stale-default and
+explicit-selection invariants, and its new tests were not discovered. This
+prompt intervention did not qualify as a pass or demonstrate a reliable gain.
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and

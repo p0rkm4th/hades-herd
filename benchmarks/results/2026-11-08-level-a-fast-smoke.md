@@ -34,6 +34,20 @@ Result: **0/3 verified completions**. The matched formatter task passed for both
 models, but it was one small synthetic integration smoke and cannot offset
 these failures or support a general coding-reliability claim.
 
+## One-variable instruction follow-up
+
+The first-run default task was repeated once with the same fixture, model,
+user prompt, context, sandbox, and timeout. The only change was a concise
+per-model `developer_instructions` value in the isolated Codex profile. The
+generated profile contained that field before the run; OpenAI Docs describes
+it as additional instructions injected into the session. The run still timed
+out at 180 seconds after 35 shell calls and did not emit a completed turn. It
+left a partial patch whose focused test passed, but which replaced a stale
+saved default, could override explicit selection during profile sync, and
+added tests inside the `__main__` block so unittest did not discover them.
+The patch was rejected. This intervention did not establish a reliable
+improvement over the initial 9-call inspection-only attempt.
+
 ## Supported use scope
 
 Use local profiles only for supervised, low-risk work where the operator can
