@@ -13,7 +13,7 @@ private fleet at the time of these runs.
 | HTTPie #1960, same task | Qwen3.8 27B Q4, 16K | Incomplete, 0/1 | Core edit and smoke output existed, but the 180 s turn ended before tests/final review; 300 s retry still ended before final completion and required a test expectation correction |
 | [Rich #4250](https://github.com/Textualize/rich/issues/4250), `FileProxy.write` return count | MiMo-V2.6 9B Q4_K_M, 16K | Incomplete, 0/1 | 180 s timeout; 22 shell calls, repeated reads of the same source/tests, no edits; baseline focused suite 15 passed |
 | Rich #4250, matched | Qwen3.8 27B Q4, 16K | Incomplete, 0/1 | 180 s timeout; two shell calls, no edits; generation was observed near 11.1 tokens/s; baseline 15 passed |
-| [HTTPie #1958](https://github.com/httpie/cli/issues/1958), mixed-case JSON media type | MiMo-V2.6 9B Q4_K_M, 16K | Incomplete, 0/1 | Corrected run made 27 shell-command items, attempted unsupported `read_file` twice, no source/test edits; baseline 121 passed, 3 xfailed |
+| [HTTPie #1958](https://github.com/httpie/cli/issues/1958), mixed-case JSON media type — 15:50 untraced attempt | MiMo-V2.6 9B Q4_K_M, configured 16K | Incomplete, 0/1 | 27 shell-command items; Codex logged two unsupported `read_file` calls; no source/test edits; baseline 121 passed, 3 xfailed |
 | [pytest #15341](https://github.com/pytest-dev/pytest/issues/15341), read-only parent cleanup | MiMo and Qwen3.8, 16K | Incomplete; duplicate fixture retired | A previous MiMo patch misplaced its regression inside another test and timed out without final; the later matched pair made no edits. The later preflight missed already-open [PR #15343](https://github.com/pytest-dev/pytest/pull/15343), so this is not a fresh task-family result. |
 
 The Rich #4250 baseline issue was reproduced before inference; both profile
@@ -25,10 +25,18 @@ clones, event counts, and cleanup.
 
 ## Current diagnosis
 
+- The two HTTPie #1958 observations below came from separate runs. The 15:50
+  no-proxy attempt logged two unsupported `read_file` calls; the 19:42 traced
+  attempt had no such call or Codex rejection, but did include requests with
+  `tools: []`. They share the task fixture, not a Codex session or a
+  call-level trace. Do not infer that the unsupported calls occurred on the
+  empty-tool requests.
 - Tool transport is not the sole explanation: multiple runs successfully
   invoked Codex shell execution, and one MiMo task completed end to end.
-- In the HTTPie #1958 run, Codex stderr records two
-  `codex_core::tools::router` errors: `unsupported call: read_file`. The
+- In the 15:50 HTTPie #1958 run, Codex stderr records two
+  `codex_core::tools::router` errors: `unsupported call: read_file`. This is
+  the earlier 15:50 untraced run. The separate 19:42 wire trace did not
+  contain `read_file`. The
   exported event stream contains shell command events but not the rejected
   call payload or the Responses request/response body. This proves Codex's
   local tool router rejected that name; it does not establish whether the model

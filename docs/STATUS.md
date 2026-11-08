@@ -28,8 +28,11 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 ## What remains unreliable
 
 - No model has passed the 20 varied-task / 85% first-attempt daily-driver gate.
-- In the earlier HTTPie #1958 stall, 14 of 30 `/v1/responses` requests
+- In the 19:42 HTTPie #1958 wire-trace run, 14 of 30 `/v1/responses` requests
   explicitly sent `tools: []`; five responses still contained `exec_command`.
+  A separate 15:50 no-proxy attempt on the same task logged two unsupported
+  `read_file` calls. The trace run did not contain `read_file`, so the two
+  observations are not correlated.
   A separate run reconciled 10 tool calls exactly, and every `/v1/responses`
   request carried its tool catalog. That run does not explain the earlier
   empty-tool behavior or six-event discrepancy. See the

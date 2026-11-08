@@ -56,6 +56,9 @@
    relevant reproduced behavior.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
+   The two `read_file` rejections came from the 15:50 untraced HTTPie #1958
+   attempt. The separate 19:42 wire trace contained empty-tool requests but no
+   `read_file` response or Codex rejection; do not correlate these observations.
 4. Trace repeated inspection across consecutive messages to test whether prior
    tool results remain in conversation state. Add a fixture for tool-result
    continuity and final-turn completion.

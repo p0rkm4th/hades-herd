@@ -4,6 +4,9 @@ Offline analysis of the content-free metadata from the stalled HTTPie #1958
 trace, compared with the later full-tool protocol control. This uses only
 request item types, catalog counts, token counters, and response item types;
 no prompts, command text, arguments, or tool results were read or published.
+The two `read_file` rejections reported elsewhere came from a separate earlier
+no-proxy attempt on the same issue; they are not present in this wire trace and
+cannot be correlated with these empty-tool requests.
 
 | Observation | HTTPie #1958 stalled trace | Full-tool control |
 |---|---:|---:|
