@@ -32,6 +32,14 @@ private network details, prompts with user data, or credentials.
 See [`results/2026-11-07-reliability-baseline.md`](results/2026-11-07-reliability-baseline.md)
 for a concise baseline.
 
+### Protocol controls
+
+`fixtures/protocol-control/` contains small synthetic tasks used only to check
+Codex/Herd request behavior. They are not model-quality benchmarks and their
+results must not be added to the coding leaderboard. The first full-tool
+control and its limits are recorded in
+[`results/2026-11-08-full-tools-protocol-control.md`](results/2026-11-08-full-tools-protocol-control.md).
+
 ## Deterministic Codex tool-router check
 
 `fixtures/mock_codex_tool_router.py` is a loopback-only mock for separating a

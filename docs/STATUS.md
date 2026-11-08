@@ -34,6 +34,12 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - Repeated inspection, long completion times, and patch-without-final-turn
   failures remain unresolved. Codex reasoning-effort mapping through the live
   Herd adapter is not verified end to end.
+- A separate stock-adapter protocol control completed a synthetic bug-fix task
+  in 81.7 seconds: 16 Responses requests all carried the same 13-name tool
+  catalog, and all 12 final tests passed. It did not reproduce empty-tool
+  requests, so it is excluded from model scores and does not validate the guard.
+  See the
+  [control report](../benchmarks/results/2026-11-08-full-tools-protocol-control.md).
 - A deterministic import of the pinned Herd v0.12.3 translator reproduces a
   protocol mismatch: `tools: []` becomes an Ollama body with no `tools` field,
   but a synthetic Ollama `exec_command` call still becomes a Responses
@@ -60,9 +66,9 @@ Creating a draft PR through the connected GitHub integration returned 403
 (`Resource not accessible by integration`); use the
 [compare page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
 
-Next: evaluate the guard on one distinct bounded task through an isolated
-adapter copy using a timestamp-correlated trace. Compare against the unchanged
-route only if the empty-tool behavior can be reproduced. Do not change
-production behavior without that evidence. Full sanitized results and failed
-attempts are in
+Next: identify the Codex request class that produced empty tool lists in the
+stalled HTTPie trace, or reproduce it in a bounded live control. The ordinary
+tool-follow-up path did not reproduce it. Do not promote the adapter guard or
+change production behavior without a relevant live case. Full sanitized
+results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).

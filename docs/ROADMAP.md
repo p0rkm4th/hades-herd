@@ -30,11 +30,13 @@
    A disposable guard prototype passes 61 translator tests, two mocked-Ollama
    route cases, and the full upstream suite (1,992 passed, 5 skipped). No live
    task has exercised it. See the [prototype record](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
-   A first full-service startup check found v0.12.3 advertises over mDNS even
-   with a loopback HTTP bind; the process was stopped before inference. Next,
-   provide a network-isolated test setup or suppress discovery in the disposable
-   copy, then test one bounded held-out task if the historical empty-tool
-   pattern can be reproduced. Do not change production behavior.
+   A fresh stock-adapter protocol control completed a synthetic bug-fix task in
+   81.7 seconds: 16 Responses requests all advertised the same 13-name tool
+   catalog. This did not reproduce the historical empty-tool request, so the
+   guard was not exercised. The report records that the disposable router must
+   suppress mDNS, even with a loopback bind. Next, identify the request class in
+   the historical stalled trace or reproduce it in a bounded live case before
+   considering guard promotion. Do not change production behavior.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior
