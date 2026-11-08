@@ -34,6 +34,12 @@ returned a final response; approximate elapsed times were 8 seconds for MiMo
 9B Q4 and 97 seconds for Qwen3.8 27B Q4. This verifies the launch paths, not
 the Level A five-varied-task gate. See the [sanitized smoke result](../benchmarks/results/2026-11-08-supervised-codex-launch-smoke.md).
 
+The short Level A fast-profile campaign then attempted three distinct,
+baseline-reproduced launcher bugs. MiMo produced no verified fix on the
+first-run default or trace-count tasks; its context task timed out at 180s and
+the independent regression still failed. Since 0/3 makes the 4/5 smoke target
+unreachable, that campaign stopped. See the [Level A scorecard](../benchmarks/results/2026-11-08-level-a-fast-smoke.md).
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
@@ -106,10 +112,10 @@ the Level A five-varied-task gate. See the [sanitized smoke result](../benchmark
 
 ## Current decision
 
-Keep the deployed default unchanged. Both model-specific profiles have passed
-one real CLI coding smoke and are usable for supervised, bounded trials with
-independent patch review. Level A is not yet accepted: the five varied-task
-smoke suite remains outstanding. Avoid long retries; stop stalled sessions and
+Keep the deployed default unchanged. Both model-specific profiles passed one
+small real CLI coding smoke, but MiMo failed three reproduced maintenance tasks
+and Level A is not accepted. Limit local use to supervised, low-risk edits with
+clear tests and independent review. Stop stalled or repetitive sessions and
 use the explicit hosted fallback described in the operator guide.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)

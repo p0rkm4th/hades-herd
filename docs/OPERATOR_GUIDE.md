@@ -38,6 +38,14 @@ hosted Codex command explicitly if you want to continue there. The launcher
 never redirects a local task to hosted inference. Hosted Codex configuration
 remains unchanged.
 
+As a practical supervised-use rule, stop a MiMo session if it rereads the same
+files repeatedly without editing or makes no source change after about three
+minutes. Stop after two consecutive failed corrections of the same test. For
+Qwen3.8, allow more time when its reasoning helps, but stop after about five
+minutes without a concrete edit or test result. These are operator stop cues,
+not automatic timeouts. Unsupported tool errors and context exhaustion are
+reasons to stop and review the partial diff rather than retry blindly.
+
 ## Verify
 
 ```sh
