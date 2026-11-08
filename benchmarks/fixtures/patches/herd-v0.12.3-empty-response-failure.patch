@@ -1,0 +1,98 @@
+diff --git a/src/fleet_manager/server/responses_translator.py b/src/fleet_manager/server/responses_translator.py
+index 6aa2aeb..8aef36e 100644
+--- a/src/fleet_manager/server/responses_translator.py
++++ b/src/fleet_manager/server/responses_translator.py
+@@ -1007,11 +1007,12 @@ def build_responses_object(
+                 "status": "completed",
+             }
+         )
++    status = _map_status(done_reason)
+     return {
+         "id": response_id or _new_id("resp"),
+         "object": "response",
+         "created_at": int(created_at or time.time()),
+-        "status": _map_status(done_reason),
++        "status": status,
+         "model": model,
+         "output": output,
+         "usage": {
+@@ -1019,7 +1020,10 @@ def build_responses_object(
+             "output_tokens": output_tokens,
+             "total_tokens": input_tokens + output_tokens,
+         },
+-        "error": None,
++        "error": (
++            {"code": "server_error", "message": "Ollama returned no visible content or tool call."}
++            if status == "failed" and not output else None
++        ),
+     }
+ 
+ 
+@@ -1070,6 +1074,8 @@ def accumulate_responses_object(
+     # response to build from partial content -- the route answers 502.
+     if not saw_done:
+         raise UpstreamIncomplete(UPSTREAM_INCOMPLETE_MESSAGE)
++    if not text_parts and not tool_calls and done_reason != "length":
++        done_reason = UPSTREAM_INCOMPLETE
+     return build_responses_object(
+         model=model,
+         text="".join(text_parts),
+@@ -1357,6 +1363,20 @@ def ollama_chunk_to_responses_events(line: str, state: ResponsesSSEState) -> Ite
+             )
+ 
+     if done and not state.finished:
++        if (
++            not state.text_parts
++            and not state.emitted_tools
++            and not text
++            and not tool_calls
++            and chunk.get("done_reason") != "length"
++        ):
++            # A completed empty turn is indistinguishable from success to Codex,
++            # which then closes the turn without showing the operator anything.
++            # Surface an explicit failed response instead of a silent blank turn.
++            state.error_message = state.error_message or (
++                "Ollama returned no visible content or tool call."
++            )
++            chunk = {**chunk, "done_reason": UPSTREAM_INCOMPLETE}
+         state.finished = True
+         state.input_tokens = chunk.get("prompt_eval_count") or state.input_tokens or 0
+         state.output_tokens = chunk.get("eval_count") or state.output_tokens or 0
+diff --git a/tests/test_server/test_responses_empty_completion_diagnostic.py b/tests/test_server/test_responses_empty_completion_diagnostic.py
+new file mode 100644
+index 0000000..87d615e
+--- /dev/null
++++ b/tests/test_server/test_responses_empty_completion_diagnostic.py
+@@ -0,0 +1,32 @@
++"""Candidate behavior: do not label an empty model turn as a successful response."""
++import json
++
++from fleet_manager.server.responses_translator import (
++    ResponsesSSEState,
++    accumulate_responses_object,
++    ollama_chunk_to_responses_events,
++)
++
++EMPTY = json.dumps({
++    "model": "test:model",
++    "message": {"role": "assistant", "content": "", "thinking": "private"},
++    "done": True,
++    "done_reason": "stop",
++})
++
++
++def test_streaming_empty_completion_is_explicit_failure():
++    state = ResponsesSSEState(model="test:model")
++    events = [json.loads(line[6:]) for event in ollama_chunk_to_responses_events(EMPTY, state)
++              for line in event.splitlines() if line.startswith("data: ")]
++    assert events[-1]["type"] == "response.failed"
++    assert events[-1]["response"]["output"] == []
++    assert "no visible content" in events[-1]["response"]["error"]["message"]
++    assert "private" not in json.dumps(events)
++
++
++def test_nonstreaming_empty_completion_is_explicit_failure():
++    response = accumulate_responses_object([EMPTY], model="test:model")
++    assert response["status"] == "failed"
++    assert response["output"] == []
++    assert "no visible content" in response["error"]["message"]

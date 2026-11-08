@@ -12,6 +12,29 @@ included in [`OLLAMA-HERD-MIT-LICENSE.txt`](OLLAMA-HERD-MIT-LICENSE.txt).
 The patch remains experimental and has not been submitted upstream or applied
 to the production router.
 
+`herd-v0.12.3-empty-response-failure.patch` is a separate candidate for a
+different adapter behavior. When Ollama reports `done:true` without visible
+text or tool calls, stock Herd returns a successful empty Responses object;
+Codex 0.166.0 treats that as a successful blank turn. The candidate instead
+returns a failed Responses result with an explicit empty-output error, while
+preserving the existing `incomplete` status for length-limited generations.
+It changes no routing or Ollama settings. Tests show Codex surfaces the error
+and exits the turn with status 1 rather than silently completing, but it does
+not recover or retry automatically. The patch is not applied to production and
+has not been submitted upstream.
+
+Apply it only in a disposable checkout of the exact v0.12.3 commit, then run:
+
+```sh
+git apply /path/to/hades-herd/benchmarks/fixtures/patches/herd-v0.12.3-empty-response-failure.patch
+uv sync --extra dev
+HERD_EMPTY_RESPONSE_EXPECTED=failure PYTHONPATH=src:. uv run pytest \
+  tests/test_server/test_responses_translator.py \
+  tests/test_server/test_responses_empty_completion_diagnostic.py \
+  /path/to/hades-herd/benchmarks/fixtures/probe_herd_thinking_only_route.py -q
+HERD_EMPTY_RESPONSE_EXPECTED=failure PYTHONPATH=src:. uv run pytest -q
+```
+
 Apply only in a disposable clone of the exact upstream commit:
 
 ```sh

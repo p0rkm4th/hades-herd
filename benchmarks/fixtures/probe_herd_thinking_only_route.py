@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import threading
 import time
 
@@ -24,6 +25,7 @@ from tests.test_server.test_routes import create_test_app
 
 MODEL = "qwen3-coder:30b"
 PRIVATE_THINKING = "PRIVATE THINKING SENTINEL"
+EXPECTED_EMPTY_RESPONSE = os.environ.get("HERD_EMPTY_RESPONSE_EXPECTED", "stock")
 
 
 def test_client_disconnect_cancels_backend_stream(tmp_path):
@@ -147,12 +149,20 @@ def test_thinking_only_completion_becomes_empty_responses_output(tmp_path, strea
             for line in response.text.splitlines()
             if line.startswith("data: ")
         ]
-        completed = next(event["response"] for event in events if event.get("type") == "response.completed")
-        assert completed["status"] == "completed"
-        assert completed["output"] == []
+        terminal = next(event for event in events if event.get("type") in {"response.completed", "response.failed"})
+        completed = terminal["response"]
     else:
         completed = response.json()
+
+    assert completed["output"] == []
+    if EXPECTED_EMPTY_RESPONSE == "stock":
         assert completed["status"] == "completed"
-        assert completed["output"] == []
+        assert terminal["type"] == "response.completed" if stream else True
+    elif EXPECTED_EMPTY_RESPONSE == "failure":
+        assert completed["status"] == "failed"
+        assert "no visible content" in completed["error"]["message"]
+        assert terminal["type"] == "response.failed" if stream else True
+    else:
+        raise AssertionError("HERD_EMPTY_RESPONSE_EXPECTED must be 'stock' or 'failure'")
 
     assert PRIVATE_THINKING not in response.text

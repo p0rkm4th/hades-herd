@@ -77,7 +77,10 @@ class Handler(BaseHTTPRequestHandler):
         })
         self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
         now = int(time.time()); rid = f"resp_{Handler.calls}"
-        if self.server.scenario == "empty_then_final" and Handler.calls == 1:
+        if (
+            self.server.scenario in {"empty_then_final", "empty_failed"}
+            and Handler.calls == 1
+        ):
             output = []
             events = [
                 self.event("response.created", 0, response={"id": rid, "object": "response", "status": "in_progress", "created_at": now, "model": MODEL, "output": []}),
@@ -107,16 +110,29 @@ class Handler(BaseHTTPRequestHandler):
                 self.event("response.output_text.done", 4, output_index=0, item_id="msg_2", content_index=0, text=text),
                 self.event("response.output_item.done", 5, output_index=0, item=item),
             ]
-        response = {"id": rid, "object": "response", "status": "completed", "created_at": now,
-            "model": MODEL, "output": output, "error": None}
-        events.append(self.event("response.completed", len(events), response=response))
+        failed_empty = self.server.scenario == "empty_failed" and Handler.calls == 1
+        status = "failed" if failed_empty else "completed"
+        error = (
+            {"code": "server_error", "message": "Ollama returned no visible content or tool call."}
+            if failed_empty else None
+        )
+        response = {
+            "id": rid, "object": "response", "status": status, "created_at": now,
+            "model": MODEL, "output": output, "error": error,
+        }
+        terminal_event = "response.failed" if failed_empty else "response.completed"
+        events.append(self.event(terminal_event, len(events), response=response))
         self.stream(events)
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--capture", type=Path, default=Path("/tmp/codex-tool-router-capture.json"))
-    p.add_argument("--scenario", choices=("unsupported_tool", "empty_then_final"), default="unsupported_tool")
+    p.add_argument(
+        "--scenario",
+        choices=("unsupported_tool", "empty_then_final", "empty_failed"),
+        default="unsupported_tool",
+    )
     args = p.parse_args()
     server = HTTPServer(("127.0.0.1", args.port), Handler)
     server.capture_path = args.capture; server.capture = {"requests": []}

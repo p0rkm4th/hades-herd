@@ -143,7 +143,13 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   a successful blank turn (zero usage and no follow-up request) against a
   deterministic loopback mock. This makes the response shape a plausible blank
   turn mechanism; the earlier live 231-token response was not captured well
-  enough to connect it. Real Herd/Ollama cancellation remains unverified.
+  enough to connect it. A disposable v0.12.3 candidate patch turns empty
+  completions into explicit failures; Codex surfaces the error and exits 1
+  instead of silently finishing. It does not retry, remains unsubmitted and
+  unapplied ([candidate patch notes](../benchmarks/fixtures/patches/README.md)),
+  and does not demonstrate improved task success. Herd route
+  cancellation is verified against a mock transport; actual Ollama generation
+  stop remains unverified.
   Details: [thinking-only and disconnect probes](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
 - The expanded offline public-repository test suite now passes **37 tests**;
   the pinned upstream Herd route probe separately passes **3/3**.

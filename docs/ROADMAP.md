@@ -70,7 +70,10 @@
    trace-proxy test verifies downstream EOF detection and closure of its
    upstream stream. A separate v0.12.3 in-process route test confirms that a
    client disconnect cancels the mocked backend stream and frees the queue
-   slot. Real Ollama generation cancellation remains unverified. Next, test
+   slot. Real Ollama generation cancellation remains unverified. A disposable
+   candidate patch turns a completed empty model output into `response.failed`;
+   Codex surfaces the error instead of a blank success, but does not retry. It
+   is unapplied and unsubmitted. Next, test
    tool-result continuity/final-turn handling and whether Ollama stops after
    request cancellation. See the
    [shape report](../benchmarks/results/2026-11-08-guided-httpie-1965-response-shape.md).

@@ -1,6 +1,6 @@
 # Thinking-only Responses and trace-proxy disconnect probes
 
-**Date:** 2026-11-08 02:57 UTC  
+**Date:** 2026-11-08 03:11 UTC
 **Scope:** Deterministic offline protocol fixtures; no live inference or
 production service changes.
 
@@ -83,8 +83,31 @@ proxy had been fully draining that reply.
 
 Focused proxy suite: **9 passed**.
 
+## Candidate empty-response failure behavior
+
+The route evidence supports a narrowly scoped candidate patch:
+`patches/herd-v0.12.3-empty-response-failure.patch`. It converts an Ollama
+`done:true` turn with no visible text or tool calls from `completed` to
+`failed`, with an explicit error message. Existing `done_reason: length`
+responses remain `incomplete`. This prevents Codex from presenting an empty
+model response as an apparently successful blank turn.
+
+In the disposable v0.12.3 checkout, **64 targeted translator/route tests
+passed**, including stream and non-stream failure shape, cancellation, and
+preserved length behavior. The full upstream suite plus candidate tests passed
+**1,990 tests, 5 skipped** (3 existing queue-manager warnings). Codex 0.166.0
+against the deterministic `empty_failed` mock exited **1**, emitted a visible
+error and `turn.failed`, and made one request. Compared with the stock empty
+completion, it no longer reports a blank successful turn. It does not retry or
+recover, and it is not evidence of improved coding-task success.
+
+The patch remains unapplied and unsubmitted upstream. It should be reviewed as
+a user-visible failure-reporting change before any deployment; no production
+Herd behavior was changed. Exact patch and application notes are in
+[`fixtures/patches/`](../fixtures/patches/README.md).
+
 ## Next
 
-Next, measure whether real Ollama generation stops after Herd cancels its HTTP
-request, without using production traffic. No adapter patch or production
-change is indicated by these probes alone.
+Next, review the candidate error behavior and measure whether real Ollama
+generation stops after Herd cancels its HTTP request, without using production
+traffic. The adapter patch remains a review artifact only.
