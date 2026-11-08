@@ -153,6 +153,10 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   Details: [thinking-only and disconnect probes](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
 - The expanded offline public-repository test suite now passes **37 tests**;
   the pinned upstream Herd route probe separately passes **3/3**.
+- A deterministic Codex 0.166.0 control completed an advertised
+  `exec_command` → tool result → final response sequence. The content-free
+  capture confirms the second request included the prior call and one result.
+  This verifies Codex continuation with a mock, not the model/Herd/Ollama path.
 
 ## Decision and review handoff
 

@@ -73,9 +73,10 @@
    slot. Real Ollama generation cancellation remains unverified. A disposable
    candidate patch turns a completed empty model output into `response.failed`;
    Codex surfaces the error instead of a blank success, but does not retry. It
-   is unapplied and unsubmitted. Next, test
-   tool-result continuity/final-turn handling and whether Ollama stops after
-   request cancellation. See the
+   is unapplied and unsubmitted. A deterministic Codex mock now verifies
+   advertised shell call → tool result in the next request → final message.
+   Next, verify whether Ollama stops after request cancellation and run the
+   same continuity check through the actual Herd route. See the
    [shape report](../benchmarks/results/2026-11-08-guided-httpie-1965-response-shape.md).
    New evidence: [thinking-only/disconnect report](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
    Do not repeat HTTPie #1958 or #1965 without a new response-shape hypothesis;

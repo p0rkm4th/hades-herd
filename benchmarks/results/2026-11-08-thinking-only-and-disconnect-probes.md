@@ -83,6 +83,17 @@ proxy had been fully draining that reply.
 
 Focused proxy suite: **9 passed**.
 
+## Codex tool-result continuity
+
+The loopback mock's `tool_exec_then_final` scenario sent a valid advertised
+`exec_command`. Codex CLI 0.166.0 executed the bounded command
+`printf HADES_TOOL_EXECUTED`, included one `function_call_output` in the next
+Responses request, and then displayed the mock's final message. Codex exited
+**0**. The sanitized capture shows two requests: the second carried prior call
+`exec_command` and one result; it stores no command arguments or result text.
+This verifies Codex's tool-result continuation with a deterministic mock, not
+model-selected calls or the Herd/Ollama translation path.
+
 ## Candidate empty-response failure behavior
 
 The route evidence supports a narrowly scoped candidate patch:

@@ -63,6 +63,14 @@ class Handler(BaseHTTPRequestHandler):
         self.server.capture["requests"].append({
             "request_number": Handler.calls, "tool_names": sorted(names),
             "tool_shapes": tool_shapes,
+            "prior_function_call_names": [
+                item.get("name") for item in req.get("input", [])
+                if isinstance(item, dict) and item.get("type") == "function_call"
+            ],
+            "tool_result_count": sum(
+                1 for item in req.get("input", [])
+                if isinstance(item, dict) and item.get("type") == "function_call_output"
+            ),
             "read_file_advertised": "read_file" in names,
             "reasoning_effort": req.get("reasoning", {}).get("effort")
                 if isinstance(req.get("reasoning"), dict) else None,
@@ -77,7 +85,21 @@ class Handler(BaseHTTPRequestHandler):
         })
         self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
         now = int(time.time()); rid = f"resp_{Handler.calls}"
-        if (
+        if self.server.scenario == "tool_exec_then_final" and Handler.calls == 1:
+            args = '{"cmd":"printf HADES_TOOL_EXECUTED"}'
+            item = {
+                "id": "fc_exec_1", "type": "function_call", "status": "completed",
+                "call_id": "call_exec_1", "name": "exec_command", "arguments": args,
+            }
+            output = [item]
+            events = [
+                self.event("response.created", 0, response={"id": rid, "object": "response", "status": "in_progress", "created_at": now, "model": MODEL, "output": []}),
+                self.event("response.output_item.added", 1, output_index=0, item={**item, "status": "in_progress", "arguments": ""}),
+                self.event("response.function_call_arguments.delta", 2, output_index=0, item_id="fc_exec_1", delta=args),
+                self.event("response.function_call_arguments.done", 3, output_index=0, item_id="fc_exec_1", arguments=args),
+                self.event("response.output_item.done", 4, output_index=0, item=item),
+            ]
+        elif (
             self.server.scenario in {"empty_then_final", "empty_failed"}
             and Handler.calls == 1
         ):
@@ -130,7 +152,7 @@ def main():
     p.add_argument("--capture", type=Path, default=Path("/tmp/codex-tool-router-capture.json"))
     p.add_argument(
         "--scenario",
-        choices=("unsupported_tool", "empty_then_final", "empty_failed"),
+        choices=("unsupported_tool", "empty_then_final", "empty_failed", "tool_exec_then_final"),
         default="unsupported_tool",
     )
     args = p.parse_args()

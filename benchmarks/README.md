@@ -65,6 +65,9 @@ loopback mock. A route-level mocked test verifies that closing the Codex-side
 stream cancels the backend async stream and frees the Herd queue slot. These
 checks do not establish that Ollama stops real GPU generation immediately.
 The trace proxy also detects downstream EOF and closes its upstream stream.
+The mock's `tool_exec_then_final` scenario verifies that Codex executes an
+advertised shell call, includes its result in the following Responses request,
+and accepts a final message; this does not cover the model/Herd/Ollama path.
 The candidate empty-response failure patch is documented in
 [`fixtures/patches/README.md`](fixtures/patches/README.md); it changes the
 silently completed empty turn into a surfaced failure, but does not retry or
