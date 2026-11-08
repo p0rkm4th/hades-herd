@@ -295,6 +295,12 @@ event index:
 python3 benchmarks/fixtures/correlate_codex_trace.py \
   /path/to/codex-herd-trace-summary.json \
   /path/to/codex-event-index.jsonl > /path/to/correlation.json
+
+# When a matching content-free Ollama /api/chat JSONL capture is available:
+python3 benchmarks/fixtures/correlate_codex_trace.py \
+  /path/to/codex-herd-trace-summary.json \
+  /path/to/codex-event-index.jsonl \
+  --ollama-summary /path/to/ollama-metadata.jsonl > /path/to/correlation.json
 ```
 
 The reducer matches Responses requests and events using same-workstation
@@ -310,3 +316,10 @@ The result also reports total command starts/completions, counts assigned to
 non-overlapping response windows, and counts left unassigned. Events before
 the first response window and events in overlapping windows therefore remain
 visible in aggregate counts without unsupported call-level attribution.
+With `--ollama-summary`, it also assigns each Ollama chat record only when its
+entire timestamp interval falls within exactly one Codex Responses request.
+The resulting rows compare ordered tool-name lists from the Ollama response,
+the Codex response, and the next Codex request's prior-call history. Ambiguous
+or incomplete records remain unassigned. This is order/name consistency, not
+call identity: IDs, arguments, prompts, and tool results are neither read into
+the result nor emitted.

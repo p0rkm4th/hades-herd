@@ -38,15 +38,15 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
   It is not a model-quality pass. Details: [trace smoke](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
-- A follow-up branch, `codex-herd/tool-schema-diagnostics-current`, adds bounded tool-schema shape capture on both
-  sides of the Herd adapter: function names, property names/types, required
-  keys, and structural limits. It omits descriptions, defaults, enum/example
-  values, arguments, and prompts. Offline tests cover normalization, privacy,
-  loopback forwarding, and size limits. No live request has yet been compared
-  at both boundaries; the instrumentation does not itself prove a translation
-  defect. Its incremental
+- The follow-up branch, `codex-herd/tool-schema-diagnostics-current`, adds bounded
+  tool-schema shape capture on both sides of the Herd adapter: function names,
+  property names/types, required keys, and structural limits. It omits
+  descriptions, defaults, enum/example values, arguments, and prompts. One live
+  request was compared at both boundaries; the tested shared function schemas
+  matched structurally. One unadvertised Ollama `read` did not recur in the
+  corrected-observer recheck, so causality remains unknown. Its incremental
   [compare view](https://github.com/p0rkm4th/hades-herd/compare/codex-herd/review-launcher-context...codex-herd/tool-schema-diagnostics-current?expand=1)
-  is available for review. The current offline client suite passes 43 tests. Against clean
+  is available for review. The current offline client suite passes 46 tests. Against clean
   pinned Herd v0.12.3 source, the in-process route probe passed 1/1 with fake
   Ollama and showed the tested non-empty function schema shape was preserved.
   The Python 3.10–3.14 matrix passed on branch commit `5104417` in
@@ -213,14 +213,20 @@ captured five complete tool-result continuations and only advertised
 [paired live diagnostic](../benchmarks/results/2026-11-08-live-schema-diagnostic.md)
 and [trace details](../benchmarks/results/2026-11-08-tool-schema-trace.md).
 
-Next: do not repeat either diagnostic task without a specific hypothesis. The
-source review fixes are on `main`; the newer protocol evidence and observer
-fixes are pushed on the [review branch](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/tool-schema-diagnostics-current?expand=1).
+The trace reducer now has an optional `--ollama-summary` mode. It matches
+ordered tool-name lists only when an Ollama request interval fits within exactly
+one Codex request interval; overlapping observations remain unassigned. Three
+new offline tests cover name ordering, Codex follow-up history, overlap handling,
+and the CLI path. The full client suite passes 46 tests. No new inference run
+was made for this instrumentation change.
+
+Next: use the reducer only if a new hypothesis justifies another live task; do
+not repeat either prior diagnostic fixture. The source review fixes are on
+`main`; the newer protocol evidence and observer fixes are pushed on the
+[review branch](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/tool-schema-diagnostics-current?expand=1).
 Opening a PR still returns GitHub API 403. No model is daily-driver-qualified;
-the Codex inspection loop and task completion remain unresolved. Before another
-live trial, add order-only correlation for returned tool calls and subsequent
-Codex input items so an unadvertised call can be attributed without recording
-IDs or arguments. Keep the guard unapplied: it passed deterministic route
-checks but did not complete either live coding attempt. Real Ollama generation
-cancellation through Herd also remains unverified. Full sanitized results and
-failed attempts are in [`benchmarks/results/`](../benchmarks/results/).
+the Codex inspection loop and task completion remain unresolved. Keep the guard
+unapplied: deterministic route checks pass, but neither live coding attempt
+completed. Real Ollama generation cancellation through Herd also remains
+unverified. Full sanitized results and failed attempts are in
+[`benchmarks/results/`](../benchmarks/results/).

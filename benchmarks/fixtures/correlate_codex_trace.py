@@ -70,6 +70,121 @@ def load_events(path: Path) -> list[dict[str, Any]]:
     return sorted(events, key=lambda item: item["monotonic_ns"])
 
 
+def load_ollama_summary(path: Path) -> list[dict[str, Any]]:
+    """Load content-free Ollama proxy JSONL records for /api/chat only."""
+    records = []
+    try:
+        lines = path.read_text().splitlines()
+    except OSError as exc:
+        raise TraceError(f"cannot read Ollama proxy summary {path}: {exc}") from exc
+    for number, line in enumerate(lines, 1):
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise TraceError(f"invalid Ollama JSON on line {number}: {exc}") from exc
+        if not isinstance(record, dict):
+            raise TraceError(f"Ollama record on line {number} must be an object")
+        request = record.get("request")
+        if (
+            record.get("method") != "POST"
+            or not isinstance(request, dict)
+            or request.get("endpoint") != "/api/chat"
+        ):
+            continue
+        started = record.get("started_monotonic_ns")
+        finished = record.get("finished_monotonic_ns")
+        if any(type(value) is not int or value < 0 for value in (started, finished)):
+            raise TraceError(f"Ollama chat record on line {number} needs monotonic timestamps")
+        if finished < started:
+            raise TraceError(f"Ollama chat record on line {number} finishes before it starts")
+        records.append(record)
+    return sorted(records, key=lambda item: item["started_monotonic_ns"])
+
+
+def correlate_tool_names(
+    codex_requests: list[dict[str, Any]], ollama_records: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Compare ordered tool-name sequences within non-overlapping request windows.
+
+    No IDs, arguments, content, or exact call identity are used. Ambiguous
+    backend records remain unassigned instead of being matched by proximity.
+    """
+    ordered_codex = sorted(codex_requests, key=lambda item: item["request_sequence"])
+    ordered_ollama = sorted(ollama_records, key=lambda item: item["started_monotonic_ns"])
+    backend_by_codex: dict[int, list[dict[str, Any]]] = {
+        item["request_sequence"]: [] for item in ordered_codex
+    }
+    unassigned_backend = 0
+    for backend in ordered_ollama:
+        start = backend["started_monotonic_ns"]
+        finish = backend["finished_monotonic_ns"]
+        candidates = [
+            request for request in ordered_codex
+            if request["request_started_monotonic_ns"] <= start
+            and finish <= request["response_finished_monotonic_ns"]
+        ]
+        if len(candidates) != 1:
+            unassigned_backend += 1
+            continue
+        backend_by_codex[candidates[0]["request_sequence"]].append(backend)
+
+    rows = []
+    for index, request in enumerate(ordered_codex):
+        response_items = request.get("response_items", [])
+        codex_names = [
+            item["name"] for item in response_items
+            if isinstance(item, dict) and item.get("type") == "function_call"
+            and isinstance(item.get("name"), str)
+        ] if isinstance(response_items, list) else []
+        matched_backend = sorted(
+            backend_by_codex[request["request_sequence"]],
+            key=lambda item: item["started_monotonic_ns"],
+        )
+        ollama_names = []
+        for backend in matched_backend:
+            response = backend.get("response", {})
+            names = response.get("tool_call_names", []) if isinstance(response, dict) else []
+            if isinstance(names, list):
+                ollama_names.extend(name for name in names if isinstance(name, str))
+
+        next_prior_names = None
+        next_prior_results = None
+        for later in ordered_codex[index + 1:]:
+            meta = later.get("request", {})
+            if isinstance(meta, dict) and isinstance(meta.get("prior_function_call_names"), list):
+                next_prior_names = [
+                    name for name in meta["prior_function_call_names"] if isinstance(name, str)
+                ]
+                count = meta.get("tool_result_count")
+                next_prior_results = count if type(count) is int and count >= 0 else None
+                break
+        suffix_matches = (
+            next_prior_names[-len(codex_names):] == codex_names
+            if codex_names and next_prior_names is not None
+            and len(next_prior_names) >= len(codex_names)
+            else (not codex_names if next_prior_names is not None else None)
+        )
+        rows.append({
+            "request_sequence": request["request_sequence"],
+            "codex_response_tool_names": codex_names,
+            "ollama_response_tool_names": ollama_names,
+            "ollama_chat_request_count": len(matched_backend),
+            "backend_observation": "assigned" if matched_backend else "missing",
+            "ordered_names_match": ollama_names == codex_names if matched_backend else None,
+            "next_request_prior_tool_names": next_prior_names,
+            "next_request_prior_tool_result_count": next_prior_results,
+            "next_request_names_end_with_response_calls": suffix_matches,
+        })
+    return {
+        "requests": rows,
+        "unassigned_ollama_chat_records": unassigned_backend,
+        "correlation_limit": (
+            "Matching timestamps and tool-name order is evidence of sequence consistency, "
+            "not call identity. Overlapping or incomplete observations remain unassigned."
+        ),
+    }
+
+
 def correlate(requests: list[dict[str, Any]], events: list[dict[str, Any]]) -> dict[str, Any]:
     """Count command events in each non-overlapping response-to-next-request gap."""
     requests = sorted(requests, key=lambda item: item["request_sequence"])
@@ -169,9 +284,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("proxy_summary", type=Path)
     parser.add_argument("codex_event_index", type=Path)
+    parser.add_argument("--ollama-summary", type=Path,
+                        help="optional content-free Ollama /api/chat JSONL capture")
     args = parser.parse_args()
     try:
         output = correlate(load_summary(args.proxy_summary), load_events(args.codex_event_index))
+        if args.ollama_summary:
+            output["tool_name_correlation"] = correlate_tool_names(
+                load_summary(args.proxy_summary), load_ollama_summary(args.ollama_summary)
+            )
     except TraceError as exc:
         print(f"correlate_codex_trace: {exc}", file=sys.stderr)
         return 2

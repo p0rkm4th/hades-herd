@@ -130,9 +130,11 @@
    autonomous coding reliability.
 5. Validate each benchmark runner's sandbox-visible task, test environment,
    hard timeout, artifacts, and independent verification before scoring.
-6. Before another live task, extend the content-free trace to record returned
-   function-call names and order, then compare those with later Codex input
-   names/counts. Do not record identifiers, arguments, prompts, or tool results.
+6. The content-free reducer now has an optional `--ollama-summary` mode that
+   compares ordered tool names only when a backend request is wholly contained
+   in one Codex request window; overlaps remain unassigned. Use it before any
+   future live trial, and only when a new hypothesis justifies the workload.
+   Never record identifiers, arguments, prompts, or tool results.
 7. Keep the empty-tool guard and empty-response failure candidates isolated:
    deterministic tests prove their protocol behavior, but live tasks did not
    demonstrate better completion. Real Ollama generation cancellation through

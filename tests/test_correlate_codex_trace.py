@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -25,6 +27,79 @@ def req(sequence, start, finish, tool_count, calls, output_types):
 
 
 class CorrelateCodexTraceTests(unittest.TestCase):
+    def test_correlates_ordered_tool_names_without_retaining_call_ids(self):
+        first = req(1, 100, 200, 9, 0, ["function_call", "function_call"])
+        first["response_items"] = [
+            {"type": "function_call", "name": "exec_command", "call_id_present": True},
+            {"type": "function_call", "name": "read", "call_id_present": True},
+        ]
+        second = req(2, 220, 300, 9, 2, ["message"])
+        second["request"]["prior_function_call_names"] = ["exec_command", "read"]
+        second["request"]["tool_result_count"] = 2
+        ollama = [{
+            "id": "PRIVATE_CALL_ID",
+            "started_monotonic_ns": 120,
+            "finished_monotonic_ns": 180,
+            "request": {"endpoint": "/api/chat"},
+            "response": {"tool_call_names": ["exec_command", "read"]},
+        }]
+
+        result = correlate.correlate_tool_names([first, second], ollama)
+
+        self.assertEqual(result["requests"][0]["codex_response_tool_names"], ["exec_command", "read"])
+        self.assertEqual(result["requests"][0]["ollama_response_tool_names"], ["exec_command", "read"])
+        self.assertTrue(result["requests"][0]["ordered_names_match"])
+        self.assertTrue(result["requests"][0]["next_request_names_end_with_response_calls"])
+        self.assertEqual(result["requests"][0]["next_request_prior_tool_result_count"], 2)
+        self.assertNotIn("PRIVATE_CALL_ID", json.dumps(result))
+
+    def test_overlapping_codex_requests_leave_backend_record_unassigned(self):
+        requests = [req(1, 100, 250, 9, 0, ["function_call"]),
+                    req(2, 180, 300, 9, 0, ["message"])]
+        ollama = [{
+            "started_monotonic_ns": 200,
+            "finished_monotonic_ns": 210,
+            "request": {"endpoint": "/api/chat"},
+            "response": {"tool_call_names": ["exec_command"]},
+        }]
+
+        result = correlate.correlate_tool_names(requests, ollama)
+
+        self.assertEqual(result["unassigned_ollama_chat_records"], 1)
+        self.assertEqual([row["backend_observation"] for row in result["requests"]], ["missing", "missing"])
+
+    def test_cli_accepts_ollama_summary_and_emits_ordered_name_comparison(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            codex_path = root / "codex.json"
+            events_path = root / "events.jsonl"
+            ollama_path = root / "ollama.jsonl"
+            codex_path.write_text(json.dumps({"requests": [{
+                "method": "POST", "path": "/v1/responses", "request_sequence": 1,
+                "request_started_monotonic_ns": 10, "response_finished_monotonic_ns": 50,
+                "request": {},
+                "response_items": [{"type": "function_call", "name": "exec_command"}],
+            }]}))
+            events_path.write_text("")
+            ollama_path.write_text(json.dumps({
+                "method": "POST",
+                "started_monotonic_ns": 20, "finished_monotonic_ns": 40,
+                "request": {"endpoint": "/api/chat"},
+                "response": {"tool_call_names": ["exec_command"]},
+            }) + "\n")
+
+            completed = subprocess.run(
+                [sys.executable, str(Path(correlate.__file__)), str(codex_path),
+                 str(events_path), "--ollama-summary", str(ollama_path)],
+                capture_output=True, text=True, timeout=5, check=False,
+            )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        row = result["tool_name_correlation"]["requests"][0]
+        self.assertTrue(row["ordered_names_match"])
+        self.assertEqual(row["ollama_response_tool_names"], ["exec_command"])
+
     def test_counts_command_events_in_nonoverlapping_gaps(self):
         requests = [req(2, 200, 250, 0, 1, ["function_call"]), req(1, 100, 150, 9, 0, ["function_call"])]
         events = [
