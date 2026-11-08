@@ -52,6 +52,14 @@ The branch's Python 3.10–3.14 CI matrix passed in
   schema translation caused the empty-tool-list observations. The updated
   offline suite passes 32 tests, including loopback forwarding, privacy, and
   recursion/size limits.
+- Launcher context reporting now uses the same `effective_context()` function
+  as the generated Codex catalog. Regression coverage checks saved preferences,
+  observed loaded allocation, configured `num_ctx`, and the safe fallback. The
+  preference-path unit tests also restore all module paths after each test.
+  Commit `1826dc195822fa40e9383c4fb55838e2381f3945` passed 33 local tests and
+  the Python 3.10–3.14 matrix in
+  [GitHub Actions run 42456012695](https://github.com/p0rkm4th/hades-herd/actions/runs/42456012695).
+  It is on `codex-herd/tool-schema-diagnostics`; `main` has not been updated.
 - A separate installed-Codex 0.166.0 smoke used an isolated home and loopback
   mock Herd, with hosted API-key/base-URL variables removed. The mock observed
   a synthetic model-specific developer-instruction marker in the actual
@@ -96,9 +104,9 @@ The branch's Python 3.10–3.14 CI matrix passed in
   `think` while retaining messages and tools. The actual downstream HTTP body
   was not intercepted; no client control is enabled. See the [sanitized
   evidence](../benchmarks/results/2026-11-07-reliability-baseline.md).
-- Latest published diagnostic commit is `d17c55b`; CI passed the Python
-  3.10–3.14 matrix and fixture syntax in
-  [run 42408427998](https://github.com/p0rkm4th/hades-herd/actions/runs/42408427998).
+- Earlier diagnostic evidence remains available at commit `d17c55b`; the
+  current launcher and trace-parser work is in the branches and CI runs listed
+  above.
 - The loopback trace proxy passed a real bounded Codex/Herd run. It observed 30
   successful Responses calls before the 180-second timeout and 27 unique shell
   calls, with no code edits. Sixteen requests carried nine tool entries; 14
