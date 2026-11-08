@@ -43,6 +43,9 @@ def run(args: argparse.Namespace) -> int:
         raise ValueError("provide a command after --")
     if args.timeout <= 0 or args.grace < 0:
         raise ValueError("timeout must be positive and grace nonnegative")
+    cwd = Path(args.cwd) if getattr(args, "cwd", None) else None
+    if cwd is not None and not cwd.is_dir():
+        raise ValueError(f"working directory does not exist or is not a directory: {cwd}")
     stdout_path, stderr_path, timeline_path, summary_path = map(
         Path, (args.stdout, args.stderr, args.timeline, args.summary)
     )
@@ -63,6 +66,7 @@ def run(args: argparse.Namespace) -> int:
                 stdin=stdin,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                cwd=cwd,
                 start_new_session=True,
                 bufsize=0,
             )
@@ -148,6 +152,7 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, required=True, help="hard process timeout in seconds")
     parser.add_argument("--grace", type=float, default=5, help="seconds between SIGINT and SIGKILL")
     parser.add_argument("--input", help="optional task-instruction file supplied to the child stdin")
+    parser.add_argument("--cwd", help="working directory for the child command")
     parser.add_argument("--stdout", required=True, help="private raw Codex JSONL output path")
     parser.add_argument("--stderr", required=True, help="private raw Codex stderr path")
     parser.add_argument("--timeline", required=True, help="private metadata-only timestamped event index")

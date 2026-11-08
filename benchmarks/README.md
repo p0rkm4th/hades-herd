@@ -201,6 +201,7 @@ Example from a disposable task worktree, with the trace proxy already running:
 ```sh
 python3 /path/to/hades-herd/benchmarks/fixtures/capture_codex_jsonl.py \
   --timeout 180 --input AGENT_TASK.md \
+  --cwd /path/to/disposable-task-worktree \
   --stdout run/codex-events.jsonl --stderr run/codex-stderr.txt \
   --timeline run/codex-event-index.jsonl --summary run/capture-summary.json \
   -- env CODEX_HERD_URL=http://127.0.0.1:8766 \
@@ -210,7 +211,9 @@ python3 /path/to/hades-herd/benchmarks/fixtures/capture_codex_jsonl.py \
 
 Keep `codex-events.jsonl` and `codex-stderr.txt` private: they can contain
 commands, model output, or task text. Publish only reviewed aggregate results
-and the content-free event index.
+and the content-free event index. `--cwd` sets the child process working
+directory explicitly; omit it only when the caller is already running in the
+intended task checkout.
 
 ## Sanitized live Responses trace
 

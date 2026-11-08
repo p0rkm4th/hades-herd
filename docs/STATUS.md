@@ -46,7 +46,7 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   matched structurally. One unadvertised Ollama `read` did not recur in the
   corrected-observer recheck, so causality remains unknown. Its incremental
   [compare view](https://github.com/p0rkm4th/hades-herd/compare/codex-herd/review-launcher-context...codex-herd/tool-schema-diagnostics-current?expand=1)
-  is available for review. The current offline client suite passes 47 tests.
+  is available for review. The current offline client suite passes 49 tests.
   Against clean
   pinned Herd v0.12.3 source, the in-process route probe passed 1/1 with fake
   Ollama and showed the tested non-empty function schema shape was preserved.
@@ -220,8 +220,13 @@ one Codex request interval; overlapping observations remain unassigned. It also
 reports Ollama's offered names and flags model-returned names absent from the
 offer while preserving omitted versus explicit-empty `tools` fields. Five
 offline tests cover name ordering, Codex follow-up history, overlap,
-failed-request handling, and the CLI path. The full client suite passes 48
-tests. GitHub Actions passed the Python 3.10–3.14 matrix on code head `3439a0c`
+failed-request handling, and the CLI path. The full client suite passes 49
+tests locally. A live follow-up was excluded because Codex inherited the client
+repository as its working directory instead of the disposable task checkout;
+the trace does not establish the source of a late unmatched `read` call. The
+capture helper now supports explicit `--cwd`, with a regression test. Details:
+[excluded diagnostic](../benchmarks/results/2026-11-08-ordered-tool-offer-trial-invalid-cwd.md).
+GitHub Actions passed the Python 3.10–3.14 matrix on code head `3439a0c`
 in [run 42448994057](https://github.com/p0rkm4th/hades-herd/actions/runs/42448994057).
 No new inference run was made for this instrumentation change.
 

@@ -24,6 +24,7 @@ class CodexEventCaptureTests(unittest.TestCase):
                 timeout=5,
                 grace=0.1,
                 input=None,
+                cwd=None,
                 stdout=str(paths["stdout"]),
                 stderr=str(paths["stderr"]),
                 timeline=str(paths["timeline"]),
@@ -52,6 +53,7 @@ class CodexEventCaptureTests(unittest.TestCase):
                 timeout=0.1,
                 grace=0.1,
                 input=None,
+                cwd=None,
                 stdout=str(paths["stdout"]),
                 stderr=str(paths["stderr"]),
                 timeline=str(paths["timeline"]),
@@ -70,6 +72,7 @@ class CodexEventCaptureTests(unittest.TestCase):
                 timeout=0.1,
                 grace=0.2,
                 input=None,
+                cwd=None,
                 stdout=str(paths["stdout"]),
                 stderr=str(paths["stderr"]),
                 timeline=str(paths["timeline"]),
@@ -86,12 +89,33 @@ class CodexEventCaptureTests(unittest.TestCase):
                 timeout=5,
                 grace=0.1,
                 input=None,
+                cwd=None,
                 stdout=str(paths["stdout"]),
                 stderr=str(paths["stderr"]),
                 timeline=str(paths["timeline"]),
                 summary=str(paths["summary"]),
             ))
             self.assertEqual(status, 23)
+
+    def test_child_runs_in_explicit_working_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            child_cwd = root / "task"
+            child_cwd.mkdir()
+            paths = {name: root / name for name in ("stdout", "stderr", "timeline", "summary")}
+            status = run(Namespace(
+                command=[sys.executable, "-c", "import os; print(os.getcwd())"],
+                timeout=5,
+                grace=0.1,
+                input=None,
+                cwd=str(child_cwd),
+                stdout=str(paths["stdout"]),
+                stderr=str(paths["stderr"]),
+                timeline=str(paths["timeline"]),
+                summary=str(paths["summary"]),
+            ))
+            self.assertEqual(status, 0)
+            self.assertEqual(paths["stdout"].read_text().strip(), str(child_cwd))
 
 
 if __name__ == "__main__":
