@@ -6,6 +6,13 @@ workstation launcher now uses this checkout as its canonical source. The live
 endpoint and digest evidence remain in local user configuration. Verification
 of the migration is recorded below.
 
+The 2026-11-07 independent review's launcher and trace findings are implemented
+on `codex-herd/review-fix-only`; that branch has its own passing CI run but is
+not yet merged to `main`. A follow-up branch adds content-free schema-shape
+capture to both the Codex-facing and Ollama-facing trace fixtures, so a paired
+diagnosis can compare tool definitions across the adapter boundary. Its
+offline tests pass; no live model run has used this instrumentation yet.
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
@@ -35,6 +42,14 @@ of the migration is recorded below.
   passed locally and across Python 3.10–3.14 in
   [GitHub Actions run 42443450209](https://github.com/p0rkm4th/hades-herd/actions/runs/42443450209).
   See the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
+- The paired trace fixtures summarize bounded tool schema structure on both
+  sides of the Herd adapter: property names/types, required keys, and
+  structural limits only. Descriptions, defaults, enum/example values, prompts,
+  arguments, and full schemas are omitted. This provides a way to test whether
+  tool definitions differ across the boundary; it does not yet prove that
+  schema translation caused the empty-tool-list observations. The updated
+  offline suite passes 32 tests, including loopback forwarding, privacy, and
+  recursion/size limits.
 - A separate installed-Codex 0.166.0 smoke used an isolated home and loopback
   mock Herd, with hosted API-key/base-URL variables removed. The mock observed
   a synthetic model-specific developer-instruction marker in the actual

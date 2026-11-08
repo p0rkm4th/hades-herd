@@ -13,6 +13,12 @@ correctness and diagnostic fidelity; they do not explain the live empty-tool-lis
 requests or model inspection loops. See
 the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
 
+The follow-up diagnostic branch adds bounded, value-free schema summaries at
+the Codex Responses and Ollama `/api/chat` boundaries. Offline checks verify
+that the two formats normalize to the same shape and that descriptions and
+values are excluded. A paired live trace remains the next evidence step; do
+not treat the instrumentation itself as evidence of an adapter defect.
+
 1. Capture sanitized Codex request/response metadata and identify the exact
    advertised tool list, attempted tool name, Herd translation, execution
    result, and tool-result continuation. **Partial evidence:** one live
