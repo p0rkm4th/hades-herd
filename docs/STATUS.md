@@ -216,9 +216,11 @@ and [trace details](../benchmarks/results/2026-11-08-tool-schema-trace.md).
 
 The trace reducer now has an optional `--ollama-summary` mode. It matches
 ordered tool-name lists only when an Ollama request interval fits within exactly
-one Codex request interval; overlapping observations remain unassigned. Four
-new offline tests cover name ordering, Codex follow-up history, overlap and
-failed-request handling, and the CLI path. The full client suite passes 47
+one Codex request interval; overlapping observations remain unassigned. It also
+reports Ollama's offered names and flags model-returned names absent from the
+offer while preserving omitted versus explicit-empty `tools` fields. Five
+offline tests cover name ordering, Codex follow-up history, overlap,
+failed-request handling, and the CLI path. The full client suite passes 48
 tests. GitHub Actions passed the Python 3.10–3.14 matrix on code head `3439a0c`
 in [run 42448994057](https://github.com/p0rkm4th/hades-herd/actions/runs/42448994057).
 No new inference run was made for this instrumentation change.

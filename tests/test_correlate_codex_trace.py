@@ -41,7 +41,10 @@ class CorrelateCodexTraceTests(unittest.TestCase):
             "started_monotonic_ns": 120,
             "finished_monotonic_ns": 180,
             "status_code": 200,
-            "request": {"endpoint": "/api/chat"},
+            "request": {
+                "endpoint": "/api/chat", "tools_field_present": True,
+                "tool_names": ["exec_command", "read"],
+            },
             "response": {"tool_call_names": ["exec_command", "read"]},
         }]
 
@@ -87,6 +90,26 @@ class CorrelateCodexTraceTests(unittest.TestCase):
         self.assertIsNone(row["ordered_names_match"])
         self.assertEqual(row["successful_ollama_response_count"], 0)
 
+    def test_reports_model_tool_call_absent_from_backend_offer(self):
+        request = req(1, 100, 200, 9, 0, ["function_call"])
+        request["response_items"] = [{"type": "function_call", "name": "read"}]
+        ollama = [{
+            "started_monotonic_ns": 120,
+            "finished_monotonic_ns": 180,
+            "status_code": 200,
+            "request": {
+                "endpoint": "/api/chat", "tools_field_present": True,
+                "tool_names": ["exec_command"],
+            },
+            "response": {"tool_call_names": ["read"]},
+        }]
+
+        row = correlate.correlate_tool_names([request], ollama)["requests"][0]
+
+        self.assertEqual(row["codex_response_tool_names"], ["read"])
+        self.assertEqual(row["unadvertised_ollama_tool_names"], ["read"])
+        self.assertTrue(row["ordered_names_match"])
+
     def test_cli_accepts_ollama_summary_and_emits_ordered_name_comparison(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -104,7 +127,10 @@ class CorrelateCodexTraceTests(unittest.TestCase):
                 "method": "POST",
                 "started_monotonic_ns": 20, "finished_monotonic_ns": 40,
                 "status_code": 200,
-                "request": {"endpoint": "/api/chat"},
+                "request": {
+                    "endpoint": "/api/chat", "tools_field_present": True,
+                    "tool_names": ["exec_command"],
+                },
                 "response": {"tool_call_names": ["exec_command"]},
             }) + "\n")
 

@@ -322,4 +322,7 @@ The resulting rows compare ordered tool-name lists from the Ollama response,
 the Codex response, and the next Codex request's prior-call history. Ambiguous
 or incomplete records remain unassigned. This is order/name consistency, not
 call identity: ID values, arguments, prompts, and tool-result content are not
-emitted. A prior tool-result count is included as metadata.
+emitted. Each assigned Ollama exchange also reports whether `tools` was present,
+its offered names, returned names, and returned names absent from that offer.
+An omitted field remains distinct from an explicit empty list. A prior
+tool-result count is included as metadata.

@@ -131,9 +131,11 @@
 5. Validate each benchmark runner's sandbox-visible task, test environment,
    hard timeout, artifacts, and independent verification before scoring.
 6. The content-free reducer now has an optional `--ollama-summary` mode that
-   compares ordered tool names only when a backend request is wholly contained
-   in one Codex request window; overlaps remain unassigned. Use it before any
-   future live trial, and only when a new hypothesis justifies the workload.
+   compares returned tool names to the names offered to Ollama, then compares
+   their order with the Codex response and later input. It only assigns a
+   backend request wholly contained in one Codex request window; overlaps
+   remain unassigned. Use it before any future live trial, and only when a new
+   hypothesis justifies the workload.
    Never record ID values, arguments, prompts, or tool-result content.
 7. Keep the empty-tool guard and empty-response failure candidates isolated:
    deterministic tests prove their protocol behavior, but live tasks did not

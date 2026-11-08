@@ -141,12 +141,38 @@ def correlate_tool_names(
             key=lambda item: item["started_monotonic_ns"],
         )
         ollama_names = []
+        exchange_summaries = []
         successful_backend = [item for item in matched_backend if item.get("status_code") == 200]
         for backend in successful_backend:
+            backend_request = backend.get("request", {})
+            if not isinstance(backend_request, dict):
+                backend_request = {}
+            offer_present = backend_request.get("tools_field_present")
+            offered_names = backend_request.get("tool_names", [])
+            if not isinstance(offered_names, list):
+                offered_names = []
+            offered_names = [name for name in offered_names if isinstance(name, str)]
             response = backend.get("response", {})
             names = response.get("tool_call_names", []) if isinstance(response, dict) else []
+            if not isinstance(names, list):
+                names = []
+            names = [name for name in names if isinstance(name, str)]
             if isinstance(names, list):
-                ollama_names.extend(name for name in names if isinstance(name, str))
+                ollama_names.extend(names)
+            exchange_summaries.append({
+                "tools_field_present": offer_present if isinstance(offer_present, bool) else None,
+                "offered_tool_names": offered_names,
+                "returned_tool_names": names,
+                "unadvertised_tool_names": list(dict.fromkeys(
+                    name for name in names
+                    if isinstance(offer_present, bool)
+                    and (not offer_present or name not in offered_names)
+                )),
+            })
+        unadvertised_names = list(dict.fromkeys(
+            name for exchange in exchange_summaries
+            for name in exchange["unadvertised_tool_names"]
+        ))
 
         next_prior_names = None
         next_prior_results = None
@@ -169,6 +195,8 @@ def correlate_tool_names(
             "request_sequence": request["request_sequence"],
             "codex_response_tool_names": codex_names,
             "ollama_response_tool_names": ollama_names,
+            "ollama_exchanges": exchange_summaries,
+            "unadvertised_ollama_tool_names": unadvertised_names,
             "ollama_chat_request_count": len(matched_backend),
             "successful_ollama_response_count": len(successful_backend),
             "backend_observation": (
