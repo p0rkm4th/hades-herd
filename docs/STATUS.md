@@ -27,13 +27,15 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
   It is not a model-quality pass. Details: [trace smoke](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
-- A follow-up feature branch adds bounded tool-schema shape capture on both
+- A follow-up branch, `codex-herd/tool-schema-diagnostics-current`, adds bounded tool-schema shape capture on both
   sides of the Herd adapter: function names, property names/types, required
   keys, and structural limits. It omits descriptions, defaults, enum/example
   values, arguments, and prompts. Offline tests cover normalization, privacy,
   loopback forwarding, and size limits. No live request has yet been compared
   at both boundaries; the instrumentation does not itself prove a translation
-  defect. The current offline client suite passes 43 tests. Against clean
+  defect. Its incremental
+  [compare view](https://github.com/p0rkm4th/hades-herd/compare/codex-herd/review-launcher-context...codex-herd/tool-schema-diagnostics-current?expand=1)
+  is available for review. The current offline client suite passes 43 tests. Against clean
   pinned Herd v0.12.3 source, the in-process route probe passed 1/1 with fake
   Ollama and showed the tested non-empty function schema shape was preserved.
   The Python 3.10–3.14 matrix passed on branch commit `5104417` in
@@ -185,12 +187,15 @@ Creating a draft PR through the connected GitHub integration returned 403
 The November 7 independent review's five code findings are addressed on this
 branch: clean-install/explicit model precedence, configured-versus-live context
 metadata, full fake-endpoint launcher integration coverage, repeated same-name
-tool-call counts, and atomic model-specific generated profiles. The branch has
-passing CI, but a draft PR could not be created because the GitHub integration
-returns 403 for PR creation; no open PR exists as of 2026-11-08.
+tool-call counts, and atomic model-specific generated profiles. The follow-up
+schema diagnostics branch is stacked on it. Both have passing CI, but a draft
+PR could not be created because the GitHub integration returns 403 for PR
+creation; use the compare links above for review.
 
-Next: test tool-result continuity and final-turn handling. Separately verify
-cancellation in Herd's actual route; the trace-proxy result is not evidence of
-backend cancellation. Do not repeat HTTPie #1958, rerun #1965 without a new
-hypothesis, or deploy the guard based on these incomplete tasks. Full sanitized results and failed attempts are in
+Next: use the schema-aware observers in one bounded live diagnostic task on an
+isolated Codex→Herd→Ollama path to capture the same request at both boundaries.
+Do not repeat HTTPie #1958 or #1965. Separately, real Ollama cancellation in
+Herd's route remains unverified; the direct Ollama idle check and mocked Herd
+route test do not prove it. Do not deploy the guard based on the incomplete
+tasks so far. Full sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).
