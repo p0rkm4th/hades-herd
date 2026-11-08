@@ -1,4 +1,4 @@
-# Current status — 2026-11-07
+# Current status — 2026-11-08
 
 The project is public at [p0rkm4th/hades-herd](https://github.com/p0rkm4th/hades-herd).
 The initial source, tests, and sanitized evidence are on `main`; the HADES
@@ -35,6 +35,16 @@ of the migration is recorded below.
   passed locally and across Python 3.10–3.14 in
   [GitHub Actions run 42443450209](https://github.com/p0rkm4th/hades-herd/actions/runs/42443450209).
   See the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
+- A separate installed-Codex 0.166.0 smoke used an isolated home and loopback
+  mock Herd, with hosted API-key/base-URL variables removed. The mock observed
+  a synthetic model-specific developer-instruction marker in the actual
+  Responses request; Codex completed against the mock. This validates config
+  delivery, not model behavior or inference.
+- A bounded direct Ollama streaming check returned to an unloaded baseline
+  within 0.09 seconds after the client closed its stream; the fleet stayed idle.
+  This supports prompt disconnect cleanup but does not prove server-side
+  cancellation mechanics or agent recovery. No response text was retained. See
+  [cancellation evidence](../benchmarks/results/2026-11-08-ollama-stream-cancellation.md).
 
 ## Not yet dependable
 
