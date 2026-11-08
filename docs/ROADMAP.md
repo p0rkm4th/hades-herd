@@ -111,24 +111,37 @@
    been tried once through the guard: it timed out and its tests failed. Do not
    repeat that fixture. A paired trace enhancement now records bounded schema
    shape at both the Codex and Ollama boundaries, alongside Ollama-side offered
-   and returned tool names. It is tested offline; no live run has captured the
-   same request at both points. Use it in one bounded held-out diagnostic before
-   selecting another adapter change. See the
-   [paired route report](../benchmarks/results/2026-11-08-herd-empty-tools-route-paired.md).
-3. Classify unsupported-tool events as model-selected invalid calls versus
-   transport/parser loss; add a deterministic reproducer before changing code.
-   The two `read_file` rejections came from the 15:50 untraced HTTPie #1958
-   attempt. The separate 19:42 wire trace contained empty-tool requests but no
-   `read_file` response or Codex rejection; do not correlate these observations.
-4. Trace repeated inspection across consecutive messages to test whether prior
-   tool results remain in conversation state. Add a fixture for tool-result
-   continuity and final-turn completion.
+   and returned tool names. One bounded live task completed with non-empty
+   offers and matching structure for the seven common functions. Its first
+   observer lost response metadata at stream close; a corrected-observer
+   repetition recorded five complete call/result continuations using only
+   advertised `exec_command`. The first run's later Codex input listed two
+   `read` calls/results while Ollama recorded one unadvertised `read`; this
+   remains unexplained without ID-level evidence. Do not repeat either task
+   without a specific hypothesis. See the [paired live diagnostic](../benchmarks/results/2026-11-08-live-schema-diagnostic.md)
+   and [trace report](../benchmarks/results/2026-11-08-tool-schema-trace.md).
+3. A live model-generated `read` call was unadvertised at the Ollama boundary;
+   Codex rejected the tool name. This distinguishes that event from transport
+   loss, but does not explain why the model selected it or prove it caused a
+   task failure. The historical `read_file` rejections remain uncorrelated.
+4. A deterministic Codex mock and the real Codex→Herd route both verify
+   tool-call/result continuation to a final response. The corrected live trace
+   also records five continuations. This validates protocol continuity, not
+   autonomous coding reliability.
 5. Validate each benchmark runner's sandbox-visible task, test environment,
    hard timeout, artifacts, and independent verification before scoring.
-6. Isolate reasoning-control handling. Preserve defaults and verify the actual
-   Ollama request field before benchmarking any behavior change.
-7. Make one minimal reversible change only after a root cause is demonstrated;
-   compare before/after on the same task and model.
+6. Before another live task, extend the content-free trace to record returned
+   function-call names and order, then compare those with later Codex input
+   names/counts. Do not record identifiers, arguments, prompts, or tool results.
+7. Keep the empty-tool guard and empty-response failure candidates isolated:
+   deterministic tests prove their protocol behavior, but live tasks did not
+   demonstrate better completion. Real Ollama generation cancellation through
+   Herd also remains unverified. Make no production adapter change until a live
+   cause and useful recovery behavior are demonstrated.
+8. Reasoning-control mapping is verified through a synthetic transport, but the
+   real Qwen attempt did not complete and did not capture the exact outgoing
+   Ollama request. Preserve defaults; revisit only with exact request capture
+   and a bounded task hypothesis.
 
 ## Then: daily-driver qualification
 

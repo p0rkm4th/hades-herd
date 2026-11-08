@@ -203,10 +203,24 @@ schema diagnostics branch is stacked on it. Both have passing CI, but a draft
 PR could not be created because the GitHub integration returns 403 for PR
 creation; use the compare links above for review.
 
-Next: use the schema-aware observers in one bounded live diagnostic task on an
-isolated Codex→Herd→Ollama path to capture the same request at both boundaries.
-Do not repeat HTTPie #1958 or #1965. Separately, real Ollama cancellation in
-Herd's route remains unverified; the direct Ollama idle check and mocked Herd
-route test do not prove it. Do not deploy the guard based on the incomplete
-tasks so far. Full sanitized results and failed attempts are in
-[`benchmarks/results/`](../benchmarks/results/).
+The schema-aware observers have now captured a bounded live Codex→Herd→Ollama
+task. In the first run, Codex request metadata later contained two prior
+`read` calls/results while the Ollama observer saw one unadvertised `read`;
+the Codex response observer failed during stream closure, so there is no
+ID-level evidence to explain the count. A corrected-observer repetition
+captured five complete tool-result continuations and only advertised
+`exec_command` calls, so it did not reproduce the discrepancy. See the
+[paired live diagnostic](../benchmarks/results/2026-11-08-live-schema-diagnostic.md)
+and [trace details](../benchmarks/results/2026-11-08-tool-schema-trace.md).
+
+Next: do not repeat either diagnostic task without a specific hypothesis. The
+source review fixes are on `main`; the newer protocol evidence and observer
+fixes are pushed on the [review branch](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/tool-schema-diagnostics-current?expand=1).
+Opening a PR still returns GitHub API 403. No model is daily-driver-qualified;
+the Codex inspection loop and task completion remain unresolved. Before another
+live trial, add order-only correlation for returned tool calls and subsequent
+Codex input items so an unadvertised call can be attributed without recording
+IDs or arguments. Keep the guard unapplied: it passed deterministic route
+checks but did not complete either live coding attempt. Real Ollama generation
+cancellation through Herd also remains unverified. Full sanitized results and
+failed attempts are in [`benchmarks/results/`](../benchmarks/results/).
