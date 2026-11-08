@@ -141,7 +141,8 @@ def correlate_tool_names(
             key=lambda item: item["started_monotonic_ns"],
         )
         ollama_names = []
-        for backend in matched_backend:
+        successful_backend = [item for item in matched_backend if item.get("status_code") == 200]
+        for backend in successful_backend:
             response = backend.get("response", {})
             names = response.get("tool_call_names", []) if isinstance(response, dict) else []
             if isinstance(names, list):
@@ -169,8 +170,17 @@ def correlate_tool_names(
             "codex_response_tool_names": codex_names,
             "ollama_response_tool_names": ollama_names,
             "ollama_chat_request_count": len(matched_backend),
-            "backend_observation": "assigned" if matched_backend else "missing",
-            "ordered_names_match": ollama_names == codex_names if matched_backend else None,
+            "successful_ollama_response_count": len(successful_backend),
+            "backend_observation": (
+                "missing" if not matched_backend
+                else "complete" if len(successful_backend) == len(matched_backend)
+                else "partial" if successful_backend
+                else "failed"
+            ),
+            "ordered_names_match": (
+                ollama_names == codex_names
+                if matched_backend and len(successful_backend) == len(matched_backend) else None
+            ),
             "next_request_prior_tool_names": next_prior_names,
             "next_request_prior_tool_result_count": next_prior_results,
             "next_request_names_end_with_response_calls": suffix_matches,

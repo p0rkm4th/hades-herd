@@ -40,6 +40,7 @@ class CorrelateCodexTraceTests(unittest.TestCase):
             "id": "PRIVATE_CALL_ID",
             "started_monotonic_ns": 120,
             "finished_monotonic_ns": 180,
+            "status_code": 200,
             "request": {"endpoint": "/api/chat"},
             "response": {"tool_call_names": ["exec_command", "read"]},
         }]
@@ -59,6 +60,7 @@ class CorrelateCodexTraceTests(unittest.TestCase):
         ollama = [{
             "started_monotonic_ns": 200,
             "finished_monotonic_ns": 210,
+            "status_code": 200,
             "request": {"endpoint": "/api/chat"},
             "response": {"tool_call_names": ["exec_command"]},
         }]
@@ -67,6 +69,23 @@ class CorrelateCodexTraceTests(unittest.TestCase):
 
         self.assertEqual(result["unassigned_ollama_chat_records"], 1)
         self.assertEqual([row["backend_observation"] for row in result["requests"]], ["missing", "missing"])
+
+    def test_failed_ollama_request_does_not_claim_tool_names_match(self):
+        request = req(1, 100, 200, 9, 0, ["message"])
+        request["response_items"] = [{"type": "message"}]
+        ollama = [{
+            "started_monotonic_ns": 120,
+            "finished_monotonic_ns": 180,
+            "status_code": 502,
+            "request": {"endpoint": "/api/chat"},
+            "error_type": "ConnectionError",
+        }]
+
+        row = correlate.correlate_tool_names([request], ollama)["requests"][0]
+
+        self.assertEqual(row["backend_observation"], "failed")
+        self.assertIsNone(row["ordered_names_match"])
+        self.assertEqual(row["successful_ollama_response_count"], 0)
 
     def test_cli_accepts_ollama_summary_and_emits_ordered_name_comparison(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -84,6 +103,7 @@ class CorrelateCodexTraceTests(unittest.TestCase):
             ollama_path.write_text(json.dumps({
                 "method": "POST",
                 "started_monotonic_ns": 20, "finished_monotonic_ns": 40,
+                "status_code": 200,
                 "request": {"endpoint": "/api/chat"},
                 "response": {"tool_call_names": ["exec_command"]},
             }) + "\n")

@@ -308,10 +308,10 @@ monotonic timestamps. It reports command starts/completions in the interval
 after a response finishes and before the next Responses request begins. If
 those requests overlap, it leaves the interval unassigned. The output contains
 request sequence numbers, tool counts/names, event counts, and response status;
-it never includes IDs, commands, prompts, arguments, or tool results. Timing
-proximity is not an ID-level match, so parallel commands or overlapping model
-requests still require cautious interpretation. Historical captures without
-timestamps are rejected rather than guessed.
+it never includes ID values, commands, prompts, arguments, or tool-result
+content. Timing proximity is not an ID-level match, so parallel commands or
+overlapping model requests still require cautious interpretation. Historical
+captures without timestamps are rejected rather than guessed.
 The result also reports total command starts/completions, counts assigned to
 non-overlapping response windows, and counts left unassigned. Events before
 the first response window and events in overlapping windows therefore remain
@@ -321,5 +321,5 @@ entire timestamp interval falls within exactly one Codex Responses request.
 The resulting rows compare ordered tool-name lists from the Ollama response,
 the Codex response, and the next Codex request's prior-call history. Ambiguous
 or incomplete records remain unassigned. This is order/name consistency, not
-call identity: IDs, arguments, prompts, and tool results are neither read into
-the result nor emitted.
+call identity: ID values, arguments, prompts, and tool-result content are not
+emitted. A prior tool-result count is included as metadata.

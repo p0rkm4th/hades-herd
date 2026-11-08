@@ -134,7 +134,7 @@
    compares ordered tool names only when a backend request is wholly contained
    in one Codex request window; overlaps remain unassigned. Use it before any
    future live trial, and only when a new hypothesis justifies the workload.
-   Never record identifiers, arguments, prompts, or tool results.
+   Never record ID values, arguments, prompts, or tool-result content.
 7. Keep the empty-tool guard and empty-response failure candidates isolated:
    deterministic tests prove their protocol behavior, but live tasks did not
    demonstrate better completion. Real Ollama generation cancellation through
