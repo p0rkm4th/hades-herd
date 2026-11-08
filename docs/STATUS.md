@@ -18,9 +18,11 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   sanitized-report changes were covered by 35 passing tests. GitHub Actions
   passed the Python 3.10–3.14 matrix on code head `41853c3` in
   [run 42438683194](https://github.com/p0rkm4th/hades-herd/actions/runs/42438683194).
-- The content/thinking-shape observer update is covered by **36 passing local
-  tests**, including streamed and non-streamed privacy checks; CI for this
-  update is pending.
+- The content/thinking-shape observer update and sanitized follow-up reports
+  are covered by **36 passing local tests**, including streamed and
+  non-streamed privacy checks. GitHub Actions passed the Python 3.10–3.14
+  matrix on `6c723cd` in
+  [run 42440081315](https://github.com/p0rkm4th/hades-herd/actions/runs/42440081315).
 - A bounded Codex/Herd smoke exercised LF/CRLF trace framing. The initial
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
