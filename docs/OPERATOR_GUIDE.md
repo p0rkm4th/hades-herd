@@ -24,6 +24,14 @@ Use `codex-herd list` to copy the exact fast or advanced model identifier, then
 pass it to `codex-herd MODEL`. The saved default and hosted Codex profile are
 not changed by explicitly selecting a model.
 
+The current fast candidate is MiMo-V2.6 9B Q4; the advanced candidate is
+Qwen3.8 27B Q4. Both have passed one small matched real-inference launch task,
+but neither is qualified as a general daily driver. The MiMo smoke scorecard
+was 0/3 on separate diagnostic maintenance tasks, so keep current use
+supervised and low risk. The saved default remains unchanged; select either
+candidate explicitly from the live catalog rather than assuming `codex-herd`
+with no arguments will choose it.
+
 ## Recovery
 
 If the saved default no longer exists, refresh reports the stale preference and
@@ -34,9 +42,9 @@ policy. The helper itself does not change networking or services.
 
 If a local session stalls or loops, press `Ctrl-C` to stop that Codex process,
 review any partial work with `git diff` and the project tests, then start the
-hosted Codex command explicitly if you want to continue there. The launcher
-never redirects a local task to hosted inference. Hosted Codex configuration
-remains unchanged.
+hosted Codex command explicitly with `codex` if you want to continue there.
+The launcher never redirects a local task to hosted inference. Hosted Codex
+configuration remains unchanged.
 
 As a practical supervised-use rule, stop a MiMo session if it rereads the same
 files repeatedly without editing or makes no source change after about three
