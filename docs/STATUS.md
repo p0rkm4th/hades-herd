@@ -228,7 +228,10 @@ capture helper now supports explicit `--cwd`, with a regression test. Details:
 [excluded diagnostic](../benchmarks/results/2026-11-08-ordered-tool-offer-trial-invalid-cwd.md).
 GitHub Actions passed the Python 3.10–3.14 matrix on code head `3439a0c`
 in [run 42448994057](https://github.com/p0rkm4th/hades-herd/actions/runs/42448994057).
-No new inference run was made for this instrumentation change.
+The explicit-working-directory helper update and its additional regression test
+then passed all 49 local tests and the Python 3.10–3.14 matrix on `c0bb95b` in
+[run 42450210081](https://github.com/p0rkm4th/hades-herd/actions/runs/42450210081).
+No new inference run was made after the harness correction.
 
 Next: use the reducer only if a new hypothesis justifies another live task; do
 not repeat either prior diagnostic fixture. The source review fixes are on
