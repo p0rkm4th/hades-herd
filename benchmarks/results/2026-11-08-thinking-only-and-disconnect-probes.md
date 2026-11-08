@@ -94,6 +94,17 @@ Responses request, and then displayed the mock's final message. Codex exited
 This verifies Codex's tool-result continuation with a deterministic mock, not
 model-selected calls or the Herd/Ollama translation path.
 
+The same synthetic sequence now runs through a real Codex process, the pinned
+Herd v0.12.3 `/v1/responses` route, and an in-process fake Ollama transport.
+Codex executed `exec_command`, received one final response, and exited **0**.
+Two backend requests were observed; the second contained one prior tool call
+and one tool result. The route offered seven translated tools; Herd dropped
+Codex's `web_search` entry as untranslatable, consistent with the existing
+documented limitation. No model inference occurred. The private Codex JSONL
+and stderr were discarded with the temporary directory. This verifies
+tool-result continuity across the actual adapter path for a scripted tool
+call, but not model-selected tool behavior or coding success.
+
 ## Candidate empty-response failure behavior
 
 The route evidence supports a narrowly scoped candidate patch:

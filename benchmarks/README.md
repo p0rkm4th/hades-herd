@@ -68,6 +68,20 @@ The trace proxy also detects downstream EOF and closes its upstream stream.
 The mock's `tool_exec_then_final` scenario verifies that Codex executes an
 advertised shell call, includes its result in the following Responses request,
 and accepts a final message; this does not cover the model/Herd/Ollama path.
+For a real Codex process through the pinned Herd route and a fake Ollama
+transport, run this from the disposable v0.12.3 checkout with Codex CLI
+installed:
+
+```sh
+PYTHONPATH=src:. uv run python \
+  /path/to/hades-herd/benchmarks/fixtures/probe_codex_herd_tool_continuity.py
+```
+
+It binds Herd to loopback, suppresses mDNS by using Herd's test app, sends one
+synthetic tool call, then checks that the next backend request has one prior
+call and one result. The only output is counts and Codex event types; private
+raw JSONL files live in a temporary directory and are deleted at exit. It
+requires no model or inference node.
 The candidate empty-response failure patch is documented in
 [`fixtures/patches/README.md`](fixtures/patches/README.md); it changes the
 silently completed empty turn into a surfaced failure, but does not retry or

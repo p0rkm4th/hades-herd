@@ -75,8 +75,10 @@
    Codex surfaces the error instead of a blank success, but does not retry. It
    is unapplied and unsubmitted. A deterministic Codex mock now verifies
    advertised shell call → tool result in the next request → final message.
-   Next, verify whether Ollama stops after request cancellation and run the
-   same continuity check through the actual Herd route. See the
+   The same sequence passed through a real Codex process, the pinned Herd HTTP
+   route, and a fake Ollama transport. This verifies stateless tool-result
+   continuity across the adapter for a scripted call, not model autonomy.
+   Next, verify whether Ollama stops after request cancellation. See the
    [shape report](../benchmarks/results/2026-11-08-guided-httpie-1965-response-shape.md).
    New evidence: [thinking-only/disconnect report](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
    Do not repeat HTTPie #1958 or #1965 without a new response-shape hypothesis;

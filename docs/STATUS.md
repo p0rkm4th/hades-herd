@@ -157,6 +157,11 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   `exec_command` → tool result → final response sequence. The content-free
   capture confirms the second request included the prior call and one result.
   This verifies Codex continuation with a mock, not the model/Herd/Ollama path.
+- The sequence also passed through a real Codex process, pinned Herd v0.12.3's
+  HTTP route, and a fake Ollama transport: two backend calls, one prior tool
+  call/result in the second, then a final message (exit 0). Herd dropped
+  `web_search` as untranslatable; no inference occurred. This tests the real
+  adapter protocol with a scripted tool call, not model autonomy.
 
 ## Decision and review handoff
 
