@@ -78,11 +78,16 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   See the [prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md)
   and [live attempt](../benchmarks/results/2026-11-08-guarded-httpie-1958-live-task.md).
 - A new loopback-only Ollama metadata proxy forwards payload bytes unchanged
-  and records only model/tool names and counts, token counters, response status, and timing.
-  Its offline tests verify streamed forwarding, missing-versus-empty tool
-  metadata, and exclusion of prompt/schema/argument/content sentinels. It has
-  not yet been used in another model task. See
-  [benchmark instructions](../benchmarks/README.md#ollama-side-metadata-capture).
+  and records only model/tool names and counts, token counters, response status,
+  and timing. Its offline tests verify streamed forwarding,
+  missing-versus-empty tool metadata, and exclusion of
+  prompt/schema/argument/content sentinels. In held-out HTTPie #1965, the
+  content-free Codex and Ollama traces both show the model requested an
+  unadvertised `read` tool after two shell inspections; Codex rejected it and
+  ended the turn without edits. The valid live attempt is a failure, not a
+  model pass; no Herd tool loss was observed in this run. See the
+  [held-out report](../benchmarks/results/2026-11-08-heldout-httpie-1965-live-attempt.md)
+  and [benchmark instructions](../benchmarks/README.md#ollama-side-metadata-capture).
 - A loopback Codex boundary probe ran the installed CLI 0.166.0 against a
   synthetic endpoint. When the mock returned `exec_command` despite a simulated
   zero-tool backend offer, Codex executed it; when the mock returned visible
@@ -117,7 +122,8 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: use the content-free Ollama observer with one distinct held-out
-engineering task. Do not repeat HTTPie #1958 or deploy the guard based on this
-incomplete attempt. Full sanitized results and failed attempts are in
+Next: make a deterministic reproduction of unsupported-tool selection using
+the unchanged advertised tool catalog, then test one minimal supported
+mitigation. Do not repeat HTTPie #1958, rerun #1965 without a new hypothesis,
+or deploy the guard based on these incomplete tasks. Full sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).

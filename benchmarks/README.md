@@ -208,6 +208,13 @@ Do not publish raw Codex logs from a trial. Verify the summary has no task text
 before sharing it. The fixture requires no model download and does not change
 Herd or Ollama configuration.
 
+The first live use was a held-out HTTPie #1965 task. Codex exposed
+`exec_command` and `write_stdin`; the model requested `exec_command` and then
+an unadvertised `read` tool. Codex rejected the latter and ended without a
+patch. This identifies a concrete unsupported-tool selection but does not
+explain its cause. See the
+[sanitized result](results/2026-11-08-heldout-httpie-1965-live-attempt.md).
+
 ### Correlating tool calls with Codex events
 
 After one captured run, combine the proxy summary with the content-free Codex
