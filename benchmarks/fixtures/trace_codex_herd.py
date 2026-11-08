@@ -8,6 +8,7 @@ import http.client
 import json
 import os
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -153,6 +154,10 @@ class TraceHandler(BaseHTTPRequestHandler):
         return
 
     def _forward(self) -> None:
+        with self.server.capture_lock:
+            request_sequence = self.server.next_request_sequence
+            self.server.next_request_sequence += 1
+        request_started_ns = time.monotonic_ns()
         length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(length) if length else b""
         target = self.server.upstream
@@ -182,6 +187,8 @@ class TraceHandler(BaseHTTPRequestHandler):
 
             metadata = request_metadata(body) if self.command == "POST" else {"json_request": False}
             summary: dict[str, Any] = {
+                "request_sequence": request_sequence,
+                "request_started_monotonic_ns": request_started_ns,
                 "method": self.command,
                 "path": self.path,
                 "http_status": response.status,
@@ -202,6 +209,7 @@ class TraceHandler(BaseHTTPRequestHandler):
                 summary["response_items"] = sse.items
                 summary["terminal_status"] = sse.terminal_status
                 summary["usage"] = sse.usage
+                summary["response_finished_monotonic_ns"] = time.monotonic_ns()
             with self.server.capture_lock:
                 self.server.capture["requests"].append(summary)
                 self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
@@ -231,6 +239,7 @@ class TraceServer(ThreadingHTTPServer):
         self.capture_path = Path(capture_path)
         self.capture: dict[str, Any] = {"requests": []}
         self.capture_lock = threading.Lock()
+        self.next_request_sequence = 1
 
 
 def main() -> None:

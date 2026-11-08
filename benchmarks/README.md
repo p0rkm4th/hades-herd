@@ -74,6 +74,32 @@ catalog intentionally advertises no effort levels until the server mapping is
 verified. The mock cannot establish what Herd sends to Ollama; the result report
 records a separate no-inference translator check.
 
+## Bounded Codex event capture
+
+`fixtures/capture_codex_jsonl.py` stores raw Codex JSONL stdout and stderr in
+mode-0600 files, enforces a process-group timeout, and writes a separate
+content-free event timeline. The timeline includes only monotonic timestamps
+and event/item type and status; it omits IDs, commands, arguments, outputs, and
+message text. Pass `--cwd` explicitly so Codex starts inside the disposable
+task checkout. The input path is opened by the capture process before the child
+starts, so use an absolute path when it is outside the caller's directory.
+
+Example, with a loopback trace proxy already running:
+
+```sh
+python3 benchmarks/fixtures/capture_codex_jsonl.py \
+  --timeout 180 --input "$TASK/AGENT_TASK.md" --cwd "$TASK" \
+  --stdout "$RUN/codex-events.jsonl" --stderr "$RUN/codex-stderr.txt" \
+  --timeline "$RUN/event-index.jsonl" --summary "$RUN/summary.json" -- \
+  env HOME="$ISOLATED_HOME" CODEX_HOME="$ISOLATED_HOME/codex" \
+  CODEX_HERD_URL=http://127.0.0.1:8766 \
+  python3 /path/to/hades-herd/codex_herd.py MODEL exec --json \
+    --sandbox workspace-write --config 'approval_policy="never"' -- -
+```
+
+Keep the raw stdout and stderr private; they can contain task text, commands,
+and model output. Publish only reviewed aggregates and the event index.
+
 ## Sanitized live Responses trace
 
 `fixtures/trace_codex_herd.py` is an optional loopback-only forwarding proxy for

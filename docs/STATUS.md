@@ -1,10 +1,15 @@
-# Current status — 2026-11-07
+# Current status — 2026-11-08
 
 The project is public at [p0rkm4th/hades-herd](https://github.com/p0rkm4th/hades-herd).
 The initial source, tests, and sanitized evidence are on `main`; the HADES
 workstation launcher now uses this checkout as its canonical source. The live
 endpoint and digest evidence remain in local user configuration. Verification
 of the migration is recorded below.
+
+The latest bounded trace task is excluded because Codex started in the public
+client checkout instead of its disposable fixture. The captured metadata did
+not resolve the late unmatched tool call. The capture helper now accepts an
+explicit child `--cwd`; see the [trial report](../benchmarks/results/2026-11-08-ordered-tool-offer-trial-invalid-cwd.md).
 
 ## Works
 
