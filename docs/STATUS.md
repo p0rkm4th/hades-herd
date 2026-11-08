@@ -14,9 +14,10 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - The review branch fixes fresh-install default selection, explicit-model
   precedence, unloaded context reporting, atomic profile generation, and
   repeated same-name trace counts. It adds a fake-Herd/fake-Codex launch test.
-- The test suite passes locally: 27 tests. GitHub Actions passed the Python
-  3.10–3.14 matrix for code commit `5a90083` in
-  [run 42425964504](https://github.com/p0rkm4th/hades-herd/actions/runs/42425964504).
+- The November 7 source-review fixes are covered by regression tests: 27 tests
+  pass locally. GitHub Actions passed the Python 3.10–3.14 matrix on current
+  head `dc1ed234` in
+  [run 42430116409](https://github.com/p0rkm4th/hades-herd/actions/runs/42430116409).
 - A bounded Codex/Herd smoke exercised LF/CRLF trace framing. The initial
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
@@ -71,6 +72,13 @@ are on `codex-herd/review-launcher-context`, pushed but not merged or deployed.
 Creating a draft PR through the connected GitHub integration returned 403
 (`Resource not accessible by integration`); use the
 [compare page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
+
+The November 7 independent review's five code findings are addressed on this
+branch: clean-install/explicit model precedence, configured-versus-live context
+metadata, full fake-endpoint launcher integration coverage, repeated same-name
+tool-call counts, and atomic model-specific generated profiles. The branch has
+passing CI, but a draft PR could not be created because the GitHub integration
+returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
 Next: identify why the stalled HTTPie task produced a different Codex request
 shape after tool results. The pattern is not explained by context exhaustion
