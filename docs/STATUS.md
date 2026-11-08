@@ -21,6 +21,18 @@ of the migration is recorded below.
 - MiMo-V2.6 9B Q4 completed HTTPie #1960's header-order fix and test through
   Codex/Herd in about 126 seconds. Independent verification passed 122 tests
   with 3 expected xfails. This is one successful task, not daily-driver proof.
+- Addressed the 2026-11-07 source review: first-run `codex-herd` now selects and
+  saves the initial default only when launching implicitly; explicit model
+  selection overrides stale defaults without changing the saved preference.
+  Unloaded catalog entries use Ollama model `num_ctx` when available, distinguish
+  that configured value from observed loaded allocation, and validate saved
+  context overrides. Generated profiles use atomic replacement, and per-model
+  developer instructions are sent as launch-specific Codex overrides.
+- Added a clean-home subprocess test using a mock Herd API and fake Codex binary.
+  It checks implicit/explicit selection, 16K context metadata, argument
+  forwarding, and Codex exit status. Trace collection now preserves same-name
+  tool-call counts/order while omitting IDs and arguments. The 24-test suite
+  passed locally; see the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
 
 ## Not yet dependable
 
@@ -78,10 +90,11 @@ of the migration is recorded below.
 
 ## Current decision
 
-Keep the deployed default unchanged. Use local profiles experimentally with
-independent patch review. The immediate engineering work is protocol tracing,
-inspection-loop diagnosis, runner validation, and a minimal controlled fix—not
-adding models or changing production routes.
+Keep the deployed default unchanged. Launcher and trace-parser review findings
+are fixed in a focused branch; local tests pass. These client fixes do not
+resolve model inspection loops, final-turn stalls, or the unexplained empty-tool
+list trace. Continue protocol investigation against that evidence before
+changing agent behavior or starting another broad model campaign.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)
 and the [roadmap](ROADMAP.md).

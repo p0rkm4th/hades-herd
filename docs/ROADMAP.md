@@ -2,6 +2,16 @@
 
 ## Immediate: diagnose reliability
 
+### Public source-review follow-up — 2026-11-08
+
+The clean-install model-selection bug, unloaded configured-context fallback,
+missing complete-launch smoke test, same-name trace-call deduplication, and
+non-atomic profile write findings were addressed on a focused branch. Local
+unit and isolated subprocess tests pass. GitHub CI passed for the published
+implementation; independent review is pending. These fixes improve launcher
+correctness and diagnostic fidelity; they do not explain the live empty-tool-list requests or model inspection loops. See
+the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
+
 1. Capture sanitized Codex request/response metadata and identify the exact
    advertised tool list, attempted tool name, Herd translation, execution
    result, and tool-result continuation. **Partial evidence:** one live

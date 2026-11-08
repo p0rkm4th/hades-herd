@@ -58,6 +58,29 @@ class TraceMetadataTests(unittest.TestCase):
         for sentinel in ("PRIVATE ARGUMENT", "PRIVATE RESPONSE", "call-secret"):
             self.assertNotIn(sentinel, summary)
 
+    def test_same_named_tool_calls_keep_per_call_count_and_order(self):
+        parser = trace_codex_herd.SSEMetadata()
+        parser.feed(
+            b'data: {"type":"response.output_item.added","item":{"id":"item-1",'
+            b'"type":"function_call","name":"exec_command","call_id":"call-1",'
+            b'"arguments":"private one"}}\n\n'
+            b'data: {"type":"response.output_item.done","item":{"id":"item-1",'
+            b'"type":"function_call","name":"exec_command","call_id":"call-1",'
+            b'"arguments":"private one"}}\n\n'
+            b'data: {"type":"response.output_item.added","item":{"id":"item-2",'
+            b'"type":"function_call","name":"exec_command","call_id":"call-2",'
+            b'"arguments":"private two"}}\n\n'
+            b'data: {"type":"response.completed","response":{"status":"completed",'
+            b'"output":[{"id":"item-1","type":"function_call","name":"exec_command",'
+            b'"call_id":"call-1"},{"id":"item-2","type":"function_call",'
+            b'"name":"exec_command","call_id":"call-2"}]}}\n\n'
+        )
+        self.assertEqual([item["name"] for item in parser.items], ["exec_command", "exec_command"])
+        serialized = json.dumps(parser.items)
+        self.assertNotIn("item-1", serialized)
+        self.assertNotIn("call-1", serialized)
+        self.assertNotIn("private one", serialized)
+
 
 class TraceProxyTests(unittest.TestCase):
     def test_proxy_forwards_sse_and_writes_only_sanitized_summary(self):

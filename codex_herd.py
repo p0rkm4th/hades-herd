@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import tempfile
 import urllib.error
@@ -115,6 +116,22 @@ def write_json(path: Path, value: object) -> None:
             os.unlink(tmp)
 
 
+def write_text_atomic(path: Path, value: str) -> None:
+    """Atomically replace a generated text file with private permissions."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as out:
+            out.write(value)
+            out.flush()
+            os.fsync(out.fileno())
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
 def read_prefs() -> dict:
     if not PREFS.exists():
         return {"default_model": None, "models": {}}
@@ -157,6 +174,7 @@ def fetch() -> tuple[dict[str, dict], dict]:
         caps = item.get("capabilities", [])
         model_contexts = []
         model_parameters = {}
+        configured_contexts = {}
         local_digests = {node_id: node_tags.get(node_id, {}).get(name) for node_id in nodes}
         for node_id in nodes:
             endpoint = endpoints.get(node_id)
@@ -169,6 +187,9 @@ def fetch() -> tuple[dict[str, dict], dict]:
             model_contexts.extend(v for k, v in info.items() if k.endswith(".context_length") and isinstance(v, int))
             if shown.get("parameters"):
                 model_parameters[node_id] = shown["parameters"]
+                match = re.search(r"(?m)^\s*num_ctx\s+(\d+)\s*$", shown["parameters"])
+                if match:
+                    configured_contexts[node_id] = int(match.group(1))
         expected_digest = verified_tool_digests.get(name)
         known_inconsistent = inconsistent_tool_digests.get(name)
         observed_digests = [digest for digest in local_digests.values() if digest]
@@ -196,6 +217,8 @@ def fetch() -> tuple[dict[str, dict], dict]:
             "online_nodes": [n for n in nodes if n in online],
             "loaded": loaded.get(name, []),
             "model_context_window": min(model_contexts) if model_contexts else None,
+            "configured_context_window": min(configured_contexts.values()) if configured_contexts else None,
+            "configured_context_nodes": configured_contexts,
             "model_parameters": model_parameters,
             "capabilities": caps,
             "embedding_only": bool(caps) and set(caps) <= {"embedding"},
@@ -208,10 +231,7 @@ def fetch() -> tuple[dict[str, dict], dict]:
 
 def codex_entry(model: dict, prefs: dict) -> dict:
     name = model["name"]
-    live_contexts = [x["context_length"] for x in model["loaded"] if x.get("context_length")]
-    metadata_context = min(live_contexts) if live_contexts else 4096
-    override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
-    context = override or metadata_context
+    context, _source = effective_context(model, prefs)
     modalities = ["text"]
     if "vision" in model["capabilities"]:
         modalities.append("image")
@@ -233,6 +253,38 @@ def codex_entry(model: dict, prefs: dict) -> dict:
         "supported_reasoning_levels": [],
         "experimental_supported_tools": [],
     }
+
+
+def effective_context(model: dict, prefs: dict) -> tuple[int, str]:
+    """Return Codex's advertised context and the evidence used to choose it."""
+    name = model["name"]
+    override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
+    if override is not None:
+        if type(override) is not int or not 1024 <= override <= 262144:
+            raise HerdError(
+                f"Saved Codex context for {name} must be an integer from 1,024 through 262,144."
+            )
+        return override, "saved Codex preference"
+    loaded = [
+        item["context_length"] for item in model.get("loaded", [])
+        if type(item.get("context_length")) is int and item["context_length"] > 0
+    ]
+    if loaded:
+        return min(loaded), "live backend allocation"
+    configured = model.get("configured_context_window")
+    if type(configured) is int and configured > 0:
+        return configured, "model-configured num_ctx"
+    return 4096, "safe fallback; configured allocation unknown"
+
+
+def initial_model(models: dict[str, dict]) -> str:
+    candidates = sorted(
+        model["name"] for model in models.values()
+        if not model["embedding_only"] and model["tool_capable"]
+    )
+    if not candidates:
+        raise HerdError("Herd returned no non-embedding tool-capable models")
+    return candidates[0]
 
 
 def stream_idle_timeout_ms(name: str, prefs: dict) -> int | None:
@@ -262,29 +314,23 @@ def sync_catalog(models: dict[str, dict], prefs: dict, default: str | None = Non
     if not selectable:
         raise HerdError("Herd returned no non-embedding tool-capable models")
     saved_default = prefs.get("default_model")
-    if saved_default is None:
-        default = selectable[0]["name"]
-    elif default is None:
+    if default is None:
         default = saved_default
+    if default is None:
+        default = initial_model(models)
     if default not in {m["name"] for m in selectable}:
         raise HerdError(
             f"Saved default_model {default!r} is no longer selectable. "
             f"Live models: {', '.join(sorted(m['name'] for m in selectable))}. "
             f"Run `codex-herd config <live-model>` and choose a live default."
         )
+    saved_developer_instructions(default, prefs)  # Validate before changing generated files.
     idle_timeout = stream_idle_timeout_ms(default, prefs)
-    instructions = saved_developer_instructions(default, prefs)
-    instruction_block = (
-        f"developer_instructions = {json.dumps(instructions, ensure_ascii=False)}\n"
-        if instructions is not None
-        else ""
-    )
     CODEX_HOME.mkdir(parents=True, exist_ok=True)
     write_json(CATALOG, {"models": [codex_entry(m, prefs) for m in sorted(selectable, key=lambda x: x["name"])]})
     config = f'''model = {json.dumps(default)}
 model_provider = "herd"
 model_catalog_json = {json.dumps(str(CATALOG))}
-{instruction_block}
 
 [model_providers.herd]
 name = "HADES Ollama Herd"
@@ -299,8 +345,7 @@ stream_max_retries = 0
 [model_providers.herd.http_headers]
 "X-Fleet-No-Fallback" = "true"
 '''
-    PROFILE.write_text(config)
-    os.chmod(PROFILE, 0o600)
+    write_text_atomic(PROFILE, config)
     write_json(INVENTORY, {"endpoint": base, "models": models})
 
 
@@ -327,7 +372,8 @@ def display_list(models: dict[str, dict], prefs: dict, fleet: dict) -> None:
         loaded = ", ".join(f"{x['node']} ({x.get('context_length', '?'):,} ctx)" for x in m["loaded"]) or "unloaded"
         override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
         contexts = [x["context_length"] for x in m["loaded"] if x.get("context_length")]
-        codex_ctx = str(override or (min(contexts) if contexts else "4,096 safe fallback"))
+        codex_context, context_source = effective_context(m, prefs)
+        codex_ctx = f"{codex_context:,} ({context_source})"
         availability = "online" if m["online_nodes"] else "offline"
         tools = (f"{m['tool_status']} ({m['tool_status_detail']})" if m["tool_status"] == "mixed" else m["tool_status"]) if m["tool_capable"] else ("embedding" if m["embedding_only"] else "not advertised")
         max_context = f"{m['model_context_window']:,}" if m["model_context_window"] else "unknown"
@@ -362,12 +408,17 @@ def config_show(name: str, models: dict[str, dict], prefs: dict) -> None:
     contexts = [x["context_length"] for x in model["loaded"] if x.get("context_length")]
     print(f"Model: {name}")
     print(f"Default model: {'yes' if prefs.get('default_model') == name else 'no'}")
-    if override:
+    if override is not None:
         catalog_context = f"{override:,} (saved local Codex preference)"
     elif contexts:
         catalog_context = f"{min(contexts):,} (derived from live loaded backend; not saved)"
+    elif model.get("configured_context_window"):
+        catalog_context = (
+            f"{model['configured_context_window']:,} (model-configured num_ctx; "
+            "backend allocation unobserved)"
+        )
     else:
-        catalog_context = "4,096 (safe fallback; backend allocation unobserved; not saved)"
+        catalog_context = "4,096 (safe fallback; configured value and backend allocation unknown; not saved)"
     print(f"Codex catalog context: {catalog_context}")
     print(f"Model-declared maximum context: {model['model_context_window'] or 'unknown'}")
     print("Backend allocated context: " + (", ".join(f"{x['node']}={x['context_length']:,}" for x in model["loaded"]) if contexts else "unloaded; unknown"))
@@ -456,12 +507,28 @@ def configure(name: str, models: dict[str, dict], prefs: dict) -> None:
     print(f"Saved preferences to {PREFS}")
 
 
-def launch(name: str, args: list[str], models: dict[str, dict], prefs: dict) -> int:
+def codex_arguments(name: str, args: list[str], prefs: dict) -> list[str]:
+    codex_args = ["codex", "--no-daemon", "--profile", "herd", "--model", name,
+                  "--config", 'model_provider="herd"']
+    instructions = saved_developer_instructions(name, prefs)
+    if instructions is not None:
+        codex_args.extend(["--config", f"developer_instructions={json.dumps(instructions, ensure_ascii=False)}"])
+    codex_args.extend(args)
+    return codex_args
+
+
+def launch(
+    name: str, args: list[str], models: dict[str, dict], prefs: dict, *, initialize_default: bool = False
+) -> int:
     eligible(name, models)
+    if initialize_default and prefs.get("default_model") is None:
+        prefs["default_model"] = name
+        write_json(PREFS, prefs)
     sync_catalog(models, prefs, name)
     env = os.environ.copy()
     env["CODEX_HOME"] = str(CODEX_HOME)
-    os.execvpe("codex", ["codex", "--no-daemon", "--profile", "herd", "--model", name, "--config", 'model_provider="herd"', *args], env)
+    codex_args = codex_arguments(name, args, prefs)
+    os.execvpe("codex", codex_args, env)
     return 127
 
 
@@ -473,8 +540,14 @@ def main(argv: list[str]) -> int:
         models, fleet = fetch()
         prefs = read_prefs()
         if not argv or argv[0] == "--":
-            name = prefs.get("default_model")
-            return launch(name, argv[1:] if argv[:1] == ["--"] else [], models, prefs)
+            name = prefs.get("default_model") or initial_model(models)
+            return launch(
+                name,
+                argv[1:] if argv[:1] == ["--"] else [],
+                models,
+                prefs,
+                initialize_default=prefs.get("default_model") is None,
+            )
         command = argv[0]
         if command == "list":
             display_list(models, prefs, fleet)
@@ -487,7 +560,7 @@ def main(argv: list[str]) -> int:
             if len(argv) == 3 and argv[1] == "show":
                 config_show(argv[2], models, prefs)
                 return 0
-            name = argv[1] if len(argv) > 1 else prefs.get("default_model")
+            name = argv[1] if len(argv) > 1 else (prefs.get("default_model") or initial_model(models))
             configure(name, models, prefs)
             return 0
         name = command

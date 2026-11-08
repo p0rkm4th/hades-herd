@@ -43,6 +43,7 @@ class SSEMetadata:
     def __init__(self) -> None:
         self._buffer = b""
         self.items: list[dict[str, Any]] = []
+        self._seen_item_ids: set[str] = set()
         self.terminal_status: str | None = None
         self.usage: dict[str, int] | None = None
 
@@ -66,12 +67,7 @@ class SSEMetadata:
         if kind in {"response.output_item.added", "response.output_item.done"}:
             item = event.get("item", {})
             if isinstance(item, dict):
-                record = {"type": item.get("type")}
-                if item.get("type") == "function_call":
-                    record["name"] = item.get("name")
-                    record["call_id_present"] = isinstance(item.get("call_id"), str)
-                if record not in self.items:
-                    self.items.append(record)
+                self._record_item(item)
         elif kind == "response.completed":
             response = event.get("response", {})
             if isinstance(response, dict):
@@ -85,12 +81,22 @@ class SSEMetadata:
                     self.usage = safe_usage or None
                 for item in response.get("output", []):
                     if isinstance(item, dict):
-                        record = {"type": item.get("type")}
-                        if item.get("type") == "function_call":
-                            record["name"] = item.get("name")
-                            record["call_id_present"] = isinstance(item.get("call_id"), str)
-                        if record not in self.items:
-                            self.items.append(record)
+                        self._record_item(item)
+
+    def _record_item(self, item: dict[str, Any]) -> None:
+        """Deduplicate lifecycle events by item identity, never by tool name."""
+        item_id = item.get("id")
+        if not isinstance(item_id, str) and item.get("type") == "function_call":
+            item_id = item.get("call_id")
+        if isinstance(item_id, str):
+            if item_id in self._seen_item_ids:
+                return
+            self._seen_item_ids.add(item_id)
+        record = {"type": item.get("type")}
+        if item.get("type") == "function_call":
+            record["name"] = item.get("name")
+            record["call_id_present"] = isinstance(item.get("call_id"), str)
+        self.items.append(record)
 
 
 def request_metadata(body: bytes) -> dict[str, Any]:
