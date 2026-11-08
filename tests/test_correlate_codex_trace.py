@@ -49,6 +49,35 @@ class CorrelateCodexTraceTests(unittest.TestCase):
         self.assertTrue(output["requests"][0]["next_request_started_before_response_finished"])
         self.assertIsNone(output["requests"][0]["command_starts_in_gap"])
         self.assertEqual(output["overlapping_request_gaps_unassigned"], 1)
+        self.assertEqual(output["command_event_summary"]["total"]["started"], 1)
+        self.assertEqual(output["command_event_summary"]["unassigned"]["started"], 1)
+
+    def test_reports_command_events_before_first_window_as_unassigned(self):
+        requests = [req(1, 100, 150, 9, 0, ["function_call"])]
+        events = [
+            {"monotonic_ns": 90, "type": "item.started", "item_type": "command_execution"},
+            {
+                "monotonic_ns": 175, "type": "item.completed",
+                "item_type": "command_execution", "item_status": "completed",
+            },
+            {
+                "monotonic_ns": 260, "type": "item.completed",
+                "item_type": "command_execution", "item_status": "failed",
+            },
+        ]
+        summary = correlate.correlate(requests, events)["command_event_summary"]
+        self.assertEqual(summary["total"], {
+            "started": 1, "completed": 2, "completed_successfully": 1,
+            "completed_failed": 1, "completed_other": 0,
+        })
+        self.assertEqual(summary["assigned_to_nonoverlapping_gaps"], {
+            "started": 0, "completed": 2, "completed_successfully": 1,
+            "completed_failed": 1, "completed_other": 0,
+        })
+        self.assertEqual(summary["unassigned"], {
+            "started": 1, "completed": 0, "completed_successfully": 0,
+            "completed_failed": 0, "completed_other": 0,
+        })
 
     def test_loaders_reject_old_unstamped_traces(self):
         with tempfile.TemporaryDirectory() as tmp:

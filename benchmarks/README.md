@@ -161,3 +161,7 @@ it never includes IDs, commands, prompts, arguments, or tool results. Timing
 proximity is not an ID-level match, so parallel commands or overlapping model
 requests still require cautious interpretation. Historical captures without
 timestamps are rejected rather than guessed.
+The result also reports total command starts/completions, counts assigned to
+non-overlapping response windows, and counts left unassigned. Events before
+the first response window and events in overlapping windows therefore remain
+visible in aggregate counts without unsupported call-level attribution.

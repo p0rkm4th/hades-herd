@@ -42,6 +42,14 @@ preserving the documented behavior for one quiet flag and for errors.
   not claim per-call identity or prove that a particular response caused a
   particular command.
 
+The correlator was subsequently extended to report these totals directly.
+Re-running it on the same sanitized artifacts yielded 29 total starts and 29
+completions, with 27 of each assigned to non-overlapping windows and 2 of each
+unassigned. The assigned completions comprised 23 successes and 4 failures;
+the unassigned completions were both successful. This makes the count
+reconciliation reproducible from the published tool without exposing raw
+Codex events.
+
 ## Interpretation and cleanup
 
 This run confirms that the timestamp correlator works on a live trace and

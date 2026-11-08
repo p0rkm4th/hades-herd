@@ -42,9 +42,18 @@
    reproduces the request state. Do not change production behavior.
    A timestamped trace correlator now joins non-overlapping Responses
    completion/request windows to Codex command-event counts while explicitly
-   leaving concurrent intervals unassigned. Its unit tests pass; next use it
-   on one bounded run of the still-open HTTPie #1958 task to establish whether
-   empty-tool call responses are temporally followed by command execution.
+   leaving concurrent intervals unassigned. The fresh HTTPie #1978 diagnostic
+   exercised it: 27 of 29 command starts and 27 of 29 completions fell in
+   assignable windows; two starts and two successful completions remained
+   unassigned. Both empty-tool requests were completed final responses with no
+   function calls. This does not reproduce the earlier #1958 mismatch, where
+   five empty-tool requests returned `exec_command`. See the
+   [live trace report](../benchmarks/results/2026-11-08-httpie-1978-trace-correlation.md).
+   The correlator now emits total, assigned, and unassigned command-event
+   counts so this reconciliation is repeatable. Next, inspect the retained
+   #1958 metadata and event ordering for any additional lifecycle signal; do
+   not rerun the retired issue fixture or promote the adapter guard without a
+   relevant reproduced behavior.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior

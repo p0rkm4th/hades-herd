@@ -76,6 +76,7 @@ def correlate(requests: list[dict[str, Any]], events: list[dict[str, Any]]) -> d
     events = sorted(events, key=lambda item: item["monotonic_ns"])
     rows = []
     unassigned = 0
+    assigned_event_indexes: set[int] = set()
     for index, request in enumerate(requests):
         request_meta = request.get("request", {})
         if not isinstance(request_meta, dict):
@@ -92,13 +93,16 @@ def correlate(requests: list[dict[str, Any]], events: list[dict[str, Any]]) -> d
         overlap = boundary is not None and boundary < finished
         if overlap:
             gap_events = []
+            gap_event_indexes = []
         else:
-            gap_events = [
-                event for event in events
+            gap_event_indexes = [
+                event_index for event_index, event in enumerate(events)
                 if event["monotonic_ns"] > finished
                 and (boundary is None or event["monotonic_ns"] < boundary)
                 and event.get("item_type") == "command_execution"
             ]
+            gap_events = [events[event_index] for event_index in gap_event_indexes]
+            assigned_event_indexes.update(gap_event_indexes)
         starts = sum(event.get("type") == "item.started" for event in gap_events)
         completed = sum(
             event.get("type") == "item.completed" and event.get("item_status") == "completed"
@@ -128,9 +132,32 @@ def correlate(requests: list[dict[str, Any]], events: list[dict[str, Any]]) -> d
             "command_failures_in_gap": None if overlap else failed,
             "response_terminal_status": request.get("terminal_status"),
         })
+    command_events = [
+        (index, event) for index, event in enumerate(events)
+        if event.get("item_type") == "command_execution"
+        and event.get("type") in {"item.started", "item.completed"}
+    ]
+
+    def count_command_events(indexes: set[int]) -> dict[str, int]:
+        selected = [(index, event) for index, event in command_events if index in indexes]
+        completed = [event for _, event in selected if event.get("type") == "item.completed"]
+        return {
+            "started": sum(event.get("type") == "item.started" for _, event in selected),
+            "completed": len(completed),
+            "completed_successfully": sum(event.get("item_status") == "completed" for event in completed),
+            "completed_failed": sum(event.get("item_status") == "failed" for event in completed),
+            "completed_other": sum(event.get("item_status") not in {"completed", "failed"} for event in completed),
+        }
+
+    all_command_indexes = {index for index, _ in command_events}
     return {
         "requests": rows,
         "overlapping_request_gaps_unassigned": unassigned,
+        "command_event_summary": {
+            "total": count_command_events(all_command_indexes),
+            "assigned_to_nonoverlapping_gaps": count_command_events(assigned_event_indexes),
+            "unassigned": count_command_events(all_command_indexes - assigned_event_indexes),
+        },
         "correlation_limit": (
             "A non-overlapping time gap is suggestive, not an ID-level match. "
             "Overlapping requests and parallel commands cannot be paired from sanitized metadata alone."
