@@ -58,6 +58,32 @@ class TraceMetadataTests(unittest.TestCase):
         for sentinel in ("PRIVATE ARGUMENT", "PRIVATE RESPONSE", "call-secret"):
             self.assertNotIn(sentinel, summary)
 
+    def test_distinct_same_name_calls_are_counted_once_each_without_publishing_ids(self):
+        parser = trace_codex_herd.SSEMetadata()
+        events = []
+        for call_id in ("secret-one", "secret-two"):
+            item = {"type": "function_call", "name": "exec_command", "call_id": call_id,
+                "arguments": "PRIVATE ARGUMENT"}
+            events.extend([
+                {"type": "response.output_item.added", "item": item},
+                {"type": "response.output_item.done", "item": item},
+            ])
+        events.append({"type": "response.completed", "response": {
+            "status": "completed", "output": [
+                {"type": "function_call", "name": "exec_command", "call_id": "secret-one"},
+                {"type": "function_call", "name": "exec_command", "call_id": "secret-two"},
+            ]
+        }})
+        parser.feed(b"".join(b"data: " + json.dumps(event).encode() + b"\n\n" for event in events))
+        self.assertEqual(parser.items, [
+            {"type": "function_call", "name": "exec_command", "call_id_present": True},
+            {"type": "function_call", "name": "exec_command", "call_id_present": True},
+        ])
+        serialized = json.dumps(parser.items)
+        self.assertNotIn("secret-one", serialized)
+        self.assertNotIn("secret-two", serialized)
+        self.assertNotIn("PRIVATE ARGUMENT", serialized)
+
 
 class TraceProxyTests(unittest.TestCase):
     def test_proxy_forwards_sse_and_writes_only_sanitized_summary(self):

@@ -40,11 +40,16 @@ codex-herd config show qwen-model-tag
 codex-herd refresh         # refresh discovery
 ```
 
-The first refresh creates a dedicated Codex profile and model catalog under
-`~/.config/codex-herd/`. Tool-verification digests are optional deployment
-metadata in the private `model-digests.json` file; the public source includes no
-fleet-specific digest allowlist. User preferences and generated files stay outside
-`~/.codex`; hosted Codex configuration remains separate. Run
+The first refresh creates a saved default when none exists. Each launch writes
+an atomic, model-specific Codex profile and catalog under
+`~/.config/codex-herd/codex-home/`, so simultaneous sessions selecting different
+models do not share generated profile files. Tool-verification digests are
+optional deployment metadata in the private `model-digests.json` file; the
+public source includes no fleet-specific digest allowlist. User preferences
+and generated files stay outside `~/.codex`; hosted Codex configuration remains
+separate. For unloaded models, configured `num_ctx` is advertised only when
+all online hosts report it; otherwise the client uses a 4K unverified safe
+fallback. This metadata is not a measurement of current Ollama allocation. Run
 `codex-herd --help` for the command interface. See the [operator guide](docs/OPERATOR_GUIDE.md).
 
 ## Safety and limits

@@ -44,8 +44,8 @@ class SyncCatalogDefaultTests(unittest.TestCase):
         codex_herd.PREFS = root / "preferences.json"
         codex_herd.CODEX_HOME.mkdir()
         self.old = {
-            codex_herd.CATALOG: b"old catalog\n",
-            codex_herd.PROFILE: b"old profile\n",
+            codex_herd.model_profile_paths("available-model")[2]: b"old catalog\n",
+            codex_herd.model_profile_paths("available-model")[1]: b"old profile\n",
             codex_herd.INVENTORY: b"old inventory\n",
         }
         for path, data in self.old.items():
@@ -74,12 +74,42 @@ class SyncCatalogDefaultTests(unittest.TestCase):
     def test_explicit_model_can_be_used_despite_removed_saved_default(self):
         prefs = {"default_model": "removed-model", "models": {}}
         codex_herd.sync_catalog(models(), prefs, "available-model")
-        self.assertIn('model = "available-model"', codex_herd.PROFILE.read_text())
+        self.assertIn('model = "available-model"', codex_herd.model_profile_paths("available-model")[1].read_text())
+
+    def test_explicit_model_takes_precedence_over_saved_default(self):
+        fleet_models = models()
+        fleet_models["second-model"] = model("second-model")
+        codex_herd.sync_catalog(fleet_models, {"default_model": "available-model", "models": {}}, "second-model")
+        self.assertIn('model = "second-model"', codex_herd.model_profile_paths("second-model")[1].read_text())
 
     def test_initial_catalog_without_saved_default_uses_first_available_model(self):
         prefs = {"models": {}}
         codex_herd.sync_catalog(models(), prefs)
-        self.assertIn('model = "available-model"', codex_herd.PROFILE.read_text())
+        self.assertIn('model = "available-model"', codex_herd.model_profile_paths("available-model")[1].read_text())
+        self.assertEqual(prefs["default_model"], "available-model")
+
+    def test_initial_default_prefers_online_model_over_sorted_offline_model(self):
+        offline = model("aaa-offline")
+        offline["online_nodes"] = []
+        online = model("z-online")
+        fleet_models = {"aaa-offline": offline, "z-online": online}
+        prefs = {"models": {}}
+        codex_herd.sync_catalog(fleet_models, prefs)
+        self.assertEqual(prefs["default_model"], "z-online")
+        self.assertIn('model = "z-online"', codex_herd.model_profile_paths("z-online")[1].read_text())
+
+    def test_unloaded_catalog_uses_reported_ollama_context_not_architecture_limit(self):
+        item = model("configured-model")
+        item["online_nodes"] = ["node-a", "node-b"]
+        item["model_context_window"] = 131072
+        item["model_parameters"] = {"node-a": "temperature 0.6\nnum_ctx 16384", "node-b": "num_ctx 8192"}
+        entry = codex_herd.codex_entry(item, {"models": {}})
+        self.assertEqual(entry["context_window"], 8192)
+        self.assertEqual(entry["context_source"], "Ollama configured num_ctx on all online nodes")
+        item["model_parameters"] = {"node-a": "num_ctx 16384"}
+        entry = codex_herd.codex_entry(item, {"models": {}})
+        self.assertEqual(entry["context_window"], 4096)
+        self.assertEqual(entry["context_source"], "unverified safe fallback")
 
     def test_model_guidance_is_toml_encoded_and_follows_explicit_session_model(self):
         fleet_models = models()
@@ -93,29 +123,43 @@ class SyncCatalogDefaultTests(unittest.TestCase):
         }
 
         codex_herd.sync_catalog(fleet_models, prefs)
-        config = read_profile(codex_herd.PROFILE)
+        config = read_profile(codex_herd.model_profile_paths("available-model")[1])
         self.assertEqual(config["developer_instructions"], 'Use `exec_command`; say "done". ☃')
 
         codex_herd.sync_catalog(fleet_models, prefs, "second-model")
-        config = read_profile(codex_herd.PROFILE)
+        config = read_profile(codex_herd.model_profile_paths("second-model")[1])
         self.assertEqual(config["developer_instructions"], "Inspect once, then implement.")
+        self.assertEqual(
+            read_profile(codex_herd.model_profile_paths("available-model")[1])["developer_instructions"],
+            'Use `exec_command`; say "done". ☃',
+        )
         self.assertEqual(prefs["default_model"], "available-model")
 
     def test_guidance_is_omitted_when_unset_and_invalid_value_preserves_generated_files(self):
         prefs = {"default_model": "available-model", "models": {}}
         codex_herd.sync_catalog(models(), prefs)
-        config = read_profile(codex_herd.PROFILE)
+        config = read_profile(codex_herd.model_profile_paths("available-model")[1])
         self.assertNotIn("developer_instructions", config)
 
         generated = {
             path: path.read_bytes()
-            for path in (codex_herd.CATALOG, codex_herd.PROFILE, codex_herd.INVENTORY)
+            for path in (codex_herd.model_profile_paths("available-model")[2], codex_herd.model_profile_paths("available-model")[1], codex_herd.INVENTORY)
         }
         prefs["models"]["available-model"] = {"developer_instructions": ["wrong type"]}
         with self.assertRaisesRegex(codex_herd.HerdError, "must be text"):
             codex_herd.sync_catalog(models(), prefs)
         for path, content in generated.items():
             self.assertEqual(path.read_bytes(), content, str(path))
+
+    def test_atomic_profile_replace_preserves_previous_file_on_replace_error(self):
+        target = codex_herd.model_profile_paths("available-model")[1]
+        target.write_text("previous complete profile\n")
+        existing_paths = set(target.parent.iterdir())
+        with mock.patch.object(codex_herd.os, "replace", side_effect=OSError("simulated replace failure")):
+            with self.assertRaisesRegex(OSError, "simulated replace failure"):
+                codex_herd.atomic_write_text(target, "new profile\n")
+        self.assertEqual(target.read_text(), "previous complete profile\n")
+        self.assertEqual(set(target.parent.iterdir()), existing_paths)
 
     def test_interactive_guidance_persists_and_can_be_cleared(self):
         class TerminalInput(io.StringIO):
@@ -131,7 +175,7 @@ class SyncCatalogDefaultTests(unittest.TestCase):
             codex_herd.read_prefs()["models"]["available-model"]["developer_instructions"],
             "Use only exec_command; implement and verify.",
         )
-        saved = read_profile(codex_herd.PROFILE)
+        saved = read_profile(codex_herd.model_profile_paths("available-model")[1])
         self.assertEqual(
             saved["developer_instructions"],
             "Use only exec_command; implement and verify.",
@@ -141,7 +185,7 @@ class SyncCatalogDefaultTests(unittest.TestCase):
         with mock.patch.object(codex_herd.sys, "stdin", inputs):
             codex_herd.configure("available-model", models(), prefs)
         self.assertNotIn("developer_instructions", codex_herd.read_prefs()["models"]["available-model"])
-        self.assertNotIn("developer_instructions", read_profile(codex_herd.PROFILE))
+        self.assertNotIn("developer_instructions", read_profile(codex_herd.model_profile_paths("available-model")[1]))
 
 
 if __name__ == "__main__":
