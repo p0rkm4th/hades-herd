@@ -59,8 +59,11 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - A sanitized trace correlator now joins Responses request metadata to
   timestamped Codex command-event windows. It rejects historical unstamped
   traces and marks overlapping requests unassigned instead of inferring a
-  correlation. Unit coverage exists; it has not yet been exercised on a new
-  live model trace.
+  correlation. A live HTTPie #1978 diagnostic exercised it: two requests had
+  empty tool lists, neither returned a function call, and two of 29 command
+  starts were outside assignable response windows. The Codex run timed out
+  without edits; this is not a model score. See the
+  [live correlation report](../benchmarks/results/2026-11-08-httpie-1978-trace-correlation.md).
 - A disposable guard prototype distinguishes explicit-empty from unknown
   offered-tool metadata and suppresses unadvertised calls in streamed and
   non-streamed results. Its translator tests pass 61/61; two mocked-Ollama
@@ -87,10 +90,10 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: run one bounded trace with the correlator on the still-open HTTPie #1958
-task, whose earlier run produced explicit empty-tool requests. Use the same
-model/task configuration only to establish request/event timing and do not
-score it as a model trial. Do not promote the adapter guard or change
-production behavior without a relevant reproduced case. Full sanitized results
-and failed attempts are in
+Next: use a deterministic mocked Codex request sequence to test empty-tool
+request handling and correlate those requests with Codex event classes. The
+fresh #1978 live run did not reproduce an empty-tool/function-call mismatch,
+so do not promote the adapter guard or change production behavior. Do not
+rerun retired HTTPie fixtures without a materially new hypothesis. Full
+sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).
