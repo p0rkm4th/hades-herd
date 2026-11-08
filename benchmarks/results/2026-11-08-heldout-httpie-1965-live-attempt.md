@@ -17,18 +17,25 @@ that suite.
 
 The process exited 0 after 7.0 seconds, but this was **not a task pass**. Codex
 issued two ordinary repository-inspection shell commands, then the model tried
-to call a `read` tool that was not offered by Codex. Codex ended the turn with
-“No tool was run because the model requested a tool not advertised for this
-turn.” The worktree contains no source or test changes; only the pre-run task
-instructions are untracked. No requested test was run by the agent.
+to call a `read` tool that was not offered by Codex. The guarded Herd adapter
+suppressed that call and returned the visible notice “No tool was run because
+the model requested a tool not advertised for this turn.” Codex ended the turn
+without continuing the task. The worktree contains no source or test changes;
+only the pre-run task instructions are untracked. No requested test was run by
+the agent.
 
 The content-free Codex trace confirms the offered tools included `exec_command`
 and `write_stdin`, but not `read`. Its corresponding Ollama metadata capture
 shows the first backend response requested `exec_command`; the next requested
 `read`. The payloads and arguments were not recorded in the published traces.
-This directly confirms an unsupported-tool selection in this run. It does not
-indicate that Herd removed a tool that Codex had offered, nor does it establish
-why the model selected `read`.
+This directly confirms an unsupported-tool selection in this run. The Codex
+request contained the tool catalog; the Ollama request contained a translated
+seven-tool subset, including `exec_command`. Herd did not remove `read` from a
+tool list Codex had offered; `read` was not offered. The run does not establish
+why the model selected it. The disposable adapter also logged that it dropped
+the untranslatable `web_search` entry from Codex's catalog. This separate
+translation limitation and the later guided attempt are described in the
+[follow-up report](2026-11-08-guided-httpie-1965-followup.md).
 
 The operator independently reran the unchanged focused suite after the agent:
 **121 passed, 3 xfailed** in 15.75 seconds. The source bug therefore remains

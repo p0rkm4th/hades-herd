@@ -66,8 +66,10 @@ them. It asks Ollama for an uncompressed response so streamed JSONL metadata
 can be observed; it does not alter the JSON request body.
 For `/api/chat`, the mode-0600 JSONL capture contains only model name, stream
 mode, tool-field presence/count/names, message count, response tool-call
-count/names, completion/token counters, status, and monotonic timings. It
-never records prompts, tool schemas, arguments, message content, or headers.
+count/names, whether `content` and `thinking` fields appeared, their aggregate
+character counts, completion reason/token counters, status, and monotonic
+timings. It never records prompts, tool schemas, arguments, message content,
+or headers.
 The proxy binds to `127.0.0.1` only and refuses to overwrite an existing
 capture file.
 
@@ -210,10 +212,23 @@ Herd or Ollama configuration.
 
 The first live use was a held-out HTTPie #1965 task. Codex exposed
 `exec_command` and `write_stdin`; the model requested `exec_command` and then
-an unadvertised `read` tool. Codex rejected the latter and ended without a
-patch. This identifies a concrete unsupported-tool selection but does not
-explain its cause. See the
+an unadvertised `read` tool. The guarded adapter suppressed it and returned a
+notice; Codex ended without a patch. This identifies a concrete
+unsupported-tool selection but does not explain its cause. See the
 [sanitized result](results/2026-11-08-heldout-httpie-1965-live-attempt.md).
+
+The follow-up with explicit per-model developer instructions avoided a model
+tool call, but Codex completed with no visible message or repository change.
+The observer had recorded token counts but not content/thinking presence or
+lengths, so that attempt cannot distinguish an empty response from hidden
+reasoning or an adapter issue. The observer now records those shape metrics
+without text; see the
+[follow-up report](results/2026-11-08-guided-httpie-1965-followup.md).
+An instrumented same-input repetition then timed out after 17 Codex tool turns.
+All 18 observed Ollama responses had empty content; 13 included thinking, with
+44,418 thinking characters total. The last backend response completed after
+Codex's hard timeout. This is a failed diagnostic, not a pass; see the
+[response-shape report](results/2026-11-08-guided-httpie-1965-response-shape.md).
 
 ### Correlating tool calls with Codex events
 

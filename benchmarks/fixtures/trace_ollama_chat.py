@@ -70,7 +70,7 @@ def request_metadata(path: str, body: bytes) -> dict[str, Any]:
 
 
 def response_metadata(line_or_body: bytes, streaming: bool) -> dict[str, Any]:
-    """Extract response tool names and token counters, discarding all content/args."""
+    """Extract content-free response shape, tool names, and token counters."""
     try:
         value = json.loads(line_or_body)
     except (UnicodeDecodeError, json.JSONDecodeError):
@@ -83,10 +83,17 @@ def response_metadata(line_or_body: bytes, streaming: bool) -> dict[str, Any]:
         calls = value.get("tool_calls")
     names = _tool_names(calls)
     result: dict[str, Any] = {}
+    for key in ("content", "thinking"):
+        value_for_key = message.get(key)
+        result[f"{key}_field_present"] = key in message
+        if isinstance(value_for_key, str):
+            result[f"{key}_chars"] = len(value_for_key)
     if names:
         result["tool_call_names"] = names
     if value.get("done") is True:
         result["done"] = True
+    if isinstance(value.get("done_reason"), str):
+        result["done_reason"] = value["done_reason"]
     for key in ("prompt_eval_count", "eval_count"):
         if isinstance(value.get(key), int):
             result[key] = value[key]
@@ -270,7 +277,15 @@ def _merge_response_metadata(
     aggregate: dict[str, Any], calls: dict[int, str], body: bytes, streaming: bool
 ) -> None:
     metadata = response_metadata(body, streaming)
-    aggregate.update({key: value for key, value in metadata.items() if key != "tool_call_names"})
+    for key, value in metadata.items():
+        if key == "tool_call_names":
+            continue
+        if key.endswith("_chars") and isinstance(value, int):
+            aggregate[key] = aggregate.get(key, 0) + value
+        elif key.endswith("_field_present"):
+            aggregate[key] = aggregate.get(key, False) or value
+        else:
+            aggregate[key] = value
     names = metadata.get("tool_call_names", [])
     if names:
         # Ollama streams calls by list position; replace repeated partial

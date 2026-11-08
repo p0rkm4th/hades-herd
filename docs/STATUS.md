@@ -15,9 +15,12 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   precedence, unloaded context reporting, atomic profile generation, and
   repeated same-name trace counts. It adds a fake-Herd/fake-Codex launch test.
 - The November 7 source-review fixes, trace-correlator unit tests, and current
-  sanitized-report changes are covered by 35 passing local tests. GitHub Actions
+  sanitized-report changes were covered by 35 passing tests. GitHub Actions
   passed the Python 3.10–3.14 matrix on code head `41853c3` in
   [run 42438683194](https://github.com/p0rkm4th/hades-herd/actions/runs/42438683194).
+- The content/thinking-shape observer update is covered by **36 passing local
+  tests**, including streamed and non-streamed privacy checks; CI for this
+  update is pending.
 - A bounded Codex/Herd smoke exercised LF/CRLF trace framing. The initial
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
@@ -79,15 +82,36 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   and [live attempt](../benchmarks/results/2026-11-08-guarded-httpie-1958-live-task.md).
 - A new loopback-only Ollama metadata proxy forwards payload bytes unchanged
   and records only model/tool names and counts, token counters, response status,
-  and timing. Its offline tests verify streamed forwarding,
-  missing-versus-empty tool metadata, and exclusion of
-  prompt/schema/argument/content sentinels. In held-out HTTPie #1965, the
+  content/thinking presence and character counts, completion reason, and
+  timing. Its offline tests verify streamed forwarding, missing-versus-empty
+  tool metadata, and exclusion of prompt/schema/argument/content/thinking
+  sentinels. In held-out HTTPie #1965, the
   content-free Codex and Ollama traces both show the model requested an
-  unadvertised `read` tool after two shell inspections; Codex rejected it and
-  ended the turn without edits. The valid live attempt is a failure, not a
-  model pass; no Herd tool loss was observed in this run. See the
+  unadvertised `read` tool after two shell inspections; guarded Herd suppressed
+  it and returned a notice, after which Codex ended without edits. The valid
+  live attempt is a failure, not a model pass; no loss of a Codex-offered tool
+  was observed. The route separately logged a dropped `web_search` entry that
+  Ollama's chat format cannot represent. See the
   [held-out report](../benchmarks/results/2026-11-08-heldout-httpie-1965-live-attempt.md)
   and [benchmark instructions](../benchmarks/README.md#ollama-side-metadata-capture).
+- A same-task follow-up added only per-model developer instructions telling
+  Codex to use the listed shell tools. The model made no tool call, but Codex
+  completed with no visible response and no repository change. The task did not
+  improve; because the previous observer omitted text/thinking shape, its
+  cause remains unknown. A metadata-only observer enhancement now records
+  presence and character counts for those fields without retaining content.
+  See the
+  [follow-up report](../benchmarks/results/2026-11-08-guided-httpie-1965-followup.md).
+- One same-input diagnostic with that enhanced observer then timed out at 180s
+  after 17 completed Codex Responses turns, all issuing `exec_command`, with no
+  source edits. Ollama returned 18 tool calls; all 18 responses had zero
+  content characters, 13 carried a `thinking` field, and total thinking text
+  length was 44,418 characters. The 18th backend request completed about 25s
+  after Codex was killed, so its result had no client turn. This is evidence
+  of an inspection loop, not proof that thinking caused it. Next, test
+  thinking-only continuation and client-disconnect cancellation with
+  deterministic fixtures. See the
+  [response-shape report](../benchmarks/results/2026-11-08-guided-httpie-1965-response-shape.md).
 - A loopback Codex boundary probe ran the installed CLI 0.166.0 against a
   synthetic endpoint. When the mock returned `exec_command` despite a simulated
   zero-tool backend offer, Codex executed it; when the mock returned visible

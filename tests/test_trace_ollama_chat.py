@@ -12,11 +12,37 @@ from benchmarks.fixtures import trace_ollama_chat
 
 
 class OllamaMetadataProxyTests(unittest.TestCase):
+    def test_nonstream_response_records_content_shape_without_text(self):
+        metadata = trace_ollama_chat.response_metadata(
+            json.dumps({
+                "message": {
+                    "role": "assistant",
+                    "content": "PRIVATE_CONTENT_SENTINEL",
+                    "thinking": "PRIVATE_THINKING_SENTINEL",
+                },
+                "done": True,
+                "done_reason": "stop",
+            }).encode(),
+            streaming=False,
+        )
+        self.assertEqual(metadata, {
+            "content_field_present": True,
+            "content_chars": len("PRIVATE_CONTENT_SENTINEL"),
+            "thinking_field_present": True,
+            "thinking_chars": len("PRIVATE_THINKING_SENTINEL"),
+            "done": True,
+            "done_reason": "stop",
+        })
+        serialized = json.dumps(metadata)
+        self.assertNotIn("PRIVATE_CONTENT_SENTINEL", serialized)
+        self.assertNotIn("PRIVATE_THINKING_SENTINEL", serialized)
+
     def test_stream_forwards_unchanged_and_captures_only_tool_metadata(self):
         stream_body = (
             b'{"message":{"role":"assistant","tool_calls":[{"function":{"name":"exec_command",'
             b'"arguments":{"cmd":"ARGUMENT_SENTINEL"}}}]},"done":false}\n'
-            b'{"message":{"role":"assistant","content":"RESPONSE_SENTINEL"},"done":true,'
+            b'{"message":{"role":"assistant","content":"RESPONSE_SENTINEL",'
+            b'"thinking":"THINKING_SENTINEL"},"done":true,"done_reason":"stop",'
             b'"prompt_eval_count":17,"eval_count":3}\n'
         )
         received = []
@@ -85,7 +111,12 @@ class OllamaMetadataProxyTests(unittest.TestCase):
                     })
                     self.assertEqual(record["status_code"], 200)
                     self.assertEqual(record["response"], {
+                        "content_field_present": True,
+                        "content_chars": len("RESPONSE_SENTINEL"),
+                        "thinking_field_present": True,
+                        "thinking_chars": len("THINKING_SENTINEL"),
                         "done": True,
+                        "done_reason": "stop",
                         "prompt_eval_count": 17,
                         "eval_count": 3,
                         "tool_call_count": 1,
@@ -98,6 +129,7 @@ class OllamaMetadataProxyTests(unittest.TestCase):
                         "SCHEMA_SENTINEL",
                         "ARGUMENT_SENTINEL",
                         "RESPONSE_SENTINEL",
+                        "THINKING_SENTINEL",
                     ):
                         self.assertNotIn(secret, serialized)
                 finally:
