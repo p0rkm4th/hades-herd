@@ -33,6 +33,9 @@ completed, edited the requested source, passed five independent tests, and
 returned a final response; approximate elapsed times were 8 seconds for MiMo
 9B Q4 and 97 seconds for Qwen3.8 27B Q4. This verifies the launch paths, not
 the Level A five-varied-task gate. See the [sanitized smoke result](../benchmarks/results/2026-11-08-supervised-codex-launch-smoke.md).
+The installed Fish command also passed this repeated path check from a
+disposable project directory; it preserved the saved default and is not a new
+distinct task result.
 
 The short Level A fast-profile campaign then attempted three distinct,
 baseline-reproduced launcher bugs. MiMo produced no verified fix on the

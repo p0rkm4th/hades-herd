@@ -39,5 +39,15 @@ synthetic. These two matched runs establish that both launch paths can execute
 tools, edit code, pass tests, and complete a turn; they do not establish broad
 coding reliability or count toward the five varied-task acceptance suite.
 
+## Installed Fish command check
+
+A separate path check then used the actual installed Fish `codex-herd`
+function from a disposable project directory. The fast model again edited the
+fixture, made five successful shell calls, completed the turn in about 15
+seconds, and passed all five independent tests. The generated profile selected
+the explicit model through Herd's Responses API at the saved 16K context. The
+saved default remained unchanged. This repeats the same small task and confirms
+the workstation command path; it is not another distinct acceptance task.
+
 After each run, the model was unloaded and the host GPU returned to idle. Herd
 reported 7/7 nodes online with no queued or in-flight requests.
