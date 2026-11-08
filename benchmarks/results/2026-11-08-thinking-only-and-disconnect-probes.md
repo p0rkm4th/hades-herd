@@ -26,6 +26,16 @@ PYTHONPATH=src:. uv run pytest \
 
 Result: **2 passed**.
 
+## Herd route disconnect
+
+A second route test closes a streaming client after the first Responses event.
+The pinned Herd v0.12.3 route cancels the `httpx.MockTransport` async backend
+stream and releases the request's queue slot. Result: **3/3 route cases pass**
+(two thinking-only modes plus the disconnect case). This verifies cancellation
+propagation through Herd's in-process streaming route and queue using a mocked
+backend. It does not establish whether a real Ollama server stops GPU
+generation immediately after its HTTP stream is cancelled.
+
 ## Codex behavior on completed empty output
 
 Extended the loopback mock Responses endpoint with an `empty_then_final`
@@ -64,18 +74,17 @@ and a raw loopback client that closes after response headers.
 
 Result: the proxy records the disconnect, the fake upstream observes its
 connection close, and the capture excludes the private response sentinel and
-request content. This proves cancellation behavior in the diagnostic proxy
-only. It does **not** prove that Herd v0.12.3 or Ollama cancels model generation
-when a real Codex client disconnects. It also means the earlier backend reply
-that finished after Codex's timeout cannot, by itself, be attributed to a Herd
-cancellation defect: the diagnostic proxy had been fully draining that reply.
+request content. Together, these probes show the diagnostic proxy and Herd's
+in-process route propagate client cancellation to their upstream stream
+interfaces. They do not prove that a real Ollama server stops GPU generation
+immediately. The earlier backend reply that finished after Codex's timeout
+cannot, by itself, be attributed to a Herd cancellation defect: the diagnostic
+proxy had been fully draining that reply.
 
 Focused proxy suite: **9 passed**.
 
 ## Next
 
-Run Codex CLI 0.166.0 against a deterministic mock Responses server that first
-returns a completed empty output, then compare a normal final message and a
-valid tool call. Separately inspect/test cancellation in the Herd HTTP route;
-do not infer backend cancellation from trace-proxy behavior. No adapter patch
-or production change is indicated by these probes alone.
+Next, measure whether real Ollama generation stops after Herd cancels its HTTP
+request, without using production traffic. No adapter patch or production
+change is indicated by these probes alone.

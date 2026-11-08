@@ -1,14 +1,19 @@
-"""Reproduce thinking-only Ollama chunks through the pinned Herd Responses route.
+"""Probe response shape and client cancellation in pinned Herd v0.12.3.
 
 Run in a disposable checkout of the documented Herd commit. The fake Ollama
 backend returns no assistant content and no tool call, only a private thinking
-sentinel. Assertions deliberately check that the sentinel never reaches the
-OpenAI-compatible response.
+sentinel. Assertions check that the sentinel is not exposed. A second probe
+closes the client mid-stream and checks cancellation reaches the mocked
+backend stream and releases the queue slot; real Ollama generation cancellation
+is outside this test.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
+import threading
+import time
 
 import httpx
 import pytest
@@ -19,6 +24,65 @@ from tests.test_server.test_routes import create_test_app
 
 MODEL = "qwen3-coder:30b"
 PRIVATE_THINKING = "PRIVATE THINKING SENTINEL"
+
+
+def test_client_disconnect_cancels_backend_stream(tmp_path):
+    backend_cancelled = threading.Event()
+
+    class SlowBackendStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            first_chunk = {
+                "model": MODEL,
+                "message": {"role": "assistant", "content": "working"},
+                "done": False,
+            }
+            yield (json.dumps(first_chunk) + "\n").encode()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                backend_cancelled.set()
+                raise
+
+        async def aclose(self):
+            backend_cancelled.set()
+
+    def fake_ollama(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/api/chat"
+        return httpx.Response(200, stream=SlowBackendStream(), headers={
+            "content-type": "application/x-ndjson",
+        })
+
+    app = create_test_app(tmp_path=tmp_path)
+    with TestClient(app) as client:
+        heartbeat = make_heartbeat(
+            node_id="probe",
+            loaded_models=[(MODEL, 1.0)],
+            available_models=[MODEL],
+            ollama_host="http://127.0.0.1:11434",
+        )
+        registered = client.post("/heartbeat", json=heartbeat.model_dump())
+        assert registered.status_code == 200, registered.text
+        proxy = app.state.streaming_proxy
+        node_url = app.state.registry.get_node("probe").ollama_base_url
+        proxy._clients["probe"] = httpx.AsyncClient(
+            base_url=node_url, transport=httpx.MockTransport(fake_ollama)
+        )
+        proxy._client_urls["probe"] = node_url
+
+        with client.stream(
+            "POST",
+            "/v1/responses",
+            json={"model": MODEL, "input": "continue", "stream": True},
+        ) as response:
+            assert response.status_code == 200
+            first_event = next(response.iter_bytes())
+            assert b"response.created" in first_event
+
+    assert backend_cancelled.wait(1), "Herd did not close the backend stream after client disconnect"
+    deadline = time.monotonic() + 1
+    while any(info["in_flight"] for info in app.state.queue_mgr.get_queue_info().values()):
+        assert time.monotonic() < deadline, "Herd kept the cancelled request in flight"
+        time.sleep(0.01)
 
 
 @pytest.mark.parametrize("stream", [False, True])

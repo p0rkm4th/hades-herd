@@ -61,8 +61,10 @@ and [disconnect probe report](results/2026-11-08-thinking-only-and-disconnect-pr
 cover the deterministic response-shape checks. Herd v0.12.3 returns a
 completed empty Responses output for thinking-only Ollama output, and Codex
 0.166.0 completes a blank turn without retrying when given that shape by a
-loopback mock. The trace proxy now detects downstream EOF and closes its
-upstream stream; this does not verify cancellation in Herd or Ollama.
+loopback mock. A route-level mocked test verifies that closing the Codex-side
+stream cancels the backend async stream and frees the Herd queue slot. These
+checks do not establish that Ollama stops real GPU generation immediately.
+The trace proxy also detects downstream EOF and closes its upstream stream.
 
 ### Ollama-side metadata capture
 
