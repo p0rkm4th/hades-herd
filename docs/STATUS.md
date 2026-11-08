@@ -1,10 +1,18 @@
-# Current status — 2026-11-07
+# Current status — 2026-11-08
 
 The project is public at [p0rkm4th/hades-herd](https://github.com/p0rkm4th/hades-herd).
 The initial source, tests, and sanitized evidence are on `main`; the HADES
 workstation launcher now uses this checkout as its canonical source. The live
 endpoint and digest evidence remain in local user configuration. Verification
 of the migration is recorded below.
+
+The November 7 launcher review findings are fixed on the pushed branch
+[`codex-herd/launcher-review-fixes`](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/launcher-review-fixes?expand=1)
+at `b774696`: fresh-install and explicit-model selection, configured context
+metadata, atomic per-model profiles, clean-launch integration coverage, and
+distinct trace-call counting. The 20-test Python 3.10–3.14 CI matrix passed.
+These changes are not yet in `main`; the available GitHub integration returned
+403 when asked to create a PR.
 
 ## Works
 
