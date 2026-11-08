@@ -45,6 +45,30 @@ The loopback Codex boundary probe compares a synthetic forwarded tool call with
 the proposed visible no-tool response; it is a protocol control, not a live
 Herd/model result. See
 [`results/2026-11-08-empty-tools-codex-boundary-probe.md`](results/2026-11-08-empty-tools-codex-boundary-probe.md).
+The full Herd route was then compared against fake Ollama on stock and guarded
+v0.12.3 for both streaming modes. See
+[`results/2026-11-08-herd-empty-tools-route-paired.md`](results/2026-11-08-herd-empty-tools-route-paired.md),
+the [route probe](fixtures/probe_herd_empty_tools_route.py), and the
+[unapplied patch](fixtures/patches/README.md).
+
+To reproduce the paired route test, use a disposable checkout of the pinned
+upstream Herd source and its dev environment:
+
+```sh
+git clone https://github.com/Niko1221/ollama-herd /tmp/ollama-herd-probe
+cd /tmp/ollama-herd-probe
+git checkout e0dac345515e8423e385ea2d465573a1e8b5a1bf
+uv sync --extra dev
+HERD_EMPTY_TOOLS_EXPECTED=stock PYTHONPATH=src \
+  uv run pytest /path/to/hades-herd/benchmarks/fixtures/probe_herd_empty_tools_route.py -q
+git apply /path/to/hades-herd/benchmarks/fixtures/patches/herd-v0.12.3-empty-tools-guard.patch
+HERD_EMPTY_TOOLS_EXPECTED=guard PYTHONPATH=src \
+  uv run pytest /path/to/hades-herd/benchmarks/fixtures/probe_herd_empty_tools_route.py -q
+```
+
+The fixture uses Herd's in-process test app and an `httpx.MockTransport`, so it
+does not open a port or start mDNS. Run only in the disposable checkout; the
+patch is a candidate for review, not a production deployment instruction.
 
 ## Deterministic Codex tool-router check
 

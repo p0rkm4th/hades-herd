@@ -1,0 +1,232 @@
+diff --git a/src/fleet_manager/server/responses_translator.py b/src/fleet_manager/server/responses_translator.py
+index 6aa2aeb..54d203a 100644
+--- a/src/fleet_manager/server/responses_translator.py
++++ b/src/fleet_manager/server/responses_translator.py
+@@ -599,11 +599,10 @@ def responses_to_openai_body(body: dict) -> dict:
+     if out_custom:
+         # Consumed by the route; stripped before the body reaches Ollama.
+         out["_custom_tool_names"] = sorted(out_custom)
+-    if tools:
+-        # Also consumed by the route. Needed to spot a call to a tool we never
+-        # offered — see `redirect_nested_tool_call`. The nested-tool stubs are
+-        # deliberately absent: a call to one must be redirected, not passed on.
+-        out["_known_tool_names"] = known_names
++    # Preserve the distinction between an explicitly empty offered set and an
++    # older/internal call site that does not know which tools were offered.
++    # The route consumes this field before sending the body to Ollama.
++    out["_known_tool_names"] = known_names
+     return out
+ 
+ 
+@@ -716,13 +715,12 @@ def redirect_apply_patch_call(
+         return None
+     patch = _patch_text_from_args(parsed)
+     if not patch:
+-        # Declining here means Codex gets the call verbatim and rejects it, so
+-        # say why — a silent decline is indistinguishable from the redirect not
+-        # existing, and that ambiguity cost a debugging round.
++        # Do not guess a patch envelope. The caller will validate whether this
++        # name was actually offered before translating it into a function call.
+         logger.warning(
+             f"Responses: model called 'apply_patch' with no recognisable patch "
+-            f"envelope (keys={sorted(parsed)!r}) — passing through untouched, "
+-            f"which Codex will reject. If this recurs, the shape needs handling "
++            f"envelope (keys={sorted(parsed)!r}) — leaving unchanged for "
++            f"offered-tool validation. If this recurs, the shape needs handling "
+             f"in _patch_text_from_args."
+         )
+         return None
+@@ -952,7 +950,9 @@ def build_responses_object(
+             }
+         )
+     custom_names = custom_names or set()
++    enforce_offered_tools = known_names is not None
+     known_names = known_names or set()
++    rejected_names: list[str] = []
+     for tc in tool_calls:
+         fn = tc.get("function") or {}
+         name = fn.get("name", "")
+@@ -997,6 +997,10 @@ def build_responses_object(
+                 }
+             )
+             continue
++        if enforce_offered_tools and name not in known_names:
++            logger.warning("Responses: suppressing unoffered model tool call %r", name)
++            rejected_names.append(name)
++            continue
+         output.append(
+             {
+                 "type": "function_call",
+@@ -1007,6 +1011,20 @@ def build_responses_object(
+                 "status": "completed",
+             }
+         )
++    if rejected_names:
++        output.append(
++            {
++                "type": "message",
++                "id": _new_id("msg"),
++                "role": "assistant",
++                "status": "completed",
++                "content": [{
++                    "type": "output_text",
++                    "text": "No tool was run because the model requested a tool not advertised for this turn.",
++                    "annotations": [],
++                }],
++            }
++        )
+     return {
+         "id": response_id or _new_id("resp"),
+         "object": "response",
+@@ -1105,7 +1123,7 @@ class ResponsesSSEState:
+     # completed items, for the final response.completed payload
+     emitted_tools: list[dict] = field(default_factory=list)
+     custom_names: set[str] = field(default_factory=set)
+-    known_names: set[str] = field(default_factory=set)
++    known_names: set[str] | None = None
+     input_tokens: int = 0
+     output_tokens: int = 0
+     finished: bool = False
+@@ -1253,10 +1271,11 @@ def ollama_chunk_to_responses_events(line: str, state: ResponsesSSEState) -> Ite
+             call_id = tc.get("id") or _new_id("call")
+             idx = state.next_output_index
+             state.next_output_index += 1
+-            patch_call = redirect_apply_patch_call(name, args, state.known_names)
++            offered_names = state.known_names or set()
++            patch_call = redirect_apply_patch_call(name, args, offered_names)
+             if patch_call:
+                 name, args = patch_call
+-            redirect = redirect_nested_tool_call(name, args, state.custom_names, state.known_names)
++            redirect = redirect_nested_tool_call(name, args, state.custom_names, offered_names)
+             if redirect or name in state.custom_names:
+                 # This began life as a Responses `custom` tool (or is a nested
+                 # tool of one that the model called directly). Codex expects a
+@@ -1311,6 +1330,51 @@ def ollama_chunk_to_responses_events(line: str, state: ResponsesSSEState) -> Ite
+                     },
+                 )
+                 continue
++            if state.known_names is not None and name not in state.known_names:
++                logger.warning("Responses: suppressing unoffered streamed model tool call %r", name)
++                notice = (
++                    "No tool was run because the model requested a tool not advertised for this turn."
++                )
++                if state.msg_id is None:
++                    state.msg_id = _new_id("msg")
++                    state.msg_index = state.next_output_index
++                    state.next_output_index += 1
++                    yield _ev(
++                        state,
++                        "response.output_item.added",
++                        {
++                            "output_index": state.msg_index,
++                            "item": {
++                                "type": "message",
++                                "id": state.msg_id,
++                                "role": "assistant",
++                                "status": "in_progress",
++                                "content": [],
++                            },
++                        },
++                    )
++                    yield _ev(
++                        state,
++                        "response.content_part.added",
++                        {
++                            "item_id": state.msg_id,
++                            "output_index": state.msg_index,
++                            "content_index": 0,
++                            "part": {"type": "output_text", "text": "", "annotations": []},
++                        },
++                    )
++                state.text_parts.append(notice)
++                yield _ev(
++                    state,
++                    "response.output_text.delta",
++                    {
++                        "item_id": state.msg_id,
++                        "output_index": state.msg_index,
++                        "content_index": 0,
++                        "delta": notice,
++                    },
++                )
++                continue
+             item = {
+                 "type": "function_call",
+                 "id": item_id,
+diff --git a/tests/test_server/test_responses_translator.py b/tests/test_server/test_responses_translator.py
+index 2186513..bcc40fe 100644
+--- a/tests/test_server/test_responses_translator.py
++++ b/tests/test_server/test_responses_translator.py
+@@ -654,19 +654,50 @@ def test_offered_tools_are_never_redirected():
+ 
+ 
+ def test_unknown_offered_set_never_redirects():
+-    """Empty known_names means 'we don't know what was offered' — not 'nothing
+-    was offered'. Never redirect on absence of information."""
++    """None means the route caller has no offered-tool metadata."""
+     from fleet_manager.server.responses_translator import build_responses_object
+ 
+     obj = build_responses_object(
+         model="m", text="",
+         tool_calls=[{"function": {"name": "whatever", "arguments": {}}}],
+-        custom_names={"exec"}, known_names=set(),
++        custom_names={"exec"}, known_names=None,
+         input_tokens=1, output_tokens=1,
+     )
+     assert obj["output"][0]["type"] == "function_call"
+ 
+ 
++def test_explicit_empty_offered_set_suppresses_nonstream_tool_call():
++    from fleet_manager.server.responses_translator import build_responses_object
++
++    req = responses_to_openai_body({"model": "m", "input": "go", "tools": []})
++    assert "tools" not in req
++    assert req["_known_tool_names"] == []
++    obj = build_responses_object(
++        model="m", text="",
++        tool_calls=[{"function": {"name": "exec_command", "arguments": {"cmd": "true"}}}],
++        known_names=set(req["_known_tool_names"]), input_tokens=1, output_tokens=1,
++    )
++    assert not any(item["type"] == "function_call" for item in obj["output"])
++    assert "No tool was run" in obj["output"][0]["content"][0]["text"]
++
++
++def test_explicit_empty_offered_set_suppresses_stream_tool_call():
++    state = ResponsesSSEState(model="m", known_names=set())
++    chunk = json.dumps({"message": {"tool_calls": [
++        {"function": {"name": "exec_command", "arguments": {"cmd": "true"}}}
++    ]}, "done": True, "done_reason": "stop"})
++    events = [
++        json.loads(frame.split("data: ", 1)[1])
++        for frame in ollama_chunk_to_responses_events(chunk, state)
++    ]
++    assert not any(event.get("item", {}).get("type") == "function_call" for event in events)
++    assert any(
++        event["type"] == "response.output_text.delta" and "No tool was run" in event["delta"]
++        for event in events
++    )
++    assert events[-1]["type"] == "response.completed"
++
++
+ def test_default_functions_namespace_is_exposed_as_top_level_tools():
+     """codex-cli 0.164 sends no top-level tools: `exec` and friends sit inside a
+     `functions` namespace, Codex's default. Treating it as sandbox-only left the
+@@ -744,7 +775,7 @@ def test_apply_patch_is_left_alone_when_it_really_is_a_tool():
+ 
+ 
+ def test_apply_patch_without_a_recognisable_patch_is_not_rewritten():
+-    """Don't guess. No patch envelope means we don't know what this is."""
++    """Don't guess a patch shape or emit an unoffered tool to Codex."""
+     from fleet_manager.server.responses_translator import build_responses_object
+ 
+     obj = build_responses_object(
+@@ -753,7 +784,8 @@ def test_apply_patch_without_a_recognisable_patch_is_not_rewritten():
+         custom_names=set(), known_names={"exec_command"},
+         input_tokens=1, output_tokens=1,
+     )
+-    assert obj["output"][0]["name"] == "apply_patch"
++    assert not any(item["type"] == "function_call" for item in obj["output"])
++    assert "No tool was run" in obj["output"][0]["content"][0]["text"]
+ 
+ 
+ # ---------------------------------------------------------------------------

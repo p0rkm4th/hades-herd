@@ -1,0 +1,2 @@
+# Preserve exact v0.12.3 context in this review-only patch artifact.
+benchmarks/fixtures/patches/herd-v0.12.3-empty-tools-guard.patch whitespace=-trailing-space

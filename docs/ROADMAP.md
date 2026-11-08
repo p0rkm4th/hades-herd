@@ -56,11 +56,16 @@
    visible message executes no command. Codex's own requests still contained
    nine tools, so the control does not recreate the historical incoming empty
    tool list. A shell-tool-disabled attempt timed out before sending a request.
-   Next, reproduce explicit-empty handling through the complete isolated Herd
-   Responses route and fake Ollama backend, then compare stock and guarded
-   translation. Keep the guard unpromoted and production behavior unchanged
-   until the relevant route is verified. See the
-   [Codex boundary probe](../benchmarks/results/2026-11-08-empty-tools-codex-boundary-probe.md).
+   The complete in-process Herd route was then compared against a fake Ollama
+   backend on stock and guarded v0.12.3 for streaming and non-streaming
+   requests. Stock returned a synthetic `function_call` although Ollama
+   received no tools; the guard returned visible text and no call. All four
+   paired cases returned 200. This confirms the route mismatch, not its effect
+   on a real coding task. The patch, notice, and reusable probe are published;
+   it remains unapplied. Next, compare stock and guarded adapter behavior on
+   the same bounded failing task and one fresh held-out task before promoting
+   any change. See the
+   [paired route report](../benchmarks/results/2026-11-08-herd-empty-tools-route-paired.md).
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
    The two `read_file` rejections came from the 15:50 untraced HTTPie #1958

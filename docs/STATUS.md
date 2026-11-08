@@ -85,6 +85,16 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   historical incoming `tools: []` request or validate a live Herd guard.
   Details and reproduction:
   [boundary probe](../benchmarks/results/2026-11-08-empty-tools-codex-boundary-probe.md).
+- The explicit-empty mismatch was then reproduced through the complete
+  in-process Herd `/v1/responses` route, queue, streaming proxy, and fake Ollama
+  `/api/chat` transport on unmodified v0.12.3. In both streaming modes, stock
+  Herd passed through a synthetic `exec_command` despite sending no tools to
+  Ollama; the guard patch returned a visible message and no function call.
+  All four paired route cases returned HTTP 200. This confirms the adapter
+  mismatch and guard behavior, but does not show that it caused the historical
+  agent task failure. The patch is public for review and remains unapplied.
+  See the [paired report](../benchmarks/results/2026-11-08-herd-empty-tools-route-paired.md)
+  and [patch notes](../benchmarks/fixtures/patches/README.md).
 
 ## Decision and review handoff
 
@@ -101,11 +111,11 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: reproduce the explicit-empty request through a complete isolated Herd
-Responses route and fake Ollama backend, then compare stock and guarded
-translation without mDNS or LAN exposure. The Codex boundary probe above does
-not establish that empty-tool requests cause the historical behavior. Do not
-promote the adapter guard or change production behavior until that path is
-verified. Do not rerun retired HTTPie fixtures without a materially new
-hypothesis. Full sanitized results and failed attempts are in
+Next: run the same bounded failing coding task through a disposable guarded
+adapter and an equivalent stock control, followed by one fresh held-out task.
+Keep the adapter isolated and preserve equal model digest, context, task and
+timeout. This protocol correction is now verified at the route boundary, but
+its effect on real agent completion remains untested. Do not deploy it or
+change production behavior based on synthetic output alone. Full sanitized
+results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).
