@@ -34,8 +34,10 @@ or model default was changed by this migration.
 ## Reviewed launcher active on workstation — 2026-11-08
 
 The canonical checkout is now on public branch
-`codex-herd/launcher-review-fixes` at `56e6ba8` after its 22-test suite passed
-and its Python 3.10–3.14 CI matrix succeeded. This branch provides isolated
+`codex-herd/launcher-review-fixes` at `ca85016` after its 22-test suite passed
+and its Python 3.10–3.14 CI matrix succeeded in
+[run 42456661632](https://github.com/p0rkm4th/hades-herd/actions/runs/42456661632).
+The latest commit updates the supervised fast/deep operator instructions. This branch provides isolated
 per-model Codex profiles. The installed Fish command was rechecked against the
 live catalog; MiMo and Qwen report their saved 16K Codex context, and an
 explicit Qwen `--help` launch reached Codex without starting inference. The
