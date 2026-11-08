@@ -31,8 +31,10 @@ of the migration is recorded below.
 - Added a clean-home subprocess test using a mock Herd API and fake Codex binary.
   It checks implicit/explicit selection, 16K context metadata, argument
   forwarding, and Codex exit status. Trace collection now preserves same-name
-  tool-call counts/order while omitting IDs and arguments. The 24-test suite
-  passed locally; see the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
+  tool-call counts/order while omitting IDs and arguments. The 23-test suite
+  passed locally and across Python 3.10–3.14 in
+  [GitHub Actions run 42443450209](https://github.com/p0rkm4th/hades-herd/actions/runs/42443450209).
+  See the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
 
 ## Not yet dependable
 

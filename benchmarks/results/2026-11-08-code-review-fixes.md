@@ -13,9 +13,9 @@ unit/subprocess tests only; no private Herd request or model inference was used.
 | Generated profile was written in place and contained per-model developer instructions | Replace generated TOML atomically; pass selected model's instructions as that Codex invocation's explicit config override, avoiding shared-profile cross-talk between launches. | Simulated replace failure preserves the previous profile; two model configs resolve to their own instructions. |
 
 Local verification on Python 3.14: `python3 -m unittest discover -s tests -v`
-passed all 24 tests; `git diff --check` passed. The identical implementation
+passed all 23 tests; `git diff --check` passed. The focused `main`-based branch
 passed the Python 3.10–3.14 matrix in
-[GitHub Actions run 42443277665](https://github.com/p0rkm4th/hades-herd/actions/runs/42443277665).
+[GitHub Actions run 42443450209](https://github.com/p0rkm4th/hades-herd/actions/runs/42443450209).
 
 These fixes address launcher and measurement defects only. They do not
 demonstrate real model autonomy, resolve the observed empty-tool-list trace,

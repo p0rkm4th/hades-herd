@@ -7,8 +7,8 @@
 The clean-install model-selection bug, unloaded configured-context fallback,
 missing complete-launch smoke test, same-name trace-call deduplication, and
 non-atomic profile write findings were addressed on a focused branch. Local
-unit and isolated subprocess tests pass. GitHub CI passed for the published
-implementation; independent review is pending. These fixes improve launcher
+unit and isolated subprocess tests pass, and the Python 3.10–3.14 GitHub CI
+matrix passed. Independent review is pending. These fixes improve launcher
 correctness and diagnostic fidelity; they do not explain the live empty-tool-list requests or model inspection loops. See
 the [review-fix evidence](../benchmarks/results/2026-11-08-code-review-fixes.md).
 
