@@ -12,10 +12,12 @@ at `b774696`: fresh-install and explicit-model selection, configured context
 metadata, atomic per-model profiles, clean-launch integration coverage, and
 distinct trace-call counting. The 20-test Python 3.10–3.14 CI matrix passed.
 A synchronized two-model profile-generation test now passes locally as well;
-the full local suite is 21 tests. The latest test and sanitized result are in
-the [concurrency check](../benchmarks/results/2026-11-08-concurrent-profile-generation.md).
+the full local suite is 21 tests, and GitHub Actions passed the Python
+3.10–3.14 matrix in
+[run 42452190590](https://github.com/p0rkm4th/hades-herd/actions/runs/42452190590).
+The latest test and sanitized result are in the [concurrency check](../benchmarks/results/2026-11-08-concurrent-profile-generation.md).
 These changes are not yet in `main`; the available GitHub integration returned
-403 when asked to create a PR. CI for the added test is pending.
+403 when asked to create a PR.
 
 ## Works
 
