@@ -7,12 +7,20 @@ from typing import Any
 _MAX_DEPTH = 5
 _MAX_PROPERTIES = 128
 _MAX_TOOLS = 256
+_MAX_SCHEMA_NODES = 2048
 
 
-def schema_shape(schema: Any, depth: int = 0) -> dict[str, Any] | None:
+def schema_shape(
+    schema: Any, depth: int = 0, _budget: list[int] | None = None
+) -> dict[str, Any] | None:
     """Keep structural keys/types only; discard descriptions, values, and constraints."""
     if not isinstance(schema, dict):
         return None
+    if _budget is None:
+        _budget = [_MAX_SCHEMA_NODES]
+    if _budget[0] <= 0:
+        return {"truncated": True}
+    _budget[0] -= 1
     shape: dict[str, Any] = {}
     schema_type = schema.get("type")
     if isinstance(schema_type, str):
@@ -28,32 +36,52 @@ def schema_shape(schema: Any, depth: int = 0) -> dict[str, Any] | None:
             shape["properties"] = shown
             shape["truncated"] = bool(len(keys) > len(shown) or keys)
         else:
-            shape["properties"] = {
-                key: schema_shape(properties[key], depth + 1) for key in shown
-            }
+            property_shapes = {}
+            for key in shown:
+                if _budget[0] <= 0:
+                    shape["truncated"] = True
+                    break
+                property_shapes[key] = schema_shape(properties[key], depth + 1, _budget)
+            shape["properties"] = property_shapes
             if len(keys) > len(shown):
                 shape["truncated"] = True
     items = schema.get("items")
     if isinstance(items, dict):
-        shape["items"] = schema_shape(items, depth + 1) if depth < _MAX_DEPTH else {"truncated": True}
+        shape["items"] = (
+            schema_shape(items, depth + 1, _budget)
+            if depth < _MAX_DEPTH else {"truncated": True}
+        )
     additional = schema.get("additionalProperties")
     if isinstance(additional, bool):
         shape["additional_properties"] = additional
     elif isinstance(additional, dict):
         shape["additional_properties"] = (
-            schema_shape(additional, depth + 1) if depth < _MAX_DEPTH else {"truncated": True}
+            schema_shape(additional, depth + 1, _budget)
+            if depth < _MAX_DEPTH else {"truncated": True}
         )
     return shape
 
 
 def tool_schema_metadata(
-    tools: Any, source: str | None = None, depth: int = 0
+    tools: Any,
+    source: str | None = None,
+    depth: int = 0,
+    _tool_budget: list[int] | None = None,
+    _schema_budget: list[int] | None = None,
 ) -> list[dict[str, Any]]:
     """Summarize tool schemas from either Responses or Ollama chat request shape."""
     if not isinstance(tools, list):
         return []
+    if _tool_budget is None:
+        _tool_budget = [_MAX_TOOLS]
+    if _schema_budget is None:
+        _schema_budget = [_MAX_SCHEMA_NODES]
     summaries = []
-    for tool in tools[:_MAX_TOOLS]:
+    for tool in tools:
+        if _tool_budget[0] <= 0:
+            summaries.append({"truncated": True})
+            break
+        _tool_budget[0] -= 1
         if not isinstance(tool, dict):
             continue
         function = tool.get("function")
@@ -66,7 +94,7 @@ def tool_schema_metadata(
         if isinstance(name, str):
             record["name"] = name
         parameters = function.get("parameters")
-        parameter_shape = schema_shape(parameters)
+        parameter_shape = schema_shape(parameters, _budget=_schema_budget)
         if parameter_shape is not None:
             record["parameters"] = parameter_shape
         nested = tool.get("tools")
@@ -75,10 +103,13 @@ def tool_schema_metadata(
                 record["nested_tools"] = []
                 record["nested_tools_truncated"] = True
             else:
-                record["nested_tools"] = tool_schema_metadata(nested, depth=depth + 1)
+                record["nested_tools"] = tool_schema_metadata(
+                    nested,
+                    depth=depth + 1,
+                    _tool_budget=_tool_budget,
+                    _schema_budget=_schema_budget,
+                )
         if source is not None:
             record["source"] = source
         summaries.append(record)
-    if len(tools) > _MAX_TOOLS:
-        summaries.append({"truncated": True})
     return summaries

@@ -234,6 +234,22 @@ summaries from a paired run to see translation differences without retaining
 either complete schema. Its remote upstream must be a loopback address, so use
 an SSH tunnel when the Ollama server is remote.
 
+For a no-model check of the pinned adapter itself,
+`fixtures/probe_herd_tool_schema_route.py` exercises the Responses route with
+the upstream test app and a fake Ollama transport. It compares the function
+schema shape received by Ollama with the one sent to Herd. Run it from a clean
+Ollama Herd v0.12.3 checkout, with the `hades-herd` fixture directory on
+`PYTHONPATH`:
+
+```sh
+PYTHONPATH="src:.:/path/to/hades-herd/benchmarks/fixtures" uv run --no-sync pytest \
+  /path/to/hades-herd/benchmarks/fixtures/probe_herd_tool_schema_route.py -q
+```
+
+The probe uses `TestClient` and `httpx.MockTransport`; it opens no listener,
+does not contact a node, and does not start inference. It verifies the tested
+schema shape only, not every possible tool definition or model behavior.
+
 Run it with the private upstream URL supplied only in the local environment:
 
 ```sh

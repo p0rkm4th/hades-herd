@@ -33,7 +33,9 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   values, arguments, and prompts. Offline tests cover normalization, privacy,
   loopback forwarding, and size limits. No live request has yet been compared
   at both boundaries; the instrumentation does not itself prove a translation
-  defect.
+  defect. The current offline client suite passes 43 tests. Against clean
+  pinned Herd v0.12.3 source, the in-process route probe passed 1/1 with fake
+  Ollama and showed the tested non-empty function schema shape was preserved.
 
 ## What remains unreliable
 

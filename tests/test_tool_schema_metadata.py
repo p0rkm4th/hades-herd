@@ -85,6 +85,56 @@ class ToolSchemaMetadataTests(unittest.TestCase):
         self.assertEqual(len(oversized), 257)
         self.assertEqual(oversized[-1], {"truncated": True})
 
+        def tool_tree(level):
+            return {
+                "name": f"node_{level}",
+                "type": "namespace",
+                "tools": [tool_tree(level + 1) for _ in range(6)] if level < 5 else [],
+            }
+
+        nested_result = tool_schema_metadata([tool_tree(0)])
+
+        def count_tools(records):
+            return sum(
+                1 + count_tools(record.get("nested_tools", []))
+                for record in records if isinstance(record, dict) and "name" in record
+            )
+
+        def has_truncation(records):
+            return any(
+                record.get("nested_tools_truncated")
+                or record.get("truncated")
+                or has_truncation(record.get("nested_tools", []))
+                for record in records if isinstance(record, dict)
+            )
+
+        self.assertLessEqual(count_tools(nested_result), 256)
+        self.assertTrue(has_truncation(nested_result))
+
+    def test_branching_schema_uses_one_global_node_budget(self):
+        def schema_tree(level):
+            if level == 6:
+                return {"type": "string"}
+            return {
+                "type": "object",
+                "properties": {f"field_{index}": schema_tree(level + 1) for index in range(5)},
+            }
+
+        result = schema_shape(schema_tree(0))
+
+        def count_nodes(shape):
+            if not isinstance(shape, dict):
+                return 0
+            count = 1
+            properties = shape.get("properties")
+            if isinstance(properties, dict):
+                count += sum(count_nodes(child) for child in properties.values())
+            for key in ("items", "additional_properties"):
+                count += count_nodes(shape.get(key))
+            return count
+
+        self.assertLessEqual(count_nodes(result), 2048)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
