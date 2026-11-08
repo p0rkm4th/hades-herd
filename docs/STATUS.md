@@ -15,7 +15,7 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   precedence, unloaded context reporting, atomic profile generation, and
   repeated same-name trace counts. It adds a fake-Herd/fake-Codex launch test.
 - The November 7 source-review fixes and trace-correlator unit tests are covered
-  by 32 passing local tests. GitHub Actions passed the Python 3.10–3.14 matrix
+  by 35 passing local tests. GitHub Actions passed the Python 3.10–3.14 matrix
   on code head `40261832` in
   [run 42435659539](https://github.com/p0rkm4th/hades-herd/actions/runs/42435659539).
 - A bounded Codex/Herd smoke exercised LF/CRLF trace framing. The initial
@@ -77,6 +77,12 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   no autonomy improvement is established. Keep the patch unapplied.
   See the [prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md)
   and [live attempt](../benchmarks/results/2026-11-08-guarded-httpie-1958-live-task.md).
+- A new loopback-only Ollama metadata proxy forwards payload bytes unchanged
+  and records only model/tool names and counts, token counters, response status, and timing.
+  Its offline tests verify streamed forwarding, missing-versus-empty tool
+  metadata, and exclusion of prompt/schema/argument/content sentinels. It has
+  not yet been used in another model task. See
+  [benchmark instructions](../benchmarks/README.md#ollama-side-metadata-capture).
 - A loopback Codex boundary probe ran the installed CLI 0.166.0 against a
   synthetic endpoint. When the mock returned `exec_command` despite a simulated
   zero-tool backend offer, Codex executed it; when the mock returned visible
@@ -111,9 +117,7 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: replace the current loopback task app with a test harness that records
-Ollama-side tool-offer/call counts without content, then use a distinct held-out
-engineering task only after the harness can independently prove guard
-activation. Do not repeat HTTPie #1958 or deploy the guard based on this
+Next: use the content-free Ollama observer with one distinct held-out
+engineering task. Do not repeat HTTPie #1958 or deploy the guard based on this
 incomplete attempt. Full sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).

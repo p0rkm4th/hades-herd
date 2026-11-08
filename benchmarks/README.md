@@ -56,6 +56,33 @@ failing HTTPie #1958 task. It timed out and its independent tests failed, so it
 is not a model pass or evidence that the guard improves autonomy. See the
 [sanitized live attempt](results/2026-11-08-guarded-httpie-1958-live-task.md).
 
+### Ollama-side metadata capture
+
+`fixtures/trace_ollama_chat.py` is a loopback-only forward proxy for an isolated
+Herd test node. Point that test node's `ollama_host` at the printed proxy
+address and set `--upstream` to the node's direct Ollama endpoint (or a local
+SSH tunnel). It forwards request and response payload bytes without recording
+them. It asks Ollama for an uncompressed response so streamed JSONL metadata
+can be observed; it does not alter the JSON request body.
+For `/api/chat`, the mode-0600 JSONL capture contains only model name, stream
+mode, tool-field presence/count/names, message count, response tool-call
+count/names, completion/token counters, status, and monotonic timings. It
+never records prompts, tool schemas, arguments, message content, or headers.
+The proxy binds to `127.0.0.1` only and refuses to overwrite an existing
+capture file.
+
+```sh
+python3 benchmarks/fixtures/trace_ollama_chat.py \
+  --upstream http://127.0.0.1:21434 --port 0 \
+  --capture /tmp/ollama-chat-metadata.jsonl
+```
+
+The chosen port is printed at startup. Use the proxy only in the disposable
+test app, never by changing a production Herd node. Offline tests verify that
+streamed bodies are forwarded unchanged, explicit `tools: []` stays distinct
+from an omitted `tools` field, and prompt/schema/argument/content sentinels do
+not enter the capture.
+
 To reproduce the paired route test, use a disposable checkout of the pinned
 upstream Herd source and its dev environment:
 

@@ -43,9 +43,11 @@
    the historical stalled trace: all 14 empty-tool requests included prior
    call/results but used at most 5,451 input tokens; the control retained tools
    with 15 prior calls and 13,613 tokens. This argues against context exhaustion
-   or tool history alone. Before another agent task, add metadata-only capture
-   at the Ollama boundary so guard activation is independently observable.
-   Do not repeat HTTPie #1958 or change production behavior.
+   or tool history alone. A loopback Ollama metadata proxy now records
+   content-free tool-offer/call counts and has offline streaming/privacy tests.
+   Use it with one distinct held-out task to observe whether the guard filtered
+   an actual Ollama call. Do not repeat HTTPie #1958 or change production
+   behavior.
    A timestamped trace correlator now joins non-overlapping Responses
    completion/request windows to Codex command-event counts while explicitly
    leaving concurrent intervals unassigned. The fresh HTTPie #1978 diagnostic
