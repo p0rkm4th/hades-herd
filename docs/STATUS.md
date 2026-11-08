@@ -69,12 +69,14 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   offered-tool metadata and suppresses unadvertised calls in streamed and
   non-streamed results. Its translator tests pass 61/61; two mocked-Ollama
   route cases and the full upstream suite pass (1,992 passed, 5 skipped, 3
-  existing queue-manager warnings). No live coding task has tested the patch.
-  A brief isolated-router startup showed that v0.12.3 still advertises over
-  mDNS when bound to loopback; it was stopped before inference. Live validation
-  needs discovery disabled or network isolation.
-  Details:
-  [guard prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
+  existing queue-manager warnings). A live guarded attempt on HTTPie #1958
+  timed out at 180 seconds without a final Codex turn; its independent tests
+  had 4 failures. Three empty-tool requests returned message-only Responses,
+  but the metadata trace cannot prove whether the guard synthesized them.
+  The stock and guarded runs both failed and had different request mixes, so
+  no autonomy improvement is established. Keep the patch unapplied.
+  See the [prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md)
+  and [live attempt](../benchmarks/results/2026-11-08-guarded-httpie-1958-live-task.md).
 - A loopback Codex boundary probe ran the installed CLI 0.166.0 against a
   synthetic endpoint. When the mock returned `exec_command` despite a simulated
   zero-tool backend offer, Codex executed it; when the mock returned visible
@@ -109,11 +111,9 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: run the same bounded failing coding task through a disposable guarded
-adapter and an equivalent stock control, followed by one fresh held-out task.
-Keep the adapter isolated and preserve equal model digest, context, task and
-timeout. This protocol correction is now verified at the route boundary, but
-its effect on real agent completion remains untested. Do not deploy it or
-change production behavior based on synthetic output alone. Full sanitized
-results and failed attempts are in
+Next: replace the current loopback task app with a test harness that records
+Ollama-side tool-offer/call counts without content, then use a distinct held-out
+engineering task only after the harness can independently prove guard
+activation. Do not repeat HTTPie #1958 or deploy the guard based on this
+incomplete attempt. Full sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).

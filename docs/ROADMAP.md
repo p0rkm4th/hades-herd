@@ -28,8 +28,13 @@
    tool-less requests, but the live Ollama boundary was not captured. Evidence
    and limits: [source-level reproduction](../benchmarks/results/2026-11-08-herd-empty-tools-translator-repro.md).
    A disposable guard prototype passes 61 translator tests, two mocked-Ollama
-   route cases, and the full upstream suite (1,992 passed, 5 skipped). No live
-   task has exercised it. See the [prototype record](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
+   route cases, and the full upstream suite (1,992 passed, 5 skipped). Its
+   bounded live attempt on HTTPie #1958 timed out and independent tests found
+   four failures. The metadata trace saw three empty-tool requests with
+   message-only responses but cannot confirm guard activation. Stock and
+   guarded task attempts both failed with different request mixes, so no
+   autonomy benefit is established. See the [prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md)
+   and [live attempt](../benchmarks/results/2026-11-08-guarded-httpie-1958-live-task.md).
    A fresh stock-adapter protocol control completed a synthetic bug-fix task in
    81.7 seconds: 16 Responses requests all advertised the same 13-name tool
    catalog. This did not reproduce the historical empty-tool request, so the
@@ -38,8 +43,9 @@
    the historical stalled trace: all 14 empty-tool requests included prior
    call/results but used at most 5,451 input tokens; the control retained tools
    with 15 prior calls and 13,613 tokens. This argues against context exhaustion
-   or tool history alone. Keep the guard isolated until a relevant live case
-   reproduces the request state. Do not change production behavior.
+   or tool history alone. Before another agent task, add metadata-only capture
+   at the Ollama boundary so guard activation is independently observable.
+   Do not repeat HTTPie #1958 or change production behavior.
    A timestamped trace correlator now joins non-overlapping Responses
    completion/request windows to Codex command-event counts while explicitly
    leaving concurrent intervals unassigned. The fresh HTTPie #1978 diagnostic
@@ -62,9 +68,11 @@
    received no tools; the guard returned visible text and no call. All four
    paired cases returned 200. This confirms the route mismatch, not its effect
    on a real coding task. The patch, notice, and reusable probe are published;
-   it remains unapplied. Next, compare stock and guarded adapter behavior on
-   the same bounded failing task and one fresh held-out task before promoting
-   any change. See the
+   it remains unapplied. The same bounded failing HTTPie #1958 task has now
+   been tried once through the guard: it timed out and its tests failed. Do not
+   repeat that fixture. Before choosing a held-out task, add metadata-only
+   capture of Ollama-side tool offers and returned tool-call counts so a live
+   guard activation is observable. See the
    [paired route report](../benchmarks/results/2026-11-08-herd-empty-tools-route-paired.md).
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.

@@ -51,6 +51,11 @@ v0.12.3 for both streaming modes. See
 the [route probe](fixtures/probe_herd_empty_tools_route.py), and the
 [unapplied patch](fixtures/patches/README.md).
 
+A bounded real Codex run then exercised the guarded route on the previously
+failing HTTPie #1958 task. It timed out and its independent tests failed, so it
+is not a model pass or evidence that the guard improves autonomy. See the
+[sanitized live attempt](results/2026-11-08-guarded-httpie-1958-live-task.md).
+
 To reproduce the paired route test, use a disposable checkout of the pinned
 upstream Herd source and its dev environment:
 
