@@ -11,6 +11,13 @@ client checkout instead of its disposable fixture. The captured metadata did
 not resolve the late unmatched tool call. The capture helper now accepts an
 explicit child `--cwd`; see the [trial report](../benchmarks/results/2026-11-08-ordered-tool-offer-trial-invalid-cwd.md).
 
+A distinct follow-up using the corrected working directory completed a small
+bug-fix task in 16.4 seconds; independent tests passed 7/7. Six Responses calls
+were fully correlated with Ollama, and all five returned tool calls were
+advertised `exec_command` calls with results carried into later requests. This
+single synthetic task does not qualify a model or explain the earlier
+unmatched `read`. See the [sanitized correlation report](../benchmarks/results/2026-11-08-corrected-cwd-tool-correlation.md).
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
