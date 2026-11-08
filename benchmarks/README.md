@@ -58,10 +58,11 @@ is not a model pass or evidence that the guard improves autonomy. See the
 
 The [thinking-only route probe](fixtures/probe_herd_thinking_only_route.py)
 and [disconnect probe report](results/2026-11-08-thinking-only-and-disconnect-probes.md)
-cover the next deterministic response-shape checks. Herd v0.12.3 returns a
-completed empty Responses output for thinking-only Ollama output. The trace
-proxy now detects downstream EOF and closes its upstream stream; this does not
-verify cancellation in Herd or Ollama.
+cover the deterministic response-shape checks. Herd v0.12.3 returns a
+completed empty Responses output for thinking-only Ollama output, and Codex
+0.166.0 completes a blank turn without retrying when given that shape by a
+loopback mock. The trace proxy now detects downstream EOF and closes its
+upstream stream; this does not verify cancellation in Herd or Ollama.
 
 ### Ollama-side metadata capture
 

@@ -77,7 +77,12 @@ class Handler(BaseHTTPRequestHandler):
         })
         self.server.capture_path.write_text(json.dumps(self.server.capture, indent=2) + "\n")
         now = int(time.time()); rid = f"resp_{Handler.calls}"
-        if Handler.calls == 1:
+        if self.server.scenario == "empty_then_final" and Handler.calls == 1:
+            output = []
+            events = [
+                self.event("response.created", 0, response={"id": rid, "object": "response", "status": "in_progress", "created_at": now, "model": MODEL, "output": []}),
+            ]
+        elif Handler.calls == 1:
             args = '{"path":"README.md"}'
             item = {"id": "fc_1", "type": "function_call", "status": "completed",
                 "call_id": "call_1", "name": "read_file", "arguments": args}
@@ -111,9 +116,11 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--capture", type=Path, default=Path("/tmp/codex-tool-router-capture.json"))
+    p.add_argument("--scenario", choices=("unsupported_tool", "empty_then_final"), default="unsupported_tool")
     args = p.parse_args()
     server = HTTPServer(("127.0.0.1", args.port), Handler)
     server.capture_path = args.capture; server.capture = {"requests": []}
+    server.scenario = args.scenario
     print(f"Loopback mock Herd: http://127.0.0.1:{server.server_port}", flush=True)
     print(f"Sanitized request summary: {server.capture_path}", flush=True)
     try: server.serve_forever()

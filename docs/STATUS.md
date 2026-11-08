@@ -137,8 +137,11 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   200 with a completed Responses object and `output: []` in both stream modes;
   the thinking text is not exposed. A local trace-proxy test also confirms
   downstream EOF now closes its upstream stream and records a content-free
-  disconnect summary. This is diagnostic-proxy evidence only; Codex's handling
-  of the empty result and real Herd/Ollama cancellation remain unverified.
+  disconnect summary. Codex CLI 0.166.0 treats that completed empty output as
+  a successful blank turn (zero usage and no follow-up request) against a
+  deterministic loopback mock. This makes the response shape a plausible blank
+  turn mechanism; the earlier live 231-token response was not captured well
+  enough to connect it. Real Herd/Ollama cancellation remains unverified.
   Details: [thinking-only and disconnect probes](../benchmarks/results/2026-11-08-thinking-only-and-disconnect-probes.md).
 - The expanded offline public-repository test suite now passes **37 tests**;
   the pinned upstream Herd thinking-only route probe separately passes **2/2**.
@@ -158,8 +161,7 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: run Codex against a deterministic completed-empty-output response, then
-test tool-result continuity and final-turn handling. Separately verify
+Next: test tool-result continuity and final-turn handling. Separately verify
 cancellation in Herd's actual route; the trace-proxy result is not evidence of
 backend cancellation. Do not repeat HTTPie #1958, rerun #1965 without a new
 hypothesis, or deploy the guard based on these incomplete tasks. Full sanitized results and failed attempts are in

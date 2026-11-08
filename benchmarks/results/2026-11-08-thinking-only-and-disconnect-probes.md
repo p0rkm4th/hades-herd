@@ -26,6 +26,34 @@ PYTHONPATH=src:. uv run pytest \
 
 Result: **2 passed**.
 
+## Codex behavior on completed empty output
+
+Extended the loopback mock Responses endpoint with an `empty_then_final`
+scenario. Codex CLI **0.166.0** was launched through `codex-herd` in a fresh
+temporary HOME/CODEX_HOME against that endpoint, with no hosted endpoint in the
+profile. The first and only Responses request returned `response.completed`
+with `output: []`.
+
+Codex exited **0** and emitted `thread.started`, `turn.started`, and
+`turn.completed` with zero input/output/reasoning tokens. It made no second
+request and produced no assistant message. The mock's sanitized capture
+contains one request and tool names only. This demonstrates that a completed
+empty result is treated as a successful but blank Codex turn. In combination
+with Herd's thinking-only route behavior, this is a plausible path to a blank
+turn. It does not prove that the earlier live 231-token response had this
+shape; that attempt's content/thinking shape was not captured.
+
+Reproduction: start the mock with `--scenario empty_then_final`, set
+`CODEX_HERD_URL` to its loopback URL, then run:
+
+```sh
+codex-herd mock-codex:latest exec --ephemeral --sandbox read-only \
+  --skip-git-repo-check --json 'Return a short diagnostic.'
+```
+
+Use a fresh temporary HOME/CODEX_HOME as in the local trial, and inspect only
+the sanitized mock summary plus Codex JSONL events.
+
 ## Codex trace proxy disconnect
 
 The trace proxy previously continued draining an upstream SSE response after
