@@ -325,10 +325,14 @@ class TraceProxyTests(unittest.TestCase):
                 client.close()
 
                 deadline = time.monotonic() + 2
-                while not Path(capture_path).exists() and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertTrue(Path(capture_path).exists(), "proxy did not record the interrupted stream")
-                capture = json.loads(Path(capture_path).read_text())
+                capture = None
+                while time.monotonic() < deadline:
+                    try:
+                        capture = json.loads(Path(capture_path).read_text())
+                        break
+                    except (OSError, json.JSONDecodeError):
+                        time.sleep(0.01)
+                self.assertIsNotNone(capture, "proxy did not write a complete interrupted-stream summary")
                 self.assertEqual(len(capture["requests"]), 1)
                 summary = capture["requests"][0]
                 self.assertTrue(summary["client_disconnected"])
