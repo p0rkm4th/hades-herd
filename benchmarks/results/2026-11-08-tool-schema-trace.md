@@ -49,7 +49,10 @@ bounded live synthetic task later observed 10 non-empty offers at each
 boundary. The seven matching Ollama functions had identical captured parameter
 structure to the shared Codex definitions; the adapter did not pass through
 five Codex-only multi-agent functions. See the
-[live diagnostic](2026-11-08-live-schema-diagnostic.md). Its Codex response
-observer hit an `AttributeError` during completed-stream closure, so it cannot
-establish how Codex handled the one Ollama `read` call. The observer fix has
-offline regression coverage but still needs a live recheck.
+[live diagnostic](2026-11-08-live-schema-diagnostic.md). The first run's Codex
+response observer hit an `AttributeError` during completed-stream closure, so
+it cannot establish how Codex handled the one Ollama `read` call. After an
+offline regression test and proxy fix, a fresh live recheck captured six
+complete response streams and five successful tool-result continuations. That
+recheck did not emit an unadvertised call; the two runs do not explain the
+difference.

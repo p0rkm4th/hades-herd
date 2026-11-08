@@ -21,8 +21,10 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   one unadvertised `read` call before the task completed; the Codex response
   trace missed response metadata due to an observer race. See the
   [live schema diagnostic](../benchmarks/results/2026-11-08-live-schema-diagnostic.md).
-  The trace proxy race now has an offline regression test; a live recheck is
-  still needed.
+  The proxy race has an offline regression test and has since been validated
+  in a fresh live session: six complete Responses streams, five tool-result
+  continuations, and no observer errors. The repetition did not emit `read`;
+  this does not explain the first run's variation or establish reliability.
 - The November 7 source-review fixes, trace-correlator unit tests, and current
   sanitized-report changes were covered by 35 passing tests. GitHub Actions
   passed the Python 3.10–3.14 matrix on code head `41853c3` in

@@ -44,7 +44,20 @@ the client immediately after the terminal event; the proxy parses and marks a
 completed event before forwarding it, then avoids cancelling that completed
 upstream response. The offline proxy tests and full 43-test client suite pass.
 
-The corrected observer has not yet been revalidated against another live
-Codex/model session. The tool-schema result above relies on request-side
-metadata from Codex and request/response metadata from Ollama only. This single
-task is diagnostic evidence, not a daily-driver score.
+## Corrected-observer live recheck
+
+A fresh copy of the same synthetic task was run once after the proxy fix, solely
+to validate the observer. Codex completed in 18.3 seconds; its five independent
+tests passed. The corrected proxy recorded six successful Responses streams,
+all ending in `response.completed`, with no parser errors or premature
+disconnects. Five Responses tool calls and their five corresponding tool
+results appeared in later request input. The Ollama observer saw six requests,
+each offering the same seven tool schemas; all model tool calls used the
+advertised `exec_command`, followed by a final response. There were no empty
+offers in this recheck.
+
+This differs from the first run, where Ollama emitted one unadvertised `read`
+call. The two runs do not explain that variation or estimate model reliability.
+The repeated task is excluded from model-quality scoring. Afterward, the model
+was unloaded, the Ollama process list was empty, GPU memory returned to 5 MiB / 0%,
+and the production Herd reported seven online nodes with zero active requests.
