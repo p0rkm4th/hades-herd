@@ -24,8 +24,15 @@ duplicate model installations have different configured contexts. It now
 reports the context source and warns when a saved Codex budget exceeds the
 lowest known backend configuration, without presenting the model's advertised
 maximum as allocated context. The tests also restore all module-global paths
-after each temporary-home test. The full local suite passes 22 tests; this
-follow-up is still uncommitted and has not run in CI.
+after each temporary-home test. Commit `aceeef8` contains this fix; the full
+local suite passes 22 tests and the Python 3.10–3.14 CI matrix passed.
+
+A real Codex CLI 0.166.0 matched smoke then exercised both the fast and advanced
+model profiles through Herd on the same disposable coding task. Both turns
+completed, edited the requested source, passed five independent tests, and
+returned a final response; approximate elapsed times were 8 seconds for MiMo
+9B Q4 and 97 seconds for Qwen3.8 27B Q4. This verifies the launch paths, not
+the Level A five-varied-task gate. See the [sanitized smoke result](../benchmarks/results/2026-11-08-supervised-codex-launch-smoke.md).
 
 ## Works
 
@@ -99,10 +106,11 @@ follow-up is still uncommitted and has not run in CI.
 
 ## Current decision
 
-Keep the deployed default unchanged. Use local profiles experimentally with
-independent patch review. The immediate engineering work is protocol tracing,
-inspection-loop diagnosis, runner validation, and a minimal controlled fix—not
-adding models or changing production routes.
+Keep the deployed default unchanged. Both model-specific profiles have passed
+one real CLI coding smoke and are usable for supervised, bounded trials with
+independent patch review. Level A is not yet accepted: the five varied-task
+smoke suite remains outstanding. Avoid long retries; stop stalled sessions and
+use the explicit hosted fallback described in the operator guide.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)
 and the [roadmap](ROADMAP.md).

@@ -20,6 +20,10 @@ Unknown, offline, embedding-only, or ineligible models produce an error. The
 helper does not download or substitute a model. User config is isolated under
 `~/.config/codex-herd/`; hosted Codex settings remain separate.
 
+Use `codex-herd list` to copy the exact fast or advanced model identifier, then
+pass it to `codex-herd MODEL`. The saved default and hosted Codex profile are
+not changed by explicitly selecting a model.
+
 ## Recovery
 
 If the saved default no longer exists, refresh reports the stale preference and
@@ -27,6 +31,12 @@ does not silently replace it. Select a discovered model explicitly or set a
 new default with `codex-herd config MODEL`. For router outages, use a direct
 Ollama endpoint only when that backend is reachable and allowed by local
 policy. The helper itself does not change networking or services.
+
+If a local session stalls or loops, press `Ctrl-C` to stop that Codex process,
+review any partial work with `git diff` and the project tests, then start the
+hosted Codex command explicitly if you want to continue there. The launcher
+never redirects a local task to hosted inference. Hosted Codex configuration
+remains unchanged.
 
 ## Verify
 
