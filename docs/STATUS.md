@@ -73,6 +73,13 @@ The branch's Python 3.10–3.14 CI matrix passed in
 
 ## Not yet dependable
 
+- The separate fast-profile smoke record on
+  [`codex-herd/launcher-review-fixes`](https://github.com/p0rkm4th/hades-herd/blob/codex-herd/launcher-review-fixes/benchmarks/results/2026-11-08-level-a-fast-smoke.md)
+  has three distinct diagnostic tasks at 0/3 clean autonomous completions;
+  its prompt-only follow-up also timed out without a completed Codex turn.
+  These failures do not qualify MiMo as a daily driver. The five-task supervised
+  release target has not passed, and this small diagnostic set is not a broad
+  coding-quality estimate.
 - MiMo and Qwen3.8 each timed out on the same bounded Rich #4250 task without
   edits; the Qwen run made two shell calls and generated near 11 tokens/s.
   These results point to an execution/progress problem on this task, not a
