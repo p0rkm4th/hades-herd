@@ -35,8 +35,11 @@
    catalog. This did not reproduce the historical empty-tool request, so the
    guard was not exercised. The report records that the disposable router must
    suppress mDNS, even with a loopback bind. Next, identify the request class in
-   the historical stalled trace or reproduce it in a bounded live case before
-   considering guard promotion. Do not change production behavior.
+   the historical stalled trace: all 14 empty-tool requests included prior
+   call/results but used at most 5,451 input tokens; the control retained tools
+   with 15 prior calls and 13,613 tokens. This argues against context exhaustion
+   or tool history alone. Keep the guard isolated until a relevant live case
+   reproduces the request state. Do not change production behavior.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior

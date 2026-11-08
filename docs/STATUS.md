@@ -40,6 +40,12 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   requests, so it is excluded from model scores and does not validate the guard.
   See the
   [control report](../benchmarks/results/2026-11-08-full-tools-protocol-control.md).
+- The 14 historical empty-tool requests all included prior tool call/results
+  and used 2.5K–5.5K input tokens. The control retained tools with 15 prior
+  calls and 13.6K tokens. This argues against context exhaustion or tool history
+  alone; the request-state cause and six-event count mismatch remain unknown.
+  See the
+  [request-shape analysis](../benchmarks/results/2026-11-08-empty-tools-request-shape.md).
 - A deterministic import of the pinned Herd v0.12.3 translator reproduces a
   protocol mismatch: `tools: []` becomes an Ollama body with no `tools` field,
   but a synthetic Ollama `exec_command` call still becomes a Responses
@@ -66,9 +72,9 @@ Creating a draft PR through the connected GitHub integration returned 403
 (`Resource not accessible by integration`); use the
 [compare page](https://github.com/p0rkm4th/hades-herd/compare/main...codex-herd/review-launcher-context?expand=1).
 
-Next: identify the Codex request class that produced empty tool lists in the
-stalled HTTPie trace, or reproduce it in a bounded live control. The ordinary
-tool-follow-up path did not reproduce it. Do not promote the adapter guard or
-change production behavior without a relevant live case. Full sanitized
-results and failed attempts are in
+Next: identify why the stalled HTTPie task produced a different Codex request
+shape after tool results. The pattern is not explained by context exhaustion
+or prior tool history alone. Do not promote the adapter guard or change
+production behavior without a relevant reproduced case. Full sanitized results
+and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).

@@ -39,6 +39,8 @@ Codex/Herd request behavior. They are not model-quality benchmarks and their
 results must not be added to the coding leaderboard. The first full-tool
 control and its limits are recorded in
 [`results/2026-11-08-full-tools-protocol-control.md`](results/2026-11-08-full-tools-protocol-control.md).
+The historical empty-tool trace shape is compared with that control in
+[`results/2026-11-08-empty-tools-request-shape.md`](results/2026-11-08-empty-tools-request-shape.md).
 
 ## Deterministic Codex tool-router check
 
