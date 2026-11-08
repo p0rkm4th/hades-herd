@@ -40,6 +40,11 @@
    with 15 prior calls and 13,613 tokens. This argues against context exhaustion
    or tool history alone. Keep the guard isolated until a relevant live case
    reproduces the request state. Do not change production behavior.
+   A timestamped trace correlator now joins non-overlapping Responses
+   completion/request windows to Codex command-event counts while explicitly
+   leaving concurrent intervals unassigned. Its unit tests pass; next use it
+   on one bounded run of the still-open HTTPie #1958 task to establish whether
+   empty-tool call responses are temporally followed by command execution.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior

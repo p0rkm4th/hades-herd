@@ -140,3 +140,24 @@ rejects upstream URLs with embedded credentials and binds only to `127.0.0.1`.
 Do not publish raw Codex logs from a trial. Verify the summary has no task text
 before sharing it. The fixture requires no model download and does not change
 Herd or Ollama configuration.
+
+### Correlating tool calls with Codex events
+
+After one captured run, combine the proxy summary with the content-free Codex
+event index:
+
+```sh
+python3 benchmarks/fixtures/correlate_codex_trace.py \
+  /path/to/codex-herd-trace-summary.json \
+  /path/to/codex-event-index.jsonl > /path/to/correlation.json
+```
+
+The reducer matches Responses requests and events using same-workstation
+monotonic timestamps. It reports command starts/completions in the interval
+after a response finishes and before the next Responses request begins. If
+those requests overlap, it leaves the interval unassigned. The output contains
+request sequence numbers, tool counts/names, event counts, and response status;
+it never includes IDs, commands, prompts, arguments, or tool results. Timing
+proximity is not an ID-level match, so parallel commands or overlapping model
+requests still require cautious interpretation. Historical captures without
+timestamps are rejected rather than guessed.

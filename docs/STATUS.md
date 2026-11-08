@@ -14,9 +14,9 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - The review branch fixes fresh-install default selection, explicit-model
   precedence, unloaded context reporting, atomic profile generation, and
   repeated same-name trace counts. It adds a fake-Herd/fake-Codex launch test.
-- The November 7 source-review fixes are covered by regression tests: 27 tests
-  pass locally. GitHub Actions passed the Python 3.10–3.14 matrix on code head
-  `dc1ed234` in
+- The November 7 source-review fixes and trace-correlator unit tests are covered
+  by 31 passing local tests. GitHub Actions passed the Python 3.10–3.14 matrix
+  on code head `dc1ed234` in
   [run 42430116409](https://github.com/p0rkm4th/hades-herd/actions/runs/42430116409).
   The subsequent status-only commit `88530bc` also passed in
   [run 42430377369](https://github.com/p0rkm4th/hades-herd/actions/runs/42430377369).
@@ -56,6 +56,11 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   requests in the HTTPie trace, but the live Ollama request/response body was
   not captured. No adapter patch or deployment was made. See the
   [source-level reproduction](../benchmarks/results/2026-11-08-herd-empty-tools-translator-repro.md).
+- A sanitized trace correlator now joins Responses request metadata to
+  timestamped Codex command-event windows. It rejects historical unstamped
+  traces and marks overlapping requests unassigned instead of inferring a
+  correlation. Unit coverage exists; it has not yet been exercised on a new
+  live model trace.
 - A disposable guard prototype distinguishes explicit-empty from unknown
   offered-tool metadata and suppresses unadvertised calls in streamed and
   non-streamed results. Its translator tests pass 61/61; two mocked-Ollama
@@ -82,9 +87,10 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: identify why the stalled HTTPie task produced a different Codex request
-shape after tool results. The pattern is not explained by context exhaustion
-or prior tool history alone. Do not promote the adapter guard or change
+Next: run one bounded trace with the correlator on the still-open HTTPie #1958
+task, whose earlier run produced explicit empty-tool requests. Use the same
+model/task configuration only to establish request/event timing and do not
+score it as a model trial. Do not promote the adapter guard or change
 production behavior without a relevant reproduced case. Full sanitized results
 and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).
