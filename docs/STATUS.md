@@ -14,10 +14,10 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - The review branch fixes fresh-install default selection, explicit-model
   precedence, unloaded context reporting, atomic profile generation, and
   repeated same-name trace counts. It adds a fake-Herd/fake-Codex launch test.
-- The November 7 source-review fixes and trace-correlator unit tests are covered
-  by 35 passing local tests. GitHub Actions passed the Python 3.10–3.14 matrix
-  on code head `40261832` in
-  [run 42435659539](https://github.com/p0rkm4th/hades-herd/actions/runs/42435659539).
+- The November 7 source-review fixes, trace-correlator unit tests, and current
+  sanitized-report changes are covered by 35 passing local tests. GitHub Actions
+  passed the Python 3.10–3.14 matrix on code head `41853c3` in
+  [run 42438683194](https://github.com/p0rkm4th/hades-herd/actions/runs/42438683194).
 - A bounded Codex/Herd smoke exercised LF/CRLF trace framing. The initial
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
