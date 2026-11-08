@@ -12,6 +12,8 @@ not yet merged to `main`. A follow-up branch adds content-free schema-shape
 capture to both the Codex-facing and Ollama-facing trace fixtures, so a paired
 diagnosis can compare tool definitions across the adapter boundary. Its
 offline tests pass; no live model run has used this instrumentation yet.
+The branch's Python 3.10–3.14 CI matrix passed in
+[run 42444768457](https://github.com/p0rkm4th/hades-herd/actions/runs/42444768457).
 
 ## Works
 
