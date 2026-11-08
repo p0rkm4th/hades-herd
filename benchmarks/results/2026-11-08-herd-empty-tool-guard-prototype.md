@@ -33,6 +33,12 @@ with the visible message.
   passed.
 - The route test stubs Ollama output; it does not run a full Herd process or
   live inference. No held-out coding task or production deployment was run.
+- A brief attempt to start the disposable router for live validation showed
+  that upstream v0.12.3 advertises itself over mDNS even when its HTTP server
+  binds to loopback. The process was stopped before any model request; the
+  isolated router port has no listener now. The next live test needs a way to
+  suppress discovery or a network-isolated environment before starting a
+  router. No live inference result was produced.
 
 This establishes that the proposed distinction is implementable at the
 translator-function and HTTP-route levels and passes the full upstream suite.

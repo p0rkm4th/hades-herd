@@ -46,6 +46,9 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   non-streamed results. Its translator tests pass 61/61; two mocked-Ollama
   route cases and the full upstream suite pass (1,992 passed, 5 skipped, 3
   existing queue-manager warnings). No live coding task has tested the patch.
+  A brief isolated-router startup showed that v0.12.3 still advertises over
+  mDNS when bound to loopback; it was stopped before inference. Live validation
+  needs discovery disabled or network isolation.
   Details:
   [guard prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
 

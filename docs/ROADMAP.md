@@ -30,9 +30,11 @@
    A disposable guard prototype passes 61 translator tests, two mocked-Ollama
    route cases, and the full upstream suite (1,992 passed, 5 skipped). No live
    task has exercised it. See the [prototype record](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
-   Next, test an isolated adapter copy on a bounded held-out task if the
-   historical empty-tool pattern can be reproduced. Do not change production
-   behavior.
+   A first full-service startup check found v0.12.3 advertises over mDNS even
+   with a loopback HTTP bind; the process was stopped before inference. Next,
+   provide a network-isolated test setup or suppress discovery in the disposable
+   copy, then test one bounded held-out task if the historical empty-tool
+   pattern can be reproduced. Do not change production behavior.
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
 4. Trace repeated inspection across consecutive messages to test whether prior
