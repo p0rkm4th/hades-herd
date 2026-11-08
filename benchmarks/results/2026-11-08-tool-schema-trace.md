@@ -44,7 +44,12 @@ normalized structure was unchanged when it reached the fake Ollama `/api/chat`
 boundary. No inference or network listener was involved. The test emitted only
 pytest's existing async-fixture deprecation warning.
 
-This narrows the schema-loss hypothesis for the tested function shape; it does
-not cover every Codex tool schema or prove the exact shape seen by the model in
-a historical run. A paired live trace would still be needed for that stronger
-claim.
+This narrows the schema-loss hypothesis for the tested function shape. A
+bounded live synthetic task later observed 10 non-empty offers at each
+boundary. The seven matching Ollama functions had identical captured parameter
+structure to the shared Codex definitions; the adapter did not pass through
+five Codex-only multi-agent functions. See the
+[live diagnostic](2026-11-08-live-schema-diagnostic.md). Its Codex response
+observer hit an `AttributeError` during completed-stream closure, so it cannot
+establish how Codex handled the one Ollama `read` call. The observer fix has
+offline regression coverage but still needs a live recheck.

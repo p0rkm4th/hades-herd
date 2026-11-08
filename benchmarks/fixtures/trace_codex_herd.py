@@ -209,7 +209,10 @@ class TraceHandler(BaseHTTPRequestHandler):
         summary: dict[str, Any] | None = None
         monitor_stop = threading.Event()
         client_disconnected = threading.Event()
+        response_complete = threading.Event()
         monitor: threading.Thread | None = None
+        sse = SSEMetadata()
+        is_sse = False
         headers = {
             key: value for key, value in self.headers.items()
             if key.lower() not in {"host", "connection", "transfer-encoding", "content-length"}
@@ -247,6 +250,12 @@ class TraceHandler(BaseHTTPRequestHandler):
                     try:
                         readable, _, _ = select.select([self.connection], [], [], 0.05)
                         if readable and self.connection.recv(1, socket.MSG_PEEK) == b"":
+                            # Codex normally closes its HTTP connection as soon as
+                            # it has consumed a completed response. Do not race the
+                            # reader by closing HTTPResponse while its final SSE
+                            # chunk is still being parsed.
+                            if response_complete.is_set():
+                                return
                             client_disconnected.set()
                             response.close()
                             connection.close()
@@ -259,17 +268,22 @@ class TraceHandler(BaseHTTPRequestHandler):
 
             monitor = threading.Thread(target=watch_client, daemon=True)
             monitor.start()
-            sse = SSEMetadata()
             is_sse = "text/event-stream" in response.getheader("Content-Type", "")
             while True:
                 read_chunk = getattr(response, "read1", response.read)
                 chunk = read_chunk(16_384)
                 if not chunk:
                     break
+                if is_sse:
+                    # Parse before forwarding. The downstream may close as soon
+                    # as it receives the terminal event; marking completion first
+                    # lets the disconnect monitor distinguish that normal close
+                    # from an abandoned in-progress generation.
+                    sse.feed(chunk)
+                    if sse.terminal_status is not None:
+                        response_complete.set()
                 self.wfile.write(chunk)
                 self.wfile.flush()
-                if is_sse:
-                    sse.feed(chunk)
             if is_sse:
                 summary["response_items"] = sse.items
                 summary["terminal_status"] = sse.terminal_status
@@ -288,6 +302,10 @@ class TraceHandler(BaseHTTPRequestHandler):
             if monitor is not None:
                 monitor.join(timeout=0.2)
             if summary is not None:
+                if is_sse:
+                    summary.setdefault("response_items", sse.items)
+                    summary.setdefault("terminal_status", sse.terminal_status)
+                    summary.setdefault("usage", sse.usage)
                 summary["client_disconnected"] = client_disconnected.is_set()
                 summary.setdefault("response_finished_monotonic_ns", time.monotonic_ns())
                 with self.server.capture_lock:

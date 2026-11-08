@@ -7,6 +7,7 @@ import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest import mock
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "benchmarks" / "fixtures"))
@@ -245,8 +246,18 @@ class TraceProxyTests(unittest.TestCase):
                     ],
                 }).encode()
                 request = Request(url, data=request_body, headers={"Content-Type": "application/json"})
-                with urlopen(request, timeout=3) as response:
-                    self.assertEqual(response.read(), response_body)
+                feed = trace_codex_herd.SSEMetadata.feed
+
+                def delayed_feed(parser, chunk):
+                    # In the old ordering the chunk was already sent when this
+                    # delay began, letting the client close before parsing marked
+                    # the response complete.
+                    time.sleep(0.05)
+                    feed(parser, chunk)
+
+                with mock.patch.object(trace_codex_herd.SSEMetadata, "feed", delayed_feed):
+                    with urlopen(request, timeout=3) as response:
+                        self.assertEqual(response.read(), response_body)
                 capture = json.loads(Path(capture_path).read_text())
                 summary = json.dumps(capture)
                 self.assertEqual(capture["requests"][0]["request_sequence"], 1)
@@ -255,6 +266,9 @@ class TraceProxyTests(unittest.TestCase):
                 self.assertEqual(capture["requests"][0]["request"]["tool_names"], ["exec_command"])
                 self.assertTrue(capture["requests"][0]["request"]["additional_tools_present"])
                 self.assertEqual(capture["requests"][0]["response_items"][0]["name"], "read_file")
+                self.assertEqual(capture["requests"][0]["terminal_status"], "completed")
+                self.assertNotIn("error_type", capture["requests"][0])
+                self.assertFalse(capture["requests"][0]["client_disconnected"])
                 for sentinel in ("private prompt", "private schema", "private-args", "private response", "private-id"):
                     self.assertNotIn(sentinel, summary)
             finally:

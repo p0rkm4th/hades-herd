@@ -14,6 +14,15 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
 - The review branch fixes fresh-install default selection, explicit-model
   precedence, unloaded context reporting, atomic profile generation, and
   repeated same-name trace counts. It adds a fake-Herd/fake-Codex launch test.
+- A bounded live synthetic coding task completed through Codex → disposable
+  Herd 0.12.3 → MiMo-V2.6 9B Q4 on an RTX 4070 Ti host in 29.8 seconds; tests
+  passed 5/5. All ten Codex and Ollama requests carried non-empty tool offers.
+  The seven shared function schemas matched structurally. Ollama also emitted
+  one unadvertised `read` call before the task completed; the Codex response
+  trace missed response metadata due to an observer race. See the
+  [live schema diagnostic](../benchmarks/results/2026-11-08-live-schema-diagnostic.md).
+  The trace proxy race now has an offline regression test; a live recheck is
+  still needed.
 - The November 7 source-review fixes, trace-correlator unit tests, and current
   sanitized-report changes were covered by 35 passing tests. GitHub Actions
   passed the Python 3.10–3.14 matrix on code head `41853c3` in
