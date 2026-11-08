@@ -41,6 +41,10 @@ control and its limits are recorded in
 [`results/2026-11-08-full-tools-protocol-control.md`](results/2026-11-08-full-tools-protocol-control.md).
 The historical empty-tool trace shape is compared with that control in
 [`results/2026-11-08-empty-tools-request-shape.md`](results/2026-11-08-empty-tools-request-shape.md).
+The loopback Codex boundary probe compares a synthetic forwarded tool call with
+the proposed visible no-tool response; it is a protocol control, not a live
+Herd/model result. See
+[`results/2026-11-08-empty-tools-codex-boundary-probe.md`](results/2026-11-08-empty-tools-codex-boundary-probe.md).
 
 ## Deterministic Codex tool-router check
 
@@ -77,6 +81,13 @@ sanitized request summary defaults to
 of a function name that was not advertised. It does not prove what a real model
 emitted or whether Herd's output translator caused that name; use an Ollama-side
 request/response trace to establish that.
+
+`fixtures/run_empty_tools_guard_probe.py` runs two bounded Codex CLI sessions
+against a loopback Responses mock. It checks whether Codex executes a returned
+`exec_command` function call or stops on a visible assistant message. The mock
+labels the simulated backend tool offer as empty; Codex's own request in this
+control still contains tool definitions. See the linked result report for
+limits and exact outcomes. This probe makes no model requests.
 
 For reasoning experiments, the fixture records only the scalar
 `reasoning.effort` and whether a `think` field is present. The committed client

@@ -77,6 +77,14 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   needs discovery disabled or network isolation.
   Details:
   [guard prototype](../benchmarks/results/2026-11-08-herd-empty-tool-guard-prototype.md).
+- A loopback Codex boundary probe ran the installed CLI 0.166.0 against a
+  synthetic endpoint. When the mock returned `exec_command` despite a simulated
+  zero-tool backend offer, Codex executed it; when the mock returned visible
+  no-tool text, Codex ran no command. Both sessions exited 0. Codex's own
+  requests still advertised nine tools, so this does not reproduce the
+  historical incoming `tools: []` request or validate a live Herd guard.
+  Details and reproduction:
+  [boundary probe](../benchmarks/results/2026-11-08-empty-tools-codex-boundary-probe.md).
 
 ## Decision and review handoff
 
@@ -93,10 +101,11 @@ tool-call counts, and atomic model-specific generated profiles. The branch has
 passing CI, but a draft PR could not be created because the GitHub integration
 returns 403 for PR creation; no open PR exists as of 2026-11-08.
 
-Next: use a deterministic mocked Codex request sequence to test empty-tool
-request handling and correlate those requests with Codex event classes. The
-fresh #1978 live run did not reproduce an empty-tool/function-call mismatch,
-so do not promote the adapter guard or change production behavior. Do not
-rerun retired HTTPie fixtures without a materially new hypothesis. Full
-sanitized results and failed attempts are in
+Next: reproduce the explicit-empty request through a complete isolated Herd
+Responses route and fake Ollama backend, then compare stock and guarded
+translation without mDNS or LAN exposure. The Codex boundary probe above does
+not establish that empty-tool requests cause the historical behavior. Do not
+promote the adapter guard or change production behavior until that path is
+verified. Do not rerun retired HTTPie fixtures without a materially new
+hypothesis. Full sanitized results and failed attempts are in
 [`benchmarks/results/`](../benchmarks/results/).

@@ -50,10 +50,17 @@
    five empty-tool requests returned `exec_command`. See the
    [live trace report](../benchmarks/results/2026-11-08-httpie-1978-trace-correlation.md).
    The correlator now emits total, assigned, and unassigned command-event
-   counts so this reconciliation is repeatable. Next, inspect the retained
-   #1958 metadata and event ordering for any additional lifecycle signal; do
-   not rerun the retired issue fixture or promote the adapter guard without a
-   relevant reproduced behavior.
+   counts so this reconciliation is repeatable. A loopback Codex boundary
+   control also confirms that Codex executes a returned `exec_command` even
+   though the simulated adapter/backend offer was empty, while the guard-style
+   visible message executes no command. Codex's own requests still contained
+   nine tools, so the control does not recreate the historical incoming empty
+   tool list. A shell-tool-disabled attempt timed out before sending a request.
+   Next, reproduce explicit-empty handling through the complete isolated Herd
+   Responses route and fake Ollama backend, then compare stock and guarded
+   translation. Keep the guard unpromoted and production behavior unchanged
+   until the relevant route is verified. See the
+   [Codex boundary probe](../benchmarks/results/2026-11-08-empty-tools-codex-boundary-probe.md).
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.
    The two `read_file` rejections came from the 15:50 untraced HTTPie #1958
