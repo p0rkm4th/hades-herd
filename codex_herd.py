@@ -214,7 +214,7 @@ def fetch() -> tuple[dict[str, dict], dict]:
     return result, fleet
 
 
-def codex_entry(model: dict, prefs: dict) -> dict:
+def effective_codex_context(model: dict, prefs: dict) -> tuple[int, str]:
     name = model["name"]
     live_contexts = [x["context_length"] for x in model["loaded"] if x.get("context_length")]
     override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
@@ -241,6 +241,12 @@ def codex_entry(model: dict, prefs: dict) -> dict:
         context, context_source = min(configured_contexts), "Ollama configured num_ctx on all online nodes"
     else:
         context, context_source = 4096, "unverified safe fallback"
+    return context, context_source
+
+
+def codex_entry(model: dict, prefs: dict) -> dict:
+    name = model["name"]
+    context, context_source = effective_codex_context(model, prefs)
     modalities = ["text"]
     if "vision" in model["capabilities"]:
         modalities.append("image")
@@ -407,15 +413,17 @@ def config_show(name: str, models: dict[str, dict], prefs: dict) -> None:
     if model is None:
         raise HerdError(f"Unknown model {name!r}; run `codex-herd list` to see the live inventory.")
     override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
+    codex_context, context_source = effective_codex_context(model, prefs)
     contexts = [x["context_length"] for x in model["loaded"] if x.get("context_length")]
     print(f"Model: {name}")
     print(f"Default model: {'yes' if prefs.get('default_model') == name else 'no'}")
-    if override:
-        catalog_context = f"{override:,} (saved local Codex preference)"
-    elif contexts:
-        catalog_context = f"{min(contexts):,} (derived from live loaded backend; not saved)"
-    else:
-        catalog_context = "4,096 (safe fallback; backend allocation unobserved; not saved)"
+    context_labels = {
+        "user override": "saved local Codex preference",
+        "loaded allocation on all online nodes": "live loaded backend allocation",
+        "Ollama configured num_ctx on all online nodes": "Ollama configured num_ctx",
+        "unverified safe fallback": "safe fallback; backend allocation unobserved",
+    }
+    catalog_context = f"{codex_context:,} ({context_labels[context_source]})"
     print(f"Codex catalog context: {catalog_context}")
     print(f"Model-declared maximum context: {model['model_context_window'] or 'unknown'}")
     print("Backend allocated context: " + (", ".join(f"{x['node']}={x['context_length']:,}" for x in model["loaded"]) if contexts else "unloaded; unknown"))
@@ -432,10 +440,18 @@ def config_show(name: str, models: dict[str, dict], prefs: dict) -> None:
         print("Codex session developer instructions: saved for sessions launched explicitly with this model")
         print("  `/model` switches do not change instructions in the active session.")
         print(f"  {instructions!r}")
-    if override and contexts and override > min(contexts):
+    if override:
+        backend_context, backend_source = effective_codex_context(model, {"models": {}})
+    else:
+        backend_context, backend_source = None, "unverified safe fallback"
+    if override and backend_source != "unverified safe fallback" and override > backend_context:
+        backend_description = {
+            "loaded allocation on all online nodes": "lowest live backend allocation",
+            "Ollama configured num_ctx on all online nodes": "lowest Ollama configured num_ctx",
+        }.get(backend_source, "known backend context")
         print(
-            f"Context warning: saved Codex budget {override:,} exceeds the lowest "
-            f"live backend allocation {min(contexts):,}. This preference changes "
+            f"Context warning: saved Codex budget {override:,} exceeds the "
+            f"{backend_description} {backend_context:,}. This preference changes "
             "Codex budgeting only; it does not raise Ollama's allocation."
         )
     print("Server model-derived Ollama parameters (read-only; Codex does not set these):")

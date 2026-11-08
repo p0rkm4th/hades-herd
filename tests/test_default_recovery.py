@@ -3,6 +3,7 @@ import json
 import re
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from unittest import mock
 from pathlib import Path
 
@@ -37,6 +38,10 @@ class SyncCatalogDefaultTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
+        self.original_paths = {
+            name: getattr(codex_herd, name)
+            for name in ("CODEX_HOME", "CATALOG", "PROFILE", "INVENTORY", "PREFS")
+        }
         codex_herd.CODEX_HOME = root / "codex-home"
         codex_herd.CATALOG = root / "catalog.json"
         codex_herd.PROFILE = root / "herd.config.toml"
@@ -52,6 +57,8 @@ class SyncCatalogDefaultTests(unittest.TestCase):
             path.write_bytes(data)
 
     def tearDown(self):
+        for name, value in self.original_paths.items():
+            setattr(codex_herd, name, value)
         self.temp.cleanup()
 
     def test_removed_saved_default_is_reported_without_overwriting_profile(self):
@@ -110,6 +117,41 @@ class SyncCatalogDefaultTests(unittest.TestCase):
         entry = codex_herd.codex_entry(item, {"models": {}})
         self.assertEqual(entry["context_window"], 4096)
         self.assertEqual(entry["context_source"], "unverified safe fallback")
+
+    def test_config_show_matches_catalog_context_when_only_one_duplicate_host_is_loaded(self):
+        item = model("configured-model")
+        item["online_nodes"] = ["node-a", "node-b"]
+        item["loaded"] = [{"node": "node-a", "context_length": 16384}]
+        item["model_parameters"] = {
+            "node-a": "num_ctx 16384",
+            "node-b": "num_ctx 8192",
+        }
+        prefs = {"models": {}}
+
+        catalog_entry = codex_herd.codex_entry(item, prefs)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            codex_herd.config_show("configured-model", {"configured-model": item}, prefs)
+
+        self.assertEqual(catalog_entry["context_window"], 8192)
+        self.assertIn(
+            "Codex catalog context: 8,192 (Ollama configured num_ctx)",
+            output.getvalue(),
+        )
+        self.assertIn("Backend allocated context: node-a=16,384", output.getvalue())
+
+        prefs["models"]["configured-model"] = {"codex_context_window": 16384}
+        output = io.StringIO()
+        with redirect_stdout(output):
+            codex_herd.config_show("configured-model", {"configured-model": item}, prefs)
+        self.assertIn(
+            "Codex catalog context: 16,384 (saved local Codex preference)",
+            output.getvalue(),
+        )
+        self.assertIn(
+            "Context warning: saved Codex budget 16,384 exceeds the lowest Ollama configured num_ctx 8,192",
+            output.getvalue(),
+        )
 
     def test_model_guidance_is_toml_encoded_and_follows_explicit_session_model(self):
         fleet_models = models()

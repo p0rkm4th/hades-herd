@@ -19,6 +19,14 @@ The latest test and sanitized result are in the [concurrency check](../benchmark
 These changes are not yet in `main`; the available GitHub integration returned
 403 when asked to create a PR.
 
+On 2026-11-08, `config show` was aligned with the generated Codex catalog when
+duplicate model installations have different configured contexts. It now
+reports the context source and warns when a saved Codex budget exceeds the
+lowest known backend configuration, without presenting the model's advertised
+maximum as allocated context. The tests also restore all module-global paths
+after each temporary-home test. The full local suite passes 22 tests; this
+follow-up is still uncommitted and has not run in CI.
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
