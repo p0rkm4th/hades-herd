@@ -35,6 +35,10 @@ def read_profile(path):
 
 class SyncCatalogDefaultTests(unittest.TestCase):
     def setUp(self):
+        self.original_paths = {
+            name: getattr(codex_herd, name)
+            for name in ("CODEX_HOME", "CATALOG", "PROFILE", "INVENTORY", "PREFS")
+        }
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         codex_herd.CODEX_HOME = root / "codex-home"
@@ -52,6 +56,8 @@ class SyncCatalogDefaultTests(unittest.TestCase):
             path.write_bytes(data)
 
     def tearDown(self):
+        for name, value in self.original_paths.items():
+            setattr(codex_herd, name, value)
         self.temp.cleanup()
 
     def test_removed_saved_default_is_reported_without_overwriting_profile(self):

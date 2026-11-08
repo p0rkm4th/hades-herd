@@ -1,3 +1,6 @@
+import contextlib
+import copy
+import io
 import unittest
 
 import codex_herd
@@ -42,6 +45,35 @@ class ContextMetadataTests(unittest.TestCase):
             codex_herd.effective_context(self.model, {"models": {}}),
             (4096, "safe fallback; configured allocation unknown"),
         )
+
+    def test_config_show_uses_the_same_context_as_generated_catalog(self):
+        self.model.update({
+            "embedding_only": False,
+            "tool_capable": True,
+            "online_nodes": ["node-a"],
+            "model_context_window": 131072,
+            "model_parameters": {},
+        })
+        configured = copy.deepcopy(self.model)
+        loaded = copy.deepcopy(self.model)
+        loaded["loaded"] = [{"node": "node-a", "context_length": 8192}]
+        unknown = copy.deepcopy(self.model)
+        unknown.pop("configured_context_window")
+        cases = [
+            (configured, {"models": {}}, "model-configured num_ctx; backend allocation unobserved"),
+            (configured, {"models": {"model": {"codex_context_window": 32768}}}, "saved local Codex preference"),
+            (loaded, {"models": {}}, "derived from live loaded backend; not saved"),
+            (unknown, {"models": {}}, "safe fallback; configured value and backend allocation unknown; not saved"),
+        ]
+
+        for model, prefs, label in cases:
+            with self.subTest(label=label):
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    codex_herd.config_show("model", {"model": model}, prefs)
+                catalog_entry = codex_herd.codex_entry(model, prefs)
+                rendered = output.getvalue()
+                self.assertIn(f"Codex catalog context: {catalog_entry['context_window']:,} ({label})", rendered)
 
 
 if __name__ == "__main__":

@@ -406,20 +406,16 @@ def config_show(name: str, models: dict[str, dict], prefs: dict) -> None:
         raise HerdError(f"Unknown model {name!r}; run `codex-herd list` to see the live inventory.")
     override = prefs.get("models", {}).get(name, {}).get("codex_context_window")
     contexts = [x["context_length"] for x in model["loaded"] if x.get("context_length")]
+    catalog_context, context_source = effective_context(model, prefs)
     print(f"Model: {name}")
     print(f"Default model: {'yes' if prefs.get('default_model') == name else 'no'}")
-    if override is not None:
-        catalog_context = f"{override:,} (saved local Codex preference)"
-    elif contexts:
-        catalog_context = f"{min(contexts):,} (derived from live loaded backend; not saved)"
-    elif model.get("configured_context_window"):
-        catalog_context = (
-            f"{model['configured_context_window']:,} (model-configured num_ctx; "
-            "backend allocation unobserved)"
-        )
-    else:
-        catalog_context = "4,096 (safe fallback; configured value and backend allocation unknown; not saved)"
-    print(f"Codex catalog context: {catalog_context}")
+    context_labels = {
+        "saved Codex preference": "saved local Codex preference",
+        "live backend allocation": "derived from live loaded backend; not saved",
+        "model-configured num_ctx": "model-configured num_ctx; backend allocation unobserved",
+        "safe fallback; configured allocation unknown": "safe fallback; configured value and backend allocation unknown; not saved",
+    }
+    print(f"Codex catalog context: {catalog_context:,} ({context_labels[context_source]})")
     print(f"Model-declared maximum context: {model['model_context_window'] or 'unknown'}")
     print("Backend allocated context: " + (", ".join(f"{x['node']}={x['context_length']:,}" for x in model["loaded"]) if contexts else "unloaded; unknown"))
     timeout = stream_idle_timeout_ms(name, prefs)
