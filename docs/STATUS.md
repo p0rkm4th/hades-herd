@@ -36,6 +36,8 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   defect. The current offline client suite passes 43 tests. Against clean
   pinned Herd v0.12.3 source, the in-process route probe passed 1/1 with fake
   Ollama and showed the tested non-empty function schema shape was preserved.
+  The Python 3.10–3.14 matrix passed on branch commit `5104417` in
+  [run 42445700293](https://github.com/p0rkm4th/hades-herd/actions/runs/42445700293).
 
 ## What remains unreliable
 
