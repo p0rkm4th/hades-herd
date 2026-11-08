@@ -45,6 +45,8 @@ developer-instructions value to the isolated model profile. It still timed out
 at 180s after 35 shell calls; the partial patch violated stale-default and
 explicit-selection invariants, and its new tests were not discovered. This
 prompt intervention did not qualify as a pass or demonstrate a reliable gain.
+The scorecard update passed Python 3.10–3.14 CI in
+[run 42455432087](https://github.com/p0rkm4th/hades-herd/actions/runs/42455432087).
 
 ## Works
 
