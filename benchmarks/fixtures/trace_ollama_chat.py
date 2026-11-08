@@ -14,6 +14,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+try:
+    from .tool_schema_metadata import tool_schema_metadata
+except ImportError:  # Direct execution as a fixture script.
+    from tool_schema_metadata import tool_schema_metadata
+
 _HOP_HEADERS = {
     "connection",
     "content-length",
@@ -63,6 +68,7 @@ def request_metadata(path: str, body: bytes) -> dict[str, Any]:
         "tools_field_present": "tools" in request,
         "tool_count": len(tools) if isinstance(tools, list) else None,
         "tool_names": _tool_names(tools),
+        "tool_schemas": tool_schema_metadata(tools),
         "message_count": (
             len(request["messages"]) if isinstance(request.get("messages"), list) else None
         ),

@@ -216,14 +216,23 @@ and the content-free event index.
 
 `fixtures/trace_codex_herd.py` is an optional loopback-only forwarding proxy for
 one bounded Codex/Herd diagnosis. It forwards request and streamed response
-bytes unchanged. The summary records only HTTP status/path, advertised tool
-names and nesting, reasoning-effort enum, input item counts, prior tool-call
-names/result counts, response item types/function names, terminal status, and
-token counts. It never writes message text, tool schemas, arguments, tool
-results, response text, IDs, or request headers. Raw request/response bodies
-exist only in process memory while being forwarded. `read_file` names are
-captured on both sides so a Codex-local rejection can be compared with what
-Herd returned to Codex.
+bytes unchanged. The summary records HTTP status/path, advertised tool names
+and nesting, bounded tool-schema structure (property names/types and required
+keys), reasoning-effort enum, input item counts, prior tool-call names/result
+counts, response item types/function names, terminal status, and token counts.
+The schema summary drops descriptions, defaults, enum values, examples,
+constraints, and all request values. It never writes message text, full tool
+schemas, arguments, tool results, response text, IDs, or request headers. Raw
+request/response bodies exist only in process memory while being forwarded.
+`read_file` names are captured on both sides so a Codex-local rejection can be
+compared with what Herd returned to Codex.
+
+`fixtures/trace_ollama_chat.py` provides the corresponding loopback-only Ollama
+observer. It records tool-schema shape and model-selected tool names at the
+Ollama `/api/chat` boundary. Compare the Codex-facing and Ollama-facing schema
+summaries from a paired run to see translation differences without retaining
+either complete schema. Its remote upstream must be a loopback address, so use
+an SSH tunnel when the Ollama server is remote.
 
 Run it with the private upstream URL supplied only in the local environment:
 

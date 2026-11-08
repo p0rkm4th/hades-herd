@@ -40,6 +40,44 @@ class TraceMetadataTests(unittest.TestCase):
         for sentinel in ("PRIVATE PROMPT", "PRIVATE ARGUMENT", "PRIVATE TOOL RESULT", "secret_schema"):
             self.assertNotIn(sentinel, serialized)
 
+    def test_schema_summary_keeps_structure_but_discards_description_and_values(self):
+        summary = trace_codex_herd.request_metadata(json.dumps({
+            "tools": [{
+                "type": "function",
+                "name": "exec_command",
+                "description": "PRIVATE TOOL DESCRIPTION",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "cmd": {
+                            "type": "string",
+                            "description": "PRIVATE PROPERTY DESCRIPTION",
+                            "default": "PRIVATE DEFAULT",
+                            "enum": ["PRIVATE ENUM VALUE"],
+                        },
+                        "timeout": {"type": "integer"},
+                    },
+                    "required": ["cmd"],
+                },
+            }],
+        }).encode())
+        self.assertEqual(summary["tool_schemas"], [{
+            "type": "function",
+            "name": "exec_command",
+            "parameters": {
+                "type": "object",
+                "properties": {"cmd": {"type": "string"}, "timeout": {"type": "integer"}},
+                "required": ["cmd"],
+            },
+            "source": "top_level",
+        }])
+        serialized = json.dumps(summary["tool_schemas"])
+        for secret in (
+            "PRIVATE TOOL DESCRIPTION", "PRIVATE PROPERTY DESCRIPTION",
+            "PRIVATE DEFAULT", "PRIVATE ENUM VALUE",
+        ):
+            self.assertNotIn(secret, serialized)
+
     def test_sse_summary_handles_chunk_boundaries_without_capturing_arguments_or_text(self):
         parser = trace_codex_herd.SSEMetadata()
         frame = (

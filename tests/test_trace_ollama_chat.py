@@ -76,7 +76,25 @@ class OllamaMetadataProxyTests(unittest.TestCase):
                         "model": "fixture-model:latest",
                         "stream": True,
                         "messages": [{"role": "user", "content": "PROMPT_SENTINEL"}],
-                        "tools": [],
+                        "tools": [{
+                            "type": "function",
+                            "function": {
+                                "name": "exec_command",
+                                "description": "SCHEMA_DESCRIPTION_SENTINEL",
+                                "parameters": {
+                                    "type": "object",
+                                    "properties": {
+                                        "cmd": {
+                                            "type": "string",
+                                            "description": "PROPERTY_DESCRIPTION_SENTINEL",
+                                            "default": "SCHEMA_DEFAULT_SENTINEL",
+                                            "enum": ["SCHEMA_ENUM_SENTINEL"],
+                                        },
+                                    },
+                                    "required": ["cmd"],
+                                },
+                            },
+                        }],
                         "tool_schemas_secret": "SCHEMA_SENTINEL",
                     }).encode()
                     connection = http.client.HTTPConnection(
@@ -105,8 +123,17 @@ class OllamaMetadataProxyTests(unittest.TestCase):
                         "model": "fixture-model:latest",
                         "stream": True,
                         "tools_field_present": True,
-                        "tool_count": 0,
-                        "tool_names": [],
+                        "tool_count": 1,
+                        "tool_names": ["exec_command"],
+                        "tool_schemas": [{
+                            "type": "function",
+                            "name": "exec_command",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {"cmd": {"type": "string"}},
+                                "required": ["cmd"],
+                            },
+                        }],
                         "message_count": 1,
                     })
                     self.assertEqual(record["status_code"], 200)
@@ -127,6 +154,10 @@ class OllamaMetadataProxyTests(unittest.TestCase):
                     for secret in (
                         "PROMPT_SENTINEL",
                         "SCHEMA_SENTINEL",
+                        "SCHEMA_DESCRIPTION_SENTINEL",
+                        "PROPERTY_DESCRIPTION_SENTINEL",
+                        "SCHEMA_DEFAULT_SENTINEL",
+                        "SCHEMA_ENUM_SENTINEL",
                         "ARGUMENT_SENTINEL",
                         "RESPONSE_SENTINEL",
                         "THINKING_SENTINEL",

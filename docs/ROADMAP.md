@@ -6,7 +6,9 @@
    focused branch now fixes clean-install/default precedence, configured versus
    loaded context metadata, launcher subprocess coverage, repeated call
    counting, and atomic model-isolated profile generation. The 3.10–3.14 CI
-   matrix passed; independent PR review is pending.
+   matrix passed. The owner review confirmed these five findings; the
+   GitHub integration currently blocks PR creation with 403, so review remains
+   available from the pushed compare branch.
 2. Capture sanitized Codex request/response metadata and identify the exact
    advertised tool list, attempted tool name, Herd translation, execution
    result, and tool-result continuation. **Partial evidence:** one live
@@ -107,9 +109,11 @@
    on a real coding task. The patch, notice, and reusable probe are published;
    it remains unapplied. The same bounded failing HTTPie #1958 task has now
    been tried once through the guard: it timed out and its tests failed. Do not
-   repeat that fixture. Before choosing a held-out task, add metadata-only
-   capture of Ollama-side tool offers and returned tool-call counts so a live
-   guard activation is observable. See the
+   repeat that fixture. A paired trace enhancement now records bounded schema
+   shape at both the Codex and Ollama boundaries, alongside Ollama-side offered
+   and returned tool names. It is tested offline; no live run has captured the
+   same request at both points. Use it in one bounded held-out diagnostic before
+   selecting another adapter change. See the
    [paired route report](../benchmarks/results/2026-11-08-herd-empty-tools-route-paired.md).
 3. Classify unsupported-tool events as model-selected invalid calls versus
    transport/parser loss; add a deterministic reproducer before changing code.

@@ -27,6 +27,13 @@ outside this repository. See the [operator guide](OPERATOR_GUIDE.md) and
   model patch needed human correction; the resulting 27-test suite passed and
   the trace reconciled 10 Responses tool calls with 10 Codex command events.
   It is not a model-quality pass. Details: [trace smoke](../benchmarks/results/2026-11-08-codex-trace-crlf-smoke.md).
+- A follow-up feature branch adds bounded tool-schema shape capture on both
+  sides of the Herd adapter: function names, property names/types, required
+  keys, and structural limits. It omits descriptions, defaults, enum/example
+  values, arguments, and prompts. Offline tests cover normalization, privacy,
+  loopback forwarding, and size limits. No live request has yet been compared
+  at both boundaries; the instrumentation does not itself prove a translation
+  defect.
 
 ## What remains unreliable
 

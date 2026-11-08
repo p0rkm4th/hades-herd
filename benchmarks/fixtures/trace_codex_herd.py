@@ -16,6 +16,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+try:
+    from .tool_schema_metadata import tool_schema_metadata
+except ImportError:  # Direct execution as a fixture script.
+    from tool_schema_metadata import tool_schema_metadata
+
 
 def tool_names(tools: Any) -> tuple[list[str], list[dict[str, Any]]]:
     """Return advertised names and structural metadata without schemas."""
@@ -165,6 +170,10 @@ def request_metadata(body: bytes) -> dict[str, Any]:
         "tools_field_present": "tools" in request,
         "additional_tools_present": bool(additional_tools),
         "tool_shapes": top_shapes + additional_shapes,
+        "tool_schemas": (
+            tool_schema_metadata(top_level_tools, source="top_level")
+            + tool_schema_metadata(additional_tools, source="additional_tools")
+        ),
         "read_file_advertised": "read_file" in names,
         "tool_choice_type": (request.get("tool_choice") or {}).get("type")
             if isinstance(request.get("tool_choice"), dict) else None,
