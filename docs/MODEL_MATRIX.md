@@ -7,13 +7,15 @@ universal model build or imply general capability.
 
 | Profile | Hardware class | Context tested | Evidence | Status |
 |---|---|---:|---|---|
-| MiMo-V2.6 9B Q4_K_M | Single 12 GB GPU | 16K | One HTTPie #1960 task completed and independently verified; several different issue tasks timed out without edits; Rich #4250 0/1 | Task-qualified for the observed header-formatting task; otherwise experimental |
-| Qwen3.8 27B Q4 | Dual 10 GB GPUs | 8K–16K | Repeated registry/multi-file passes at 8K; several 16K Codex tasks incomplete; Rich #4250 0/1 | Experimental; stronger-task performance and practical responsiveness unqualified |
+| `mimo-v26-9b-codex-16k-hecate:latest` (MiMo-V2.6 9B Q4_K_M) | Hecate, RTX 4070 Ti 12 GB | 16,384 actual | New local fixture suite 4/5; 100% GPU residency; task wall time 29–107 s; first tool 2.3–4.7 s | Best tested local profile; suitable for supervised FAST/BALANCED and bounded COMPLEX tasks; not a broad daily-driver guarantee |
+| `qwen38-27b-q4-codex-64k:latest` (Qwen3.8 27B Q4) | Nyx, 2 × RTX 3080 | 65,536 actual | Smoke changed the requested file and passed its test, but no completed Codex turn by 180 s; 66.7% GPU / 33.3% CPU residency | Not recommended at 64K for interactive coding; the bounded run does not rank the 16K alias |
 | Qwen3.6 35B | Multi-GPU legacy node | Existing default | Remains the configured default; current evidence does not establish it as a dependable Codex agent | Preserve default; reassess only after controlled gate |
 
 A model's declared context maximum is not proof of runtime allocation. Catalog
 metadata and live `/api/ps` allocation must be reported separately. See the
-[operator guide](OPERATOR_GUIDE.md) for selection and context display.
+[operator guide](OPERATOR_GUIDE.md) and the
+[2026-11-09 local reliability scorecard](../benchmarks/results/local-model-reliability.md)
+for exact settings, task scores, and limitations.
 
 ## External benchmark context (not local acceptance)
 
@@ -31,7 +33,8 @@ card](https://huggingface.co/zai-org/GLM-5.3-Flash).
 These are vendor-reported results, not a controlled comparison and not results
 for our quantized local artifacts or Codex/Herd configuration. In particular,
 active parameter count does not equal total weight storage, and Herd does not
-pool VRAM across independent hosts. The current reliability goal remains ahead
-of offload-engine or hardware-layout experiments: keep Qwen3.8 Q4 as the
-advanced experimental profile, keep MiMo as a task-qualified fast profile, and
-make no default, hardware, or production-route changes based on public scores.
+pool VRAM across independent hosts. The new five-task local fixture run supports
+MiMo 9B Q4 at 16K for bounded supervised coding. Qwen3.8 Q4 at 64K remains slow
+and incomplete on the matched smoke; the run does not qualify or disqualify its
+separate 16K alias. No default, hardware, or production-route change is based on
+public model scores.

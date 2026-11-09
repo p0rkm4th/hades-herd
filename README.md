@@ -36,6 +36,8 @@ codex-herd                 # saved default model
 codex-herd list            # current fleet catalog and status
 codex-herd qwen-model-tag  # select an exact discovered model
 codex-herd config          # configure the default
+codex-herd config role balanced qwen-model-tag
+codex-herd role balanced   # launch the locally configured role
 codex-herd config show qwen-model-tag
 codex-herd refresh         # refresh discovery
 ```
@@ -51,6 +53,10 @@ separate. For unloaded models, configured `num_ctx` is advertised only when
 all online hosts report it; otherwise the client uses a 4K unverified safe
 fallback. This metadata is not a measurement of current Ollama allocation. Run
 `codex-herd --help` for the command interface. See the [operator guide](docs/OPERATOR_GUIDE.md).
+
+Role assignments are deployment-local entries in `~/.config/codex-herd/preferences.json`.
+They do not change the saved default. An unassigned role reports an actionable
+error and never switches to a hosted provider.
 
 ## Safety and limits
 

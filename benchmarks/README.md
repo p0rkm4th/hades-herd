@@ -32,6 +32,29 @@ private network details, prompts with user data, or credentials.
 See [`results/2026-11-07-reliability-baseline.md`](results/2026-11-07-reliability-baseline.md)
 for a concise baseline.
 
+## Local model coding reliability
+
+`run_local_reliability.py` creates a fresh temporary Git repository per task,
+checks baseline tests, launches the installed Fish `codex-herd` command with a
+fresh HOME and explicit local model, then runs pytest and independent contract
+checks. It removes hosted API credentials, caps each run at 180 seconds, kills
+the process group on timeout, and emits only sanitized event counts and test
+results. Raw Codex output and task workspaces are not retained. The fixtures
+are in `fixtures/local_coding_reliability.py`.
+
+Example:
+
+```sh
+python3 benchmarks/run_local_reliability.py \
+  --model mimo-v26-9b-codex-16k-hecate:latest --context 16384 --phase full
+```
+
+The runner uses an installed pytest or an isolated `uv run --with pytest`
+environment; it does not install packages globally. A pass requires a completed
+Codex turn, allowed source edits, passing pytest, and a separate contract check.
+The human-readable scorecard records exact tested model IDs and the limits of
+the small fixtures. Do not treat it as a substitute for a user's project tests.
+
 ## Deterministic Codex tool-router check
 
 `fixtures/mock_codex_tool_router.py` is a loopback-only mock for separating a

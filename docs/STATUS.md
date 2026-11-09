@@ -60,6 +60,27 @@ No crash or OOM was observed; available logs do not distinguish silent model
 generation from Herd withholding SSE events. No timeout, routing, or default
 change is justified. See the [sanitized investigation](../benchmarks/results/2026-11-09-qwen38-codex-idle-timeout.md).
 
+## Local model coding reliability — 2026-11-09
+
+The reproducible local-only fixture runner exercised MiMo 9B Q4 at a verified
+16,384 context on four of five distinct task categories. Bug fix, feature,
+multi-file, and log-driven debugging tasks completed with passing pytest and
+independent checks; a behavior-preserving refactor passed pytest but missed the
+required helper extraction contract. MiMo had 100% GPU residency, 2.3–4.7s to
+first tool action, and 29–107s task time. This meets the scoped 4/5 target, not
+the separate daily-driver gate. Qwen3.8 27B Q4 at 65,536 changed the smoke file
+and passed its test but failed to complete a Codex turn by 180s; its measured
+residency was 66.7% GPU / 33.3% CPU. The run did not distinguish slow offloaded
+inference from model progress failure. See the [full scorecard](../benchmarks/results/local-model-reliability.md).
+
+The CLI now supports local role mappings (`fast`, `balanced`, `complex`),
+stored in deployment-local preferences. Each is mapped to the tested MiMo 16K
+profile for bounded coding tasks. Role assignment does not change the saved
+default; an unconfigured role errors without hosted fallback. The installed
+Fish launcher passed real task runs and a role-selection integration test.
+Existing Python tests pass 27/27. No Ollama/Herd configuration, route, alias,
+or default changed.
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
@@ -124,7 +145,8 @@ change is justified. See the [sanitized investigation](../benchmarks/results/202
   Published scores remain directional only; no offload experiment, model pull,
   hardware change, or production route/default change is planned during this
   reliability phase.
-- No profile meets the 20 varied-task / 85% pass@1 daily-driver gate.
+- No profile meets the 20 varied-task / 85% pass@1 daily-driver gate; the new
+  MiMo 4/5 result is limited to five small deterministic fixtures.
 - The first GitHub Actions matrix run passed on Python 3.11–3.14 but failed on
   3.10 because the tests imported `tomllib`. The tests now decode the generated
   string field with the standard library; the follow-up
@@ -132,11 +154,12 @@ change is justified. See the [sanitized investigation](../benchmarks/results/202
 
 ## Current decision
 
-Keep the deployed default unchanged. Both model-specific profiles passed one
-small real CLI coding smoke, but MiMo failed three reproduced maintenance tasks
-and Level A is not accepted. Limit local use to supervised, low-risk edits with
-clear tests and independent review. Stop stalled or repetitive sessions and
-use the explicit hosted fallback described in the operator guide.
+Keep the deployed default unchanged. MiMo 9B Q4 at 16K is the best tested local
+profile for bounded, supervised coding; Qwen3.8 27B Q4 at 64K did not complete
+the matched smoke within its limit. Earlier MiMo maintenance failures remain
+valid limits outside the new fixture scope. Stop stalled or repetitive
+sessions, verify the diff and tests, and use a hosted model only by an explicit
+separate operator command.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)
 and the [roadmap](ROADMAP.md).

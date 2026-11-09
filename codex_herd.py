@@ -25,6 +25,7 @@ PROFILE = CODEX_HOME / "herd.config.toml"
 DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
 MIN_STREAM_IDLE_TIMEOUT_MS = 30_000
 MAX_STREAM_IDLE_TIMEOUT_MS = 900_000
+ROLES = ("fast", "balanced", "complex")
 
 
 class HerdError(Exception):
@@ -371,6 +372,30 @@ def eligible(name: str, models: dict[str, dict]) -> dict:
     return model
 
 
+def assign_role(role: str, name: str, models: dict[str, dict], prefs: dict) -> None:
+    role = role.lower()
+    if role not in ROLES:
+        raise HerdError(f"Unknown role {role!r}. Choose one of: {', '.join(ROLES)}.")
+    model = eligible(name, models)
+    if not model.get("online_nodes"):
+        raise HerdError(f"{name} is not online and cannot be assigned to the {role} role.")
+    prefs.setdefault("roles", {})[role] = name
+    write_json(PREFS, prefs)
+
+
+def resolve_role(role: str, prefs: dict) -> str:
+    role = role.lower()
+    if role not in ROLES:
+        raise HerdError(f"Unknown role {role!r}. Choose one of: {', '.join(ROLES)}.")
+    name = prefs.get("roles", {}).get(role)
+    if not isinstance(name, str) or not name:
+        raise HerdError(
+            f"The {role} role is unsupported until you assign a validated local model: "
+            f"`codex-herd config role {role} <model-id>`. No hosted fallback is used."
+        )
+    return name
+
+
 def display_list(models: dict[str, dict], prefs: dict, fleet: dict) -> None:
     default = prefs.get("default_model")
     print("MODEL\tNODE(S)\tSIZE\tAVAILABILITY\tLOADED / CONTEXT\tCODEX CONTEXT\tMODEL MAX\tTOOLS\tDEFAULT")
@@ -386,6 +411,11 @@ def display_list(models: dict[str, dict], prefs: dict, fleet: dict) -> None:
         tools = (f"{m['tool_status']} ({m['tool_status_detail']})" if m["tool_status"] == "mixed" else m["tool_status"]) if m["tool_capable"] else ("embedding" if m["embedding_only"] else "not advertised")
         max_context = f"{m['model_context_window']:,}" if m["model_context_window"] else "unknown"
         print(f"{name}\t{','.join(m['online_nodes']) or ','.join(m['nodes']) or '?'}\t{size}\t{availability}\t{loaded}\t{codex_ctx}\t{max_context}\t{tools}\t{'*' if name == default else ''}")
+    configured_roles = prefs.get("roles", {})
+    role_summary = ", ".join(
+        f"{role}={configured_roles[role]}" for role in ROLES if configured_roles.get(role)
+    ) or "none"
+    print(f"Configured local roles: {role_summary}")
     queues = fleet.get("queues", {})
     if isinstance(queues, dict):
         pending = in_flight = 0
@@ -533,7 +563,7 @@ def launch(name: str, args: list[str], models: dict[str, dict], prefs: dict) -> 
 def main(argv: list[str]) -> int:
     try:
         if argv and argv[0] in {"-h", "--help", "help"}:
-            print("Usage: codex-herd [MODEL] [CODEX-ARGS...]\n       codex-herd list\n       codex-herd refresh\n       codex-herd config [MODEL]\n       codex-herd config show MODEL")
+            print("Usage: codex-herd [MODEL] [CODEX-ARGS...]\n       codex-herd role ROLE [CODEX-ARGS...]\n       codex-herd list\n       codex-herd refresh\n       codex-herd config [MODEL]\n       codex-herd config role ROLE MODEL\n       codex-herd config show MODEL")
             return 0
         models, fleet = fetch()
         prefs = read_prefs()
@@ -550,6 +580,11 @@ def main(argv: list[str]) -> int:
                 write_json(PREFS, prefs)
             return launch(name, argv[1:] if argv[:1] == ["--"] else [], models, prefs)
         command = argv[0]
+        if command == "role":
+            if len(argv) < 2:
+                raise HerdError(f"Usage: codex-herd role <{'|'.join(ROLES)}> [CODEX-ARGS...]")
+            name = resolve_role(argv[1], prefs)
+            return launch(name, argv[2:], models, prefs)
         if command == "list":
             display_list(models, prefs, fleet)
             return 0
@@ -560,6 +595,10 @@ def main(argv: list[str]) -> int:
         if command == "config":
             if len(argv) == 3 and argv[1] == "show":
                 config_show(argv[2], models, prefs)
+                return 0
+            if len(argv) == 4 and argv[1] == "role":
+                assign_role(argv[2], argv[3], models, prefs)
+                print(f"Configured {argv[2].lower()} role: {argv[3]}")
                 return 0
             name = argv[1] if len(argv) > 1 else prefs.get("default_model")
             configure(name, models, prefs)

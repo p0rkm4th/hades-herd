@@ -88,6 +88,21 @@ class LauncherSubprocessTests(unittest.TestCase):
                 result = json.loads(capture.read_text())
                 self.assertEqual(result["args"][-1], "--help")
                 self.assertIn('"X-Fleet-No-Fallback" = "true"', result["profile"])
+
+                pref.write_text(json.dumps({
+                    "default_model": "alpha:latest",
+                    "models": {},
+                    "roles": {"balanced": "alpha:latest"},
+                }))
+                third = subprocess.run(
+                    ["python3", str(helper), "role", "balanced", "--help"], env=env,
+                    text=True, capture_output=True, timeout=10,
+                )
+                self.assertEqual(third.returncode, 23, third.stderr)
+                result = json.loads(capture.read_text())
+                self.assertIn("alpha:latest", result["args"])
+                self.assertEqual(result["args"][-1], "--help")
+                self.assertEqual(json.loads(pref.read_text())["default_model"], "alpha:latest")
         finally:
             server.shutdown()
             server.server_close()
