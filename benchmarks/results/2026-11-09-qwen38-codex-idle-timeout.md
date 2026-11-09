@@ -29,10 +29,15 @@ bounded harness.
 Reducing context and CPU offload did not demonstrate improved completion. The
 evidence is consistent with a model response that stopped producing Codex
 events, but it does not distinguish silent model generation from events
-withheld in Herd's Responses/SSE adapter. Herd service logs were unavailable
-through the attempted strict-key route because no trusted host key was known;
-host-key checking was not bypassed. No service timeout or routing change is
-justified by this evidence.
+withheld in Herd's Responses/SSE adapter. The documented strict-key route via
+Erebus/CT 854 was verified. Herd's access journal records eight successful
+`POST /v1/responses` requests from the workstation during the 64K task window
+(01:31:05–01:37:46 UTC), with no request completion near the Codex timeout at
+01:42:52 UTC. The 32K task window likewise has six completed HTTP 200
+Responses requests (02:02:51–02:04:55 UTC); the journal does not record stream
+progress or request duration. Thus Herd routing succeeded for the completed
+turns, but the silent interval's origin remains unresolved. No service timeout
+or routing change is justified by this evidence.
 
 ## Outcome
 
