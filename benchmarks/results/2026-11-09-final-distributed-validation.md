@@ -2,23 +2,22 @@
 
 ## Hecate identity
 
-Distributed testing stopped before SSH access. The infrastructure onboarding
-record identifies Hecate as `fe80::67c:16ff:fe47:b5fa` / global
-`2600:1700:1301:6030::48`, but also explicitly says its first-use host key
-was accepted after password-authenticated access without independent
-fingerprint verification. A saved first-use key is not an independent trust
-source. Required operator action: read Hecate's ED25519 SSH host-key
-fingerprint from its trusted local console and compare it with the presented
-key before authorizing its use. Strict SSH checking remains enabled; no
-fingerprint was accepted or changed.
+Authenticated SSH access works over Hecate's documented wired IPv6 link-local
+address `fe80::67c:16ff:fe47:b5fa` using the existing Codex identity and
+`StrictHostKeyChecking=yes`; the remote hostname is `hecate`. My earlier
+attempt used the IPv4 address, which had no matching known-host entry, and
+incorrectly treated that as lack of SSH access. The infrastructure record says
+the link-local key was first accepted after password-authenticated access but
+was not independently fingerprint-checked out of band. No key was added,
+removed, or replaced; SSH's existing strict pin matched.
 
 ## Nyx network route
 
-Nyx routes to Hecate's documented global IPv6 address over `enp4s0`. The
-interface reports UP/LOWER_UP and `/sys/class/net/enp4s0/speed` reports 100
-Mb/s, so this is an active 100 Mb/s link. This is inadequate for a practical
-RPC tensor-split comparison; no `iperf3` test or distributed benchmark was
-run. No network settings changed.
+Nyx routes to Hecate's documented global IPv6 address over `enp4s0`; it is
+UP/LOWER_UP and reports 100 Mb/s. Hecate's `enp4s0` is also UP/LOWER_UP and
+reports 1000 Mb/s. The Nyx link is the bottleneck and is inadequate for a
+practical RPC tensor-split comparison, so no `iperf3` test or distributed
+benchmark was run. No network settings changed.
 
 ## Herd Responses streaming
 
@@ -35,5 +34,6 @@ long Codex session remains unresolved.
 | Nyx + Hecate | Not run | Not run | Not measured | Not measured | Blocked by unverified host identity and 100 Mb/s Nyx link |
 
 No model, service, build, or configuration was changed. Keep inference nodes
-independent. Reconsider RPC only after Hecate's host key is independently
-verified and Nyx has a faster inter-node connection.
+independent. Reconsider RPC after upgrading Nyx's inter-node link; the existing
+strict SSH pin allowed verified access, although its initial fingerprint was
+not checked out of band.
