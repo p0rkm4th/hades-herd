@@ -30,8 +30,8 @@ long Codex session remains unresolved.
 
 | Configuration | Prompt tok/s | Generation tok/s | TTFT | GPU participation | Result |
 |---|---:|---:|---:|---|---|
-| Nyx only | Not run | Not run | Not measured | Not measured for this fixture | Blocked before RPC setup |
-| Nyx + Hecate | Not run | Not run | Not measured | Not measured | Blocked by unverified host identity and 100 Mb/s Nyx link |
+| Nyx only | Not run | Not run | Not measured | Not measured for this fixture | Not run; stopped at inadequate network link |
+| Nyx + Hecate | Not run | Not run | Not measured | Not measured | Not run; Nyx link bottleneck is 100 Mb/s |
 
 No model, service, build, or configuration was changed. Keep inference nodes
 independent. Reconsider RPC after upgrading Nyx's inter-node link; the existing
