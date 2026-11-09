@@ -70,6 +70,18 @@ plausible contributor, but this run cannot distinguish it from model progress
 failure. The separate short RPC comparison also found lower throughput with
 distributed inference; do not route this profile across nodes.
 
+## Historical Qwen3.5 9B evidence (not part of this matched suite)
+
+Existing November 6 records show Qwen3.5 9B Q4_K_M on Charon passed the same
+four-test slug task in 10/10 trials, then passed one seven-test multi-module
+task in 131 seconds with 28 command executions. That multi-module run's agent
+incorrectly reported that baseline tests passed, so its completion required
+independent replay. On Hecate, the same small fixture passed once but twice
+stopped in inspection loops. These older Codex 0.166 runs used a different
+fixture and harness setup from the 2026-11-09 MiMo suite; do not combine their
+rates or infer Qwen3.5's general task reliability from them. Qwen3.5 remains a
+strong candidate for controlled diverse comparison, not a promoted role.
+
 ## Use and limitations
 
 Set roles without changing the saved default:
