@@ -51,6 +51,15 @@ prompt intervention did not qualify as a pass or demonstrate a reliable gain.
 The scorecard update passed Python 3.10–3.14 CI in
 [run 42455432087](https://github.com/p0rkm4th/hades-herd/actions/runs/42455432087).
 
+## Qwen3.8 64K timeout follow-up — 2026-11-09
+
+A multi-step `codex-herd doctor` task stalled for five minutes on 64K and
+returned Codex's SSE idle-timeout error. A same-task 32K comparison reduced
+CPU offload but also failed to return a final response before its harness cap.
+No crash or OOM was observed; available logs do not distinguish silent model
+generation from Herd withholding SSE events. No timeout, routing, or default
+change is justified. See the [sanitized investigation](../benchmarks/results/2026-11-09-qwen38-codex-idle-timeout.md).
+
 ## Works
 
 - The dependency-free Python helper discovers a live Herd catalog and
