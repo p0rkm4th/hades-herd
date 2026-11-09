@@ -183,3 +183,24 @@ separate operator command.
 
 See [sanitized evidence](../benchmarks/results/2026-11-07-reliability-baseline.md)
 and the [roadmap](ROADMAP.md).
+
+
+## Long-run harness reliability follow-up — 2026-11-09
+
+Preserved Hermes and Codex-Herd JSONL implementations/tests separately outside
+`/tmp`, and added an independent CLI acceptance fixture. Both self-authored
+suites and the shared base CLI check pass. The separate valid timezone-offset
+check passes Hermes but fails Codex (`+00:00` is counted as skipped), despite
+Codex's 19/19 self-authored tests. Operator-observed long runs also recorded
+approval timeouts/compaction for Hermes, and at least three compactions, many
+failed corrections, budget overruns, and false no-compaction/no-error claims
+for Codex. The 6.17M token checkpoint is cumulative consumption, not context
+occupancy. The independent 41.27s Codex smoke remains a separate bounded result.
+Neither harness is promoted as an unattended daily driver. See the
+[scorecard](../benchmarks/results/2026-11-09-harness-longrun-scorecard.md).
+
+An opt-in `scripts/codex_herd_supervisor.py` now enforces wall time, tool-call,
+repetition, and consecutive tool-failure limits and stores a private recovery
+checkpoint plus JSONL/stderr logs. A regression test confirms silent child
+processes are terminated at the wall limit. Token enforcement depends on
+usage events being reported by Codex; no production profile/default changed.

@@ -71,6 +71,27 @@ change. These are operator stop cues, not automatic timeouts. Unsupported
 tool errors and context exhaustion are reasons to stop and review the partial
 diff rather than retry blindly.
 
+For a locally enforced Codex-Herd run, use the supervisor from an isolated
+worktree. It stops on wall time, tool count, repeated commands, consecutive
+failed tools, or cumulative token usage reported by Codex events. JSONL logs
+and a mode-0600 recovery checkpoint remain in a mode-0700 directory; inspect
+the partial worktree before resuming. Token limits can only be enforced when
+the backend reports usage events.
+
+```sh
+python3 /path/to/hades-herd/scripts/codex_herd_supervisor.py \
+  --workspace "$PWD" --goal "Fix the fixture defect" \
+  --acceptance "pytest passes and only the target file changes" \
+  --wall-seconds 180 --max-tool-calls 24 --max-identical 2 \
+  --max-failures 2 --max-tokens 500000 -- \
+  codex-herd role balanced exec --json --sandbox workspace-write \
+  "Fix the defect and run the focused test."
+```
+
+The checkpoint records started/completed tool actions, changed paths, and the
+latest failed test output. It does not restore an agent session or certify
+completion; independently inspect the diff and rerun acceptance tests.
+
 ## Verify
 
 ```sh

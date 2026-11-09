@@ -39,3 +39,13 @@ MiMo 9B Q4 at 16K for bounded supervised coding. Qwen3.8 Q4 at 64K remains slow
 and incomplete on the matched smoke; the run does not qualify or disqualify its
 separate 16K alias. No default, hardware, or production-route change is based on
 public model scores.
+
+
+## Long-run harness evidence
+
+The user-observed Hermes (~15m27s) and Codex-Herd (~43m across visible
+segments) JSONL tasks are separate long runs. Despite 14/14 and 19/19
+self-authored tests, the agent-reported outcomes conflict with resource and
+compaction observations; Codex also failed a new black-box timezone-offset
+check. Neither harness is qualified as an unattended daily driver by these
+runs. See the [long-run comparison](../benchmarks/results/2026-11-09-harness-longrun-scorecard.md).
