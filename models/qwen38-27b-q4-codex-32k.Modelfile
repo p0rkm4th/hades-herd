@@ -1,0 +1,2 @@
+FROM qwen38-27b-q4-codex-16k:latest
+PARAMETER num_ctx 32768
