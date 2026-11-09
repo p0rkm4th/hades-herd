@@ -8,6 +8,7 @@ universal model build or imply general capability.
 | Profile | Hardware class | Context tested | Evidence | Status |
 |---|---|---:|---|---|
 | `mimo-v26-9b-codex-16k-hecate:latest` (MiMo-V2.6 9B Q4_K_M) | Hecate, RTX 4070 Ti 12 GB | 16,384 actual | New local fixture suite 4/5; 100% GPU residency; task wall time 29–107 s; first tool 2.3–4.7 s | Best tested local profile; suitable for supervised FAST/BALANCED and bounded COMPLEX tasks; not a broad daily-driver guarantee |
+| `mimo-v26-9b-codex-64k-hecate:latest` (same MiMo 9B Q4_K_M weights) | Hecate, RTX 4070 Ti 12 GB | 65,536 actual | 100% GPU residency; 8,463 / 12,282 MiB used after smoke; Codex tool task completed in 41.27 s (first tool 3.44 s), 9 tool calls, 17 independent tests passed; prior Hermes JSONL task passed | Qualified opt-in LONG for bounded coding; one Codex task only, not a broad reliability guarantee |
 | `qwen38-27b-q4-codex-64k:latest` (Qwen3.8 27B Q4) | Nyx, 2 × RTX 3080 | 65,536 actual | Smoke changed the requested file and passed its test, but no completed Codex turn by 180 s; 66.7% GPU / 33.3% CPU residency | Not recommended at 64K for interactive coding; the bounded run does not rank the 16K alias |
 | Qwen3.6 35B | Multi-GPU legacy node | Existing default | Remains the configured default; current evidence does not establish it as a dependable Codex agent | Preserve default; reassess only after controlled gate |
 

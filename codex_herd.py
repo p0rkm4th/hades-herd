@@ -25,7 +25,16 @@ PROFILE = CODEX_HOME / "herd.config.toml"
 DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
 MIN_STREAM_IDLE_TIMEOUT_MS = 30_000
 MAX_STREAM_IDLE_TIMEOUT_MS = 900_000
-ROLES = ("fast", "balanced", "complex")
+ROLES = ("fast", "balanced", "complex", "long")
+
+FRIENDLY_MODEL_DESCRIPTORS = {
+    "mimo-v26-9b-codex-16k-hecate:latest": ("MiMo 9B", "Coding (4/5)"),
+    "mimo-v26-9b-codex-64k-hecate:latest": ("MiMo 9B", "Long-context coding smoke"),
+    "mimo-v26-9b-codex-16k-charon:latest": ("MiMo 9B", "Coding profile"),
+    "qwen38-27b-q4-codex-16k:latest": ("Qwen3.8 27B", "Experimental"),
+    "qwen38-27b-q4-codex-32k:latest": ("Qwen3.8 27B", "Unqualified"),
+    "qwen38-27b-q4-codex-64k:latest": ("Qwen3.8 27B", "Unqualified"),
+}
 
 
 class HerdError(Exception):
@@ -253,7 +262,7 @@ def codex_entry(model: dict, prefs: dict) -> dict:
         modalities.append("image")
     return {
         "slug": name,
-        "display_name": name,
+        "display_name": friendly_model_name(model, context, context_source),
         "context_window": context,
         "context_source": context_source,
         "shell_type": "default",
@@ -270,6 +279,42 @@ def codex_entry(model: dict, prefs: dict) -> dict:
         "supported_reasoning_levels": [],
         "experimental_supported_tools": [],
     }
+
+
+def friendly_model_name(model: dict, context: int, context_source: str) -> str:
+    """Present a readable label while preserving the exact backend slug."""
+    name = model["name"]
+    descriptor = FRIENDLY_MODEL_DESCRIPTORS.get(name)
+    if descriptor:
+        family, qualification = descriptor
+    else:
+        family = str(model.get("family") or name.split(":", 1)[0])
+        family_labels = {
+            "mimo": "MiMo",
+            "qwen3": "Qwen3",
+            "qwen3.5": "Qwen3.5",
+            "qwen3.6": "Qwen3.6",
+            "qwen3.8": "Qwen3.8",
+            "gemma": "Gemma",
+            "devstral": "Devstral",
+            "gpt-oss": "GPT-OSS",
+        }
+        family = family_labels.get(family.lower(), family.replace("-", " ").title())
+        size = model.get("parameter_size")
+        family += f" {size}" if size else ""
+        tool_status = model.get("tool_status", "unverified")
+        qualification = {
+            "mixed": "Mixed tool evidence",
+            "inconsistent": "Inconsistent tool evidence",
+        }.get(
+            tool_status,
+            "Candidate"
+            if tool_status == "verified" and "unverified" not in context_source
+            else "Unverified",
+        )
+    nodes = ", ".join(str(node).title() for node in model.get("online_nodes", [])) or "Offline"
+    context_label = f"{context // 1024}K" if context % 1024 == 0 else f"{context:,} tokens"
+    return f"HADES {family} | {qualification} | {context_label} | {nodes}"
 
 
 def stream_idle_timeout_ms(name: str, prefs: dict) -> int | None:

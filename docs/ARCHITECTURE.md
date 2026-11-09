@@ -26,6 +26,13 @@ fleet/model allowlist is published. Per-model user preferences are opt-in. Conte
 metadata, actual backend allocation, model-declared maximum, and Codex's budget
 are displayed separately where available.
 
+Generated Codex catalog entries keep the canonical Herd model ID in `slug` and
+use a separate `display_name` for the friendly HADES label. Context labels are
+derived from the effective catalog context; they do not replace the backend
+identifier or claim that an unqualified model is agent-reliable. FAST,
+BALANCED, COMPLEX, and LONG are local preference mappings only. An unassigned
+role fails locally and never falls back to hosted inference.
+
 The helper does not manage Herd nodes, change Ollama services, pull models,
 modify firewall rules, or alter production provider routing. Keep direct Ollama
 endpoints available as an operational fallback.

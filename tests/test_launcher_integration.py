@@ -79,6 +79,11 @@ class LauncherSubprocessTests(unittest.TestCase):
                 self.assertIn('model = "alpha:latest"', result["profile"])
                 self.assertIn('model_provider = "herd"', result["profile"])
                 self.assertEqual(result["catalog"]["models"][0]["context_window"], 16384)
+                self.assertEqual(result["catalog"]["models"][0]["slug"], "alpha:latest")
+                self.assertEqual(
+                    result["catalog"]["models"][0]["display_name"],
+                    "HADES Test | Unverified | 16K | Node-A",
+                )
                 pref = root / "home/.config/codex-herd/preferences.json"
                 self.assertEqual(json.loads(pref.read_text())["default_model"], "alpha:latest")
 

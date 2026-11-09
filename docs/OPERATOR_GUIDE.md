@@ -12,11 +12,27 @@ credentials, query strings, and fragments.
   loaded state, context metadata, tool evidence, and the saved default.
 - `codex-herd MODEL` launches the exact live model through Herd.
 - `codex-herd role fast|balanced|complex` launches that locally configured role.
+- `codex-herd role long` launches the explicitly assigned Hecate MiMo 64K
+  profile for longer inputs and bounded coding tasks.
 - `codex-herd config` edits the default and supported per-model preferences.
 - `codex-herd config role ROLE MODEL` maps a role to a live, tool-capable local model.
 - `codex-herd config show MODEL` distinguishes the Codex context budget from
   observed backend allocation and model metadata.
 - `codex-herd refresh` refreshes discovery and generated profile state.
+
+Hermes aliases are configured locally, separately from its saved default. On
+the HADES workstation, the opt-in shortcuts are `hades-mimo-fast` (the verified
+16K MiMo profile) and `hades-mimo-long` (the 64K MiMo profile):
+
+```sh
+hermes -m hades-mimo-fast chat
+hermes -m hades-mimo-long chat
+```
+
+The 64K shortcuts use the same canonical Hecate model ID. A bounded Codex task
+completed with shell tools, a source edit, and 17 independently passing tests
+in 41.27 s (first tool action 3.44 s). This is one task, not a broad reliability
+claim; inspect the diff and test results. Codex command: `codex-herd role long`.
 
 Unknown, offline, embedding-only, or ineligible models produce an error. The
 helper does not download or substitute a model. User config is isolated under

@@ -1,5 +1,25 @@
 # Current status — 2026-11-08
 
+## Agent profile naming and context — 2026-11-09
+
+Generated Codex catalogs now separate friendly HADES display labels from the
+canonical Herd model slug and use the effective Codex context in the label.
+The LONG role is assigned to Hecate MiMo 64K after a bounded tool-driven Codex
+task completed and its independent tests passed. FAST/BALANCED/COMPLEX mappings
+and the saved `qwen3.6:35b` default are unchanged.
+
+Hecate's separate MiMo 64K alias is present in live Herd discovery and was
+observed at 65,536 actual context, fully GPU resident (8,455 / 12,282 MiB
+used). The Codex smoke completed in 41.27 s, first tool action in 3.44 s, with
+9 tool calls and 17 independent tests passing. The prior Hermes JSONL fixture
+also passed. This is limited evidence from one coding task, not a broad
+reliability guarantee. See the [dated profile evaluation](../benchmarks/results/2026-11-09-agent-profile-context.md).
+
+Hermes' local default profile gained opt-in `hades-mimo-fast` and
+`hades-mimo-long` aliases. Its saved default model and provider were not
+changed. The private infrastructure report records exact digests, live fleet
+inventory, reversible changes, and the request-state discrepancy.
+
 The project is public at [p0rkm4th/hades-herd](https://github.com/p0rkm4th/hades-herd).
 The initial source, tests, and sanitized evidence are on `main`; the HADES
 workstation launcher now uses this checkout as its canonical source. The live
