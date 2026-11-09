@@ -1,5 +1,15 @@
 # Current status — 2026-11-08
 
+## Security-model feasibility — 2026-11-09
+
+Cyber-Ornith 1.5 9B OBLITERATED i1 Q4_K_M was imported from a pinned,
+checksum-verified GGUF into an isolated loopback-only Ollama runtime. One
+bounded benign tool-call cycle passed at 8K with 100% GPU residency and Q8_0
+KV cache. This is not a security-capability benchmark and does not qualify a
+`SECURITY-LAB` route; the model remains unregistered and isolated. Flash
+Attention was requested in the runtime environment, but explicit backend
+confirmation was unavailable. See the [feasibility report](../benchmarks/results/2026-11-09-security-lab-feasibility.md).
+
 ## Agent profile naming and context — 2026-11-09
 
 Generated Codex catalogs now separate friendly HADES display labels from the
@@ -204,3 +214,14 @@ repetition, and consecutive tool-failure limits and stores a private recovery
 checkpoint plus JSONL/stderr logs. A regression test confirms silent child
 processes are terminated at the wall limit. Token enforcement depends on
 usage events being reported by Codex; no production profile/default changed.
+
+## MiMo 64K retrieval follow-up — 2026-11-09
+
+An explicit Hermes `localherd` request using `hades-mimo-long` retrieved a
+marker placed before 27,000 filler words and wrote it through the terminal
+tool. It completed in 16.38 seconds and the output matched independently.
+The backend allocated 65,536 context. The prompt's token count and tool-call
+count were unavailable, so this validates a long-prompt/tool path, not full
+64K saturation or a coding-role reliability claim. The first harness attempt
+was rejected by the OS argument-size limit before inference; the bounded
+27,000-word retry succeeded. See the [probe report](../benchmarks/results/2026-11-09-mimo-64k-long-context.md).
