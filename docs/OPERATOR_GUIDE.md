@@ -20,14 +20,22 @@ credentials, query strings, and fragments.
   observed backend allocation and model metadata.
 - `codex-herd refresh` refreshes discovery and generated profile state.
 
-Hermes aliases are configured locally, separately from its saved default. On
-the HADES workstation, the opt-in shortcuts are `hades-mimo-fast` (the verified
-16K MiMo profile) and `hades-mimo-long` (the 64K MiMo profile):
+Hermes aliases are configured locally, separately from its saved default.
+Hermes Agent v0.23.0 requires at least 64K backend context, so `mimo-code`
+selects the validated MiMo 64K profile. `hades-mimo-long` remains as a
+compatibility alias:
 
 ```sh
-hermes -m hades-mimo-fast chat
+hermes -m mimo-code chat
 hermes -m hades-mimo-long chat
 ```
+
+The previous `hades-mimo-fast` shortcut selected the 16K alias and failed
+Hermes' 64K minimum-context check; it has been removed from active Hermes
+configuration. The Codex 16K profile remains available through Codex-Herd.
+The Codex catalog uses concise names such as `MiMo 9B | Coding (4/5) | 16K`;
+the canonical backend slug remains the model ID used for requests. Neither
+these names nor aliases change the saved Hermes/Codex model default.
 
 The 64K shortcuts use the same canonical Hecate model ID. A bounded Codex task
 completed with shell tools, a source edit, and 17 independently passing tests

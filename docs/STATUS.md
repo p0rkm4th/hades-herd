@@ -1,4 +1,4 @@
-# Current status — 2026-11-08
+# Current status — 2026-11-09
 
 ## Security-model feasibility — 2026-11-09
 
@@ -8,7 +8,9 @@ bounded benign tool-call cycle passed at 8K with 100% GPU residency and Q8_0
 KV cache. This is not a security-capability benchmark and does not qualify a
 `SECURITY-LAB` route; the model remains unregistered and isolated. Flash
 Attention was requested in the runtime environment, but explicit backend
-confirmation was unavailable. See the [feasibility report](../benchmarks/results/2026-11-09-security-lab-feasibility.md).
+confirmation was unavailable. Follow-up synthetic checks exposed incomplete
+answers, unsupported SSH claims, and invalid Sigma rules; Cyber-Ornith is not
+qualified for security analysis. See the [feasibility report](../benchmarks/results/2026-11-09-security-lab-feasibility.md).
 
 ## Agent profile naming and context — 2026-11-09
 
@@ -25,10 +27,12 @@ used). The Codex smoke completed in 41.27 s, first tool action in 3.44 s, with
 also passed. This is limited evidence from one coding task, not a broad
 reliability guarantee. See the [dated profile evaluation](../benchmarks/results/2026-11-09-agent-profile-context.md).
 
-Hermes' local default profile gained opt-in `hades-mimo-fast` and
-`hades-mimo-long` aliases. Its saved default model and provider were not
-changed. The private infrastructure report records exact digests, live fleet
-inventory, reversible changes, and the request-state discrepancy.
+Hermes' active local aliases are `mimo-code` and compatibility
+`hades-mimo-long`, both selecting the tested 64K backend. The 16K
+`hades-mimo-fast` alias failed Hermes' pre-inference minimum-context check and
+was removed. Hermes' saved default model/provider and empty fallback list were
+not changed. The private infrastructure report records exact digests, live
+fleet inventory, reversible changes, and the request-state discrepancy.
 
 The project is public at [p0rkm4th/hades-herd](https://github.com/p0rkm4th/hades-herd).
 The initial source, tests, and sanitized evidence are on `main`; the HADES
@@ -225,3 +229,13 @@ count were unavailable, so this validates a long-prompt/tool path, not full
 64K saturation or a coding-role reliability claim. The first harness attempt
 was rejected by the OS argument-size limit before inference; the bounded
 27,000-word retry succeeded. See the [probe report](../benchmarks/results/2026-11-09-mimo-64k-long-context.md).
+
+## Model naming cleanup — 2026-11-09
+
+Generated Codex catalog labels no longer prepend `HADES` to every model; the
+canonical model slug stays unchanged. Hermes now has the short `mimo-code`
+alias pointing to the verified 64K MiMo profile. A smoke first confirmed
+Hermes rejects the 16K model because v0.23.0 requires 64K, so the unsupported
+`hades-mimo-fast` shortcut was removed. The prior `hades-mimo-long` alias is
+retained. The corrected alias completed a local one-shot in 7.2 s. No saved
+default or provider changed. See the private Hermes alias acceptance record.

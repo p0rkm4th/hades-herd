@@ -66,7 +66,7 @@ class RoleMappingTests(unittest.TestCase):
         self.assertEqual(entry["context_window"], 16384)
         self.assertEqual(
             entry["display_name"],
-            "HADES MiMo 9B | Coding (4/5) | 16K | Local-Node",
+            "MiMo 9B | Coding (4/5) | 16K | Local-Node",
         )
 
     def test_offline_model_cannot_be_assigned(self):

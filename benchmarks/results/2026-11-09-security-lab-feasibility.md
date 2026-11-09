@@ -33,6 +33,18 @@ registered with Herd, Codex-Herd, or Hermes. This remains an unqualified,
 opt-in security-lab candidate; do not use it against public or production
 targets.
 
+Follow-up synthetic analysis screens on 2026-11-09 failed accuracy/format
+gates. The combined Nmap/SSH/Sigma request omitted requested sections and
+returned malformed Sigma structure. A focused CVE check correctly rejected
+Apache CVE-2021-41773 for the supplied Nginx service. One broad SSH review
+made an unsupported `AllowUsers` claim; a focused retry interpreted
+`AllowUsers deploy` correctly and did not infer weak passwords. A separate
+Sigma check again had incorrect product/service fields and no valid selection
+and condition. These results disqualify Cyber-Ornith from a security role;
+the bounded tool smoke above remains a distinct feasibility result. The
+synthetic fixture and private run artifacts are retained in the HADES
+infrastructure acceptance record.
+
 The separate Ollama process and all GPU allocations were released afterward;
 production defaults and services were left unchanged. Private runtime details
 and reproducible command evidence are retained in the infrastructure-only

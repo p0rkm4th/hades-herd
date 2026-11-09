@@ -314,7 +314,7 @@ def friendly_model_name(model: dict, context: int, context_source: str) -> str:
         )
     nodes = ", ".join(str(node).title() for node in model.get("online_nodes", [])) or "Offline"
     context_label = f"{context // 1024}K" if context % 1024 == 0 else f"{context:,} tokens"
-    return f"HADES {family} | {qualification} | {context_label} | {nodes}"
+    return f"{family} | {qualification} | {context_label} | {nodes}"
 
 
 def stream_idle_timeout_ms(name: str, prefs: dict) -> int | None:
