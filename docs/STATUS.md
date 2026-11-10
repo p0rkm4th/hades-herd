@@ -290,6 +290,17 @@ small to emit a tool call, so it was inconclusive. Keep 64K for practical use;
 was unloaded and production settings were unchanged. See the
 [sanitized measurements](../benchmarks/results/2026-11-10-qwen35-128k-long-prompt.md).
 
+## MiMo 9B 128K screen — 2026-11-10
+
+The existing Hecate MiMo alias accepted request-scoped 131,072 context and
+allocated 9.90 GB entirely in GPU memory. Two bounded attempts on the same
+75K-token marker/tool fixture (default thinking, then one `think:false`
+correction) began streaming at 22.1/21.9 s but ended without a final event or
+the required tool call. No client/backend error or token counts were captured;
+the cause is not isolated. The test allocation was released and the original
+65,536 runner restored. Keep 64K as the longest reliable tested profile; do
+not create a 128K alias. See the [probe report](../benchmarks/results/2026-11-10-mimo-128k-context-screen.md).
+
 ## Gemma4 12B agent screen — 2026-11-10
 
 The local Hermes bug-fix smoke timed out at 180 s without tool use or edits,

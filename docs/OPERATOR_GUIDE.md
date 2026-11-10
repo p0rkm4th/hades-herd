@@ -52,6 +52,9 @@ Responses profiles with Herd's no-fallback header.
 
 The scoped local reliability benchmark selected MiMo-V2.6 9B Q4 at 16K: 4/5
 verified fixture tasks, 100% GPU residency, and 23–107 seconds per full task.
+MiMo request-scoped 128K on the 12 GB GPU allocated fully in VRAM but failed
+to complete the same long-prompt tool call in two attempts; keep the validated
+64K profile. See the [128K screen](../benchmarks/results/2026-11-10-mimo-128k-context-screen.md).
 Qwen3.8 27B Q4 at 64K failed to complete its smoke within 180 seconds and used
 about 33% CPU residency. Its 32K/64K tag manifests were removed on 2026-11-10.
 The orphan runner process was later terminated without restarting Ollama; both
