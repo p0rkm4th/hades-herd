@@ -26,6 +26,13 @@ Both attempts used 100% GPU residency and reported no client exception. Neither
 produced final prompt/decode token counts. The result does not isolate whether
 the cause is model/tool behavior or stream handling; no third request was run.
 
+A strict-key journal review confirmed that the backend processed 75,126 prompt
+tokens in 18.53 seconds (about 4,054 tokens/s), with no OOM, runner crash, or
+backend error during the request window. The direct test used Ollama NDJSON,
+not Herd Responses/SSE. Prefill succeeded; the available evidence cannot
+separate model/tool completion behavior from Ollama stream closure because raw
+generation chunks were not retained.
+
 The test allocation was unloaded. A short request restored the original
 65,536 allocation at 7,682,517,892 bytes of VRAM. No service restart or
 production configuration change occurred.

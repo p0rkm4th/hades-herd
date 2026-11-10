@@ -296,8 +296,10 @@ The existing Hecate MiMo alias accepted request-scoped 131,072 context and
 allocated 9.90 GB entirely in GPU memory. Two bounded attempts on the same
 75K-token marker/tool fixture (default thinking, then one `think:false`
 correction) began streaming at 22.1/21.9 s but ended without a final event or
-the required tool call. No client/backend error or token counts were captured;
-the cause is not isolated. The test allocation was released and the original
+the required tool call. Hecate logs show prefill completed 75,126 tokens at
+about 4,054 tokens/s with no OOM or backend error. This direct Ollama test did
+not use Herd's Responses/SSE adapter; the remaining cause is unresolved between
+model/tool completion and Ollama stream closure. The test allocation was released and the original
 65,536 runner restored. Keep 64K as the longest reliable tested profile; do
 not create a 128K alias. See the [probe report](../benchmarks/results/2026-11-10-mimo-128k-context-screen.md).
 
