@@ -279,3 +279,13 @@ unattended qualification. A separate repeated-failure fixture was halted by
 Hermes' `identical_call_streak_halt` in 17 s, confirming the runtime's
 identical-call guard for that case only. See the
 [report](../benchmarks/results/2026-11-10-hermes-bounded-qwen35-smoke.md).
+
+## Qwen3.5 long-context follow-up — 2026-11-10
+
+A corrected long-prompt request verified actual 131,072 backend context and
+exact tool-mediated retrieval over 75,312 prompt tokens. It completed in
+88.2 s, with 28% CPU offload; the earlier attempt's output cap had been too
+small to emit a tool call, so it was inconclusive. Keep 64K for practical use;
+128K is a one-run capability result, not a promoted profile. The test runner
+was unloaded and production settings were unchanged. See the
+[sanitized measurements](../benchmarks/results/2026-11-10-qwen35-128k-long-prompt.md).
