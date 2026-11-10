@@ -52,3 +52,12 @@ self-authored tests, the agent-reported outcomes conflict with resource and
 compaction observations; Codex also failed a new black-box timezone-offset
 check. Neither harness is qualified as an unattended daily driver by these
 runs. See the [long-run comparison](../benchmarks/results/2026-11-09-harness-longrun-scorecard.md).
+
+## Hermes 64K matched coding comparison (2026-11-09)
+
+| Hermes profile | Five-task result | Mean wall / first-tool latency | Decision |
+|---|---:|---:|---|
+| MiMo 9B Q4, `mimo-code` | 4/5 | 36.7 / 37.4 s | Faster; one multi-file contract failure. |
+| Qwen3.5 9B Q4, `qwen35` | 5/5 external checks; 4/5 strict terminal-only | 105.9 / 106.6 s | Slower, but all independent checks passed; one task used the code tool to execute pytest. |
+
+Both used local Herd inference, identical fixtures, a 180 s per-task cap, and offline validation. Neither is qualified for unattended work from this sample. Qwen3.5 64K was fully GPU resident (8,487/10,240 MiB) and passed exact long-prompt marker retrieval; 128K offloaded 28% to CPU and failed that retrieval contract. See [the sanitized report](../benchmarks/results/2026-11-09-hermes-qwen35-mimo-comparison.md). Select explicitly with `hermes -m mimo-code --provider localherd` or `hermes -m qwen35 --provider localherd`; the saved Hermes default is unchanged.

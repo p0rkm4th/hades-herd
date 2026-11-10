@@ -110,3 +110,7 @@ codex-herd MODEL --help
 
 `--help` forwarding checks Codex argument routing, not inference or task
 completion. Use the acceptance definitions in [benchmark methodology](../benchmarks/README.md).
+
+## Opt-in Hermes profiles
+
+The matched five-fixture comparison found MiMo 9B 64K faster (4/5, mean 36.7 s) and Qwen3.5 9B 64K slower but passing all external checks (5/5; strict terminal-tool compliance 4/5). These are supervised candidates, not unattended-driver qualifications. Launch explicitly with `hermes -m mimo-code --provider localherd` or `hermes -m qwen35 --provider localherd`. Do not change the saved default based on this small sample. The Qwen alias uses existing weights and is 100% GPU resident at 64K; its 128K profile offloaded to CPU and failed marker retrieval. Full evidence: [matched report](../benchmarks/results/2026-11-09-hermes-qwen35-mimo-comparison.md).
