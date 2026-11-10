@@ -68,6 +68,15 @@ Qwen3.6 35B remains the saved Codex default. An explicit Hermes `qwen36` alias
 is staged for isolated evaluation, but it has no verified Hermes coding result
 and must not be treated as a promoted agent profile.
 
+## Hermes Gemma4 12B coding screen — 2026-11-10
+
+One independent bug-fix task on `gemma4:12b` timed out at 180 s without a
+first tool call or source edits. The backend allocated 65,536 context and was
+fully GPU resident (9.98 GB); that did not produce a completed agent turn. Do
+not assign Gemma4 a coding role from this evidence. It remains an unqualified
+multimodal/vision candidate; no vision task was run. See the
+[sanitized screen](../benchmarks/results/2026-11-10-hermes-gemma4-coding-screen.md).
+
 | DeepHat-V1-7B Q4_K_M GGUF | Isolated local Ollama test | 32,768 actual (GGUF metadata cap; 131,072 request clamped) | 100% GPU, 5,403 MiB on one device, Q8_0 KV; combined Nmap/SSH/Sigma task 0/1, 33.73 s | Not qualified: false CVE attribution and invalid Sigma rule; test artifact removed. No SECURITY-LAB profile is currently qualified. See [screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md). |
 
 ## Hermes bounded Qwen3.5 profile smoke (2026-11-10)

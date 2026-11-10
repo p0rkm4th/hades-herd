@@ -289,3 +289,11 @@ small to emit a tool call, so it was inconclusive. Keep 64K for practical use;
 128K is a one-run capability result, not a promoted profile. The test runner
 was unloaded and production settings were unchanged. See the
 [sanitized measurements](../benchmarks/results/2026-11-10-qwen35-128k-long-prompt.md).
+
+## Gemma4 12B agent screen — 2026-11-10
+
+The local Hermes bug-fix smoke timed out at 180 s without tool use or edits,
+despite actual 65,536 context and full GPU residency. A runner remained active
+after the client timeout; a targeted model unload cleared it without restarting
+the service. Keep Gemma4 unqualified for coding and vision until separate
+evidence exists. See the [screen report](../benchmarks/results/2026-11-10-hermes-gemma4-coding-screen.md).
