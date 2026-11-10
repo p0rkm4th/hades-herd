@@ -275,5 +275,7 @@ alias, disabled fallback providers, and enabled hard tool-loop stops with a
 in 31 s; independent tests passed 6/6 and only the allowed implementation file
 changed. The backend remained at 65,536 context and 100% GPU residency, with
 zero queued requests after completion. This is one bounded smoke, not an
-unattended qualification; configured loop stops were not triggered. See the
+unattended qualification. A separate repeated-failure fixture was halted by
+Hermes' `identical_call_streak_halt` in 17 s, confirming the runtime's
+identical-call guard for that case only. See the
 [report](../benchmarks/results/2026-11-10-hermes-bounded-qwen35-smoke.md).

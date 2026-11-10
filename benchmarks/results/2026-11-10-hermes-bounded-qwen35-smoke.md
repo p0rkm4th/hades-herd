@@ -11,7 +11,11 @@ repository. It changed only the allowed `billing.py` implementation file;
 independent pytest passed 6/6. The turn completed in 31 seconds with 11 tool
 calls. First-tool latency and token usage were unavailable. This single smoke
 does not qualify the profile for unattended work or prove the hard-stop
-thresholds fire as configured.
+thresholds fire as configured. A separate harmless repeated-failure probe
+stopped after 17 s with Hermes reporting `identical_call_streak_halt` (6 tool
+calls). The runtime blocked its first command as dangerous, then halted the
+identical-call streak. This verifies that runtime guard on this fixture, not
+the profile's separate thresholds or 180 s deadline. No files were changed.
 
 The backend reported 65,536 context, 100% GPU residency, and no CPU offload.
 Herd had zero queued/in-flight requests after the run. The Hermes default

@@ -77,5 +77,7 @@ one independent bug-fix fixture in 31 s, with 11 tool calls and 6/6 tests
 passing. It enabled a 180 s run budget, a 30-iteration cap, and hard
 tool-loop stops; the saved Hermes default remained MiMo 64K. The backend
 reported 65,536 context, 100% GPU residency, and no CPU offload. This one task
-does not qualify the profile for unattended work, and the loop-stop behavior
-was configured but not triggered. See the [bounded smoke report](../benchmarks/results/2026-11-10-hermes-bounded-qwen35-smoke.md).
+does not qualify the profile for unattended work. A separate repeated-failure
+probe was halted by Hermes' `identical_call_streak_halt` after 17 s; this
+confirms the runtime guard for that fixture, not every configured threshold
+or the run deadline. See the [bounded smoke report](../benchmarks/results/2026-11-10-hermes-bounded-qwen35-smoke.md).
