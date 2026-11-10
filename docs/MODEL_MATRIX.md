@@ -61,3 +61,7 @@ runs. See the [long-run comparison](../benchmarks/results/2026-11-09-harness-lon
 | Qwen3.5 9B Q4, `qwen35` | 5/5 external checks; 4/5 strict terminal-only | 105.9 / 106.6 s | Slower, but all independent checks passed; one task used the code tool to execute pytest. |
 
 Both used local Herd inference, identical fixtures, a 180 s per-task cap, and offline validation. Neither is qualified for unattended work from this sample. Qwen3.5 64K was fully GPU resident (8,487/10,240 MiB) and passed exact long-prompt marker retrieval; 128K offloaded 28% to CPU and failed that retrieval contract. See [the sanitized report](../benchmarks/results/2026-11-09-hermes-qwen35-mimo-comparison.md). Select explicitly with `hermes -m mimo-code --provider localherd` or `hermes -m qwen35 --provider localherd`; the saved Hermes default is unchanged.
+
+Qwen3.6 35B remains the saved Codex default. An explicit Hermes `qwen36` alias
+is staged for isolated evaluation, but it has no verified Hermes coding result
+and must not be treated as a promoted agent profile.

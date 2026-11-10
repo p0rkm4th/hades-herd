@@ -114,3 +114,8 @@ completion. Use the acceptance definitions in [benchmark methodology](../benchma
 ## Opt-in Hermes profiles
 
 The matched five-fixture comparison found MiMo 9B 64K faster (4/5, mean 36.7 s) and Qwen3.5 9B 64K slower but passing all external checks (5/5; strict terminal-tool compliance 4/5). These are supervised candidates, not unattended-driver qualifications. Launch explicitly with `hermes -m mimo-code --provider localherd` or `hermes -m qwen35 --provider localherd`. Do not change the saved default based on this small sample. The Qwen alias uses existing weights and is 100% GPU resident at 64K; its 128K profile offloaded to CPU and failed marker retrieval. Full evidence: [matched report](../benchmarks/results/2026-11-09-hermes-qwen35-mimo-comparison.md).
+
+The HADES environment also has an explicit opt-in `qwen36` Hermes alias for
+`qwen3.6:35b` (`hermes -m qwen36 chat`). Herd currently reports a 65,536-token
+allocation, but this model has not passed a Hermes coding acceptance run and
+is not assigned a qualified coding role. Keep the saved default unchanged.
