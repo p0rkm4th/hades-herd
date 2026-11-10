@@ -295,5 +295,7 @@ was unloaded and production settings were unchanged. See the
 The local Hermes bug-fix smoke timed out at 180 s without tool use or edits,
 despite actual 65,536 context and full GPU residency. A runner remained active
 after the client timeout; a targeted model unload cleared it without restarting
-the service. Keep Gemma4 unqualified for coding and vision until separate
-evidence exists. See the [screen report](../benchmarks/results/2026-11-10-hermes-gemma4-coding-screen.md).
+the service. Keep Gemma4 unqualified for coding. A separate 8K synthetic image
+smoke correctly identified a color with `think: false` in 4.34 s, but this does
+not qualify general vision use. See the [coding screen](../benchmarks/results/2026-11-10-hermes-gemma4-coding-screen.md)
+and [vision result](../benchmarks/results/2026-11-10-gemma4-vision-smoke.md).
