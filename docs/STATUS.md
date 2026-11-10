@@ -299,3 +299,12 @@ the service. Keep Gemma4 unqualified for coding. A separate 8K synthetic image
 smoke correctly identified a color with `think: false` in 4.34 s, but this does
 not qualify general vision use. See the [coding screen](../benchmarks/results/2026-11-10-hermes-gemma4-coding-screen.md)
 and [vision result](../benchmarks/results/2026-11-10-gemma4-vision-smoke.md).
+
+## Nyx orphan-runner resource follow-up — 2026-11-10
+
+After confirming zero active requests and that the tagless Qwen3.8 Q4 64K
+runner was the sole model child, its runner process was terminated without
+restarting Ollama. Both RTX 3080s returned to 5 MiB / 1 MiB and 0% utilization.
+Ollama `/api/ps` and Herd still show stale loaded metadata, so do not select the
+orphan entry; clear its metadata only during a planned service lifecycle
+window. No model weights or production configuration changed.

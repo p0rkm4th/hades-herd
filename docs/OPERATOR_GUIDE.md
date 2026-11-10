@@ -53,9 +53,11 @@ Responses profiles with Herd's no-fallback header.
 The scoped local reliability benchmark selected MiMo-V2.6 9B Q4 at 16K: 4/5
 verified fixture tasks, 100% GPU residency, and 23–107 seconds per full task.
 Qwen3.8 27B Q4 at 64K failed to complete its smoke within 180 seconds and used
-about 33% CPU residency. Its 32K/64K tag manifests were removed on 2026-11-10,
-but the 64K runner remained loaded and appears in Herd without advertised tool
-capability; do not select that stale entry. The Q4 base and 8K/16K tags remain.
+about 33% CPU residency. Its 32K/64K tag manifests were removed on 2026-11-10.
+The orphan runner process was later terminated without restarting Ollama; both
+GPUs returned to near-idle memory, but Ollama `/api/ps` and Herd still expose
+stale loaded metadata. Do not select that entry or restart the service outside
+a planned lifecycle window. The Q4 base and 8K/16K tags remain.
 Q3_K_M passed one same-task 8K coding screen faster than Q4 (63 s vs. 102 s),
 but this is only a short-context Codex candidate and does not meet Hermes'
 64K minimum. Map FAST, BALANCED, and bounded COMPLEX tasks to MiMo if desired;
