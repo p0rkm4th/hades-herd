@@ -119,3 +119,9 @@ The HADES environment also has an explicit opt-in `qwen36` Hermes alias for
 `qwen3.6:35b` (`hermes -m qwen36 chat`). Herd currently reports a 65,536-token
 allocation, but this model has not passed a Hermes coding acceptance run and
 is not assigned a qualified coding role. Keep the saved default unchanged.
+
+No local model is currently qualified as a SECURITY-LAB profile. Do not treat
+uncensored behavior or a benign tool smoke as evidence of security expertise;
+use no model for security analysis without a passing evidence-based accuracy
+fixture. The latest DeepHat candidate failed its CVE and Sigma checks; see the
+[screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md).

@@ -243,3 +243,7 @@ default or provider changed. See the private Hermes alias acceptance record.
 ## Matched Hermes coding profile comparison — 2026-11-09
 
 A five-task local-only comparison completed through Hermes `localherd`: MiMo 9B 64K passed 4/5 (mean 36.7 s; one multi-file contract failure); Qwen3.5 9B 64K passed 5/5 independent checks (mean 105.9 s), although its debugging task used `execute_code` rather than the requested terminal tool, making strict terminal-only compliance 4/5. First-tool averages were 37.4 s and 106.6 s respectively. Usage token counts were unavailable. Neither qualifies for unsupervised daily use. MiMo is the faster candidate; Qwen3.5 is a slower opt-in candidate with better external fixture results. The saved default remains unchanged. See [sanitized evidence](../benchmarks/results/2026-11-09-hermes-qwen35-mimo-comparison.md).
+
+## DeepHat security candidate — 2026-11-09
+
+A pinned Q4_K_M GGUF was tested in an isolated Ollama instance after the existing security candidates failed. Its GGUF capped actual context at 32,768 despite a 131,072 request; it stayed fully GPU resident with Q8_0 KV and Flash Attention. The combined independent security fixture failed: the model falsely associated an Apache CVE with OpenSSH and emitted an invalid Sigma rule. The test model and isolated server were removed; production routing and defaults did not change. No SECURITY-LAB profile is qualified. See the [screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md).

@@ -65,3 +65,5 @@ Both used local Herd inference, identical fixtures, a 180 s per-task cap, and of
 Qwen3.6 35B remains the saved Codex default. An explicit Hermes `qwen36` alias
 is staged for isolated evaluation, but it has no verified Hermes coding result
 and must not be treated as a promoted agent profile.
+
+| DeepHat-V1-7B Q4_K_M GGUF | Isolated local Ollama test | 32,768 actual (GGUF metadata cap; 131,072 request clamped) | 100% GPU, 5,403 MiB on one device, Q8_0 KV; combined Nmap/SSH/Sigma task 0/1, 33.73 s | Not qualified: false CVE attribution and invalid Sigma rule; test artifact removed. No SECURITY-LAB profile is currently qualified. See [screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md). |
