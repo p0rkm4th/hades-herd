@@ -26,6 +26,12 @@ restarted. This is incomplete cleanup: do not select or count the stale runner
 as a valid profile. The private record contains exact manifests, Modelfiles,
 and a recovery procedure whose create step is not yet verified.
 
+At 2026-11-10 02:19 UTC the queue and active-request counters were again zero.
+Ollama's documented empty-prompt unload API (`keep_alive: 0`) also returned
+`model not found`; the runner remained at 65,536 context and 33% CPU / 67% GPU.
+No further attempt or service restart was made. A planned service lifecycle
+window or vendor-supported cleanup path is required to remove this orphan.
+
 ## Reproduction and evidence limits
 
 Refresh the installed local catalog with `codex-herd refresh`, inspect it with
