@@ -247,3 +247,22 @@ A five-task local-only comparison completed through Hermes `localherd`: MiMo 9B 
 ## DeepHat security candidate — 2026-11-09
 
 A pinned Q4_K_M GGUF was tested in an isolated Ollama instance after the existing security candidates failed. Its GGUF capped actual context at 32,768 despite a 131,072 request; it stayed fully GPU resident with Q8_0 KV and Flash Attention. The combined independent security fixture failed: the model falsely associated an Apache CVE with OpenSSH and emitted an invalid Sigma rule. The test model and isolated server were removed; production routing and defaults did not change. No SECURITY-LAB profile is qualified. See the [screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md).
+
+## Qwen3.8 retention and context-tag cleanup — 2026-11-10
+
+The same unchanged eight-test Codex task passed once on Qwen3.8 27B Q3 at 8K
+(63 s) and once on Q4 at 8K (102 s). Keep Q3 as a task-specific short-context
+Codex candidate; neither run establishes broad reliability, and 8K is below
+Hermes 0.23.0's 64K minimum. A distinct Q3 16K task timed out without edits.
+
+The Q4 32K/64K Ollama alias manifests were removed after their longer-context
+coding attempts failed. The Q4 base and 8K/16K tags remain, with no model-weight
+storage reclaimed. The 64K runner is still loaded with an indefinite lease and
+appears in Herd without advertised tool capability; do not select that stale
+entry. `ollama stop` could not resolve its deleted tag and two bounded restore
+attempts returned HTTP 400. No service restart was performed; cleanup remains
+incomplete. See the [sanitized result](../benchmarks/results/2026-11-10-qwen38-profile-cleanup.md).
+
+The 2026-11-10 Hermes config check showed provider `localherd`, default MiMo
+64K, aliases `mimo-code`, `hades-mimo-long`, `qwen35`, and `qwen36`, and no
+fallback providers. Codex default/roles remain unchanged.

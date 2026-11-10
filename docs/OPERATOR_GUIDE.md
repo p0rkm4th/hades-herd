@@ -53,11 +53,17 @@ Responses profiles with Herd's no-fallback header.
 The scoped local reliability benchmark selected MiMo-V2.6 9B Q4 at 16K: 4/5
 verified fixture tasks, 100% GPU residency, and 23–107 seconds per full task.
 Qwen3.8 27B Q4 at 64K failed to complete its smoke within 180 seconds and used
-about 33% CPU residency. Map FAST, BALANCED, and bounded COMPLEX tasks to MiMo
-if desired; this evidence does not establish long-context or broad repository
-reliability. MiMo has failed separate diagnostic maintenance tasks in prior
-campaigns, so inspect every diff and test result. See the [local reliability
-scorecard](../benchmarks/results/local-model-reliability.md).
+about 33% CPU residency. Its 32K/64K tag manifests were removed on 2026-11-10,
+but the 64K runner remained loaded and appears in Herd without advertised tool
+capability; do not select that stale entry. The Q4 base and 8K/16K tags remain.
+Q3_K_M passed one same-task 8K coding screen faster than Q4 (63 s vs. 102 s),
+but this is only a short-context Codex candidate and does not meet Hermes'
+64K minimum. Map FAST, BALANCED, and bounded COMPLEX tasks to MiMo if desired;
+this evidence does not establish long-context or broad repository reliability.
+MiMo has failed separate diagnostic maintenance tasks in prior campaigns, so
+inspect every diff and test result. See the [local reliability
+scorecard](../benchmarks/results/local-model-reliability.md) and [Qwen3.8
+cleanup result](../benchmarks/results/2026-11-10-qwen38-profile-cleanup.md).
 
 ## Recovery
 
