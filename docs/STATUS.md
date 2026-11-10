@@ -266,3 +266,14 @@ incomplete. See the [sanitized result](../benchmarks/results/2026-11-10-qwen38-p
 The 2026-11-10 Hermes config check showed provider `localherd`, default MiMo
 64K, aliases `mimo-code`, `hades-mimo-long`, `qwen35`, and `qwen36`, and no
 fallback providers. Codex default/roles remain unchanged.
+
+## Bounded Hermes Qwen3.5 profile smoke — 2026-11-10
+
+An opt-in Hermes profile selected the existing Qwen3.5 9B Q4 64K Charon
+alias, disabled fallback providers, and enabled hard tool-loop stops with a
+180 s run budget and 30-iteration limit. One reused bug-fix fixture completed
+in 31 s; independent tests passed 6/6 and only the allowed implementation file
+changed. The backend remained at 65,536 context and 100% GPU residency, with
+zero queued requests after completion. This is one bounded smoke, not an
+unattended qualification; configured loop stops were not triggered. See the
+[report](../benchmarks/results/2026-11-10-hermes-bounded-qwen35-smoke.md).

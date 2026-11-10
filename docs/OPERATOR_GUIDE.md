@@ -131,3 +131,25 @@ uncensored behavior or a benign tool smoke as evidence of security expertise;
 use no model for security analysis without a passing evidence-based accuracy
 fixture. The latest DeepHat candidate failed its CVE and Sigma checks; see the
 [screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md).
+
+### Herdr controls for Codex and Hermes
+
+Install Herdr's control skill in both agent homes: Codex at
+`$CODEX_HOME/skills/herdr/SKILL.md` (commonly `~/.codex/skills/herdr/SKILL.md`)
+and Hermes at
+`$HERMES_HOME/skills/autonomous-ai-agents/herdr/SKILL.md` (commonly
+`~/.hermes/skills/autonomous-ai-agents/herdr/SKILL.md`). Install the matching
+native Hermes integration with `herdr integration install hermes` for the
+active Hermes home. The Herdr skill requires `HERDR_ENV=1` before pane or
+agent control; stop if that check fails.
+
+Bound prompts and waits, for example:
+
+```sh
+herdr agent prompt coder "Implement the scoped task; stop after one correction." --wait --timeout 180000
+```
+
+A wait timeout only ends the wait; inspect pane output and agent state before
+deciding whether to wait again or intervene. `idle` or `done` is not proof of
+correctness. Independently inspect the diff and run acceptance tests before
+accepting a worker result.

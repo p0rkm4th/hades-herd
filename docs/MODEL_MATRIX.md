@@ -69,3 +69,13 @@ is staged for isolated evaluation, but it has no verified Hermes coding result
 and must not be treated as a promoted agent profile.
 
 | DeepHat-V1-7B Q4_K_M GGUF | Isolated local Ollama test | 32,768 actual (GGUF metadata cap; 131,072 request clamped) | 100% GPU, 5,403 MiB on one device, Q8_0 KV; combined Nmap/SSH/Sigma task 0/1, 33.73 s | Not qualified: false CVE attribution and invalid Sigma rule; test artifact removed. No SECURITY-LAB profile is currently qualified. See [screen report](../benchmarks/results/2026-11-09-deephat-security-screen.md). |
+
+## Hermes bounded Qwen3.5 profile smoke (2026-11-10)
+
+An opt-in profile using the existing Qwen3.5 9B Q4 64K Charon alias completed
+one independent bug-fix fixture in 31 s, with 11 tool calls and 6/6 tests
+passing. It enabled a 180 s run budget, a 30-iteration cap, and hard
+tool-loop stops; the saved Hermes default remained MiMo 64K. The backend
+reported 65,536 context, 100% GPU residency, and no CPU offload. This one task
+does not qualify the profile for unattended work, and the loop-stop behavior
+was configured but not triggered. See the [bounded smoke report](../benchmarks/results/2026-11-10-hermes-bounded-qwen35-smoke.md).
