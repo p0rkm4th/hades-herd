@@ -33,6 +33,15 @@ Automatic model selection uses task role plus live
 node queues, slots, runner residency, and exact model digest. It selects only
 warm local models, refuses cold loads, and serializes its own tasks per node.
 
+The interactive Herdr shim now defaults to that automatic local selector and
+accepts all configured local aliases; unknown and hosted names are rejected.
+Its Qwen3.5 implementation attempt stopped with exit 2 after editing only the
+shim, so the worker did not complete its acceptance step. A supervisor
+correction passed four offline tests and both manifest checks in a networkless
+snapshot. Auto-selection preflight confirmed a warm, digest-verified local
+profile without sending inference. Count this as supervisor-assisted work,
+not autonomous completion.
+
 Four bounded tasks across Qwen3.5, Qwen3.6, and MiMo passed independent checks.
 The Qwen3.5 quick coding task took 25.8 seconds and passed all 16 project tests.
 The Qwen3.6 batch API task took 79.2 seconds and passed all 8 project tests.

@@ -93,3 +93,11 @@ last-change time. It excludes file contents and workspace roots. Offline tests
 cover a silent writer and path redaction. This is evidence of workspace
 activity, not a completion or quality signal; continue checking acceptance
 results and the actual task diff.
+
+In a separate bounded shim change, the local worker edited one file and then
+exited with code 2 after reporting an iteration limit. The status artifact
+showed the edit despite silent output; post-task acceptance correctly remained
+pending because the worker did not exit successfully. The supervisor inspected
+the exact diff, made a small correction, and ran the manifest in an isolated
+networkless snapshot. Treat worker exit and acceptance state as separate
+signals; do not infer successful completion from observed file activity.

@@ -10,6 +10,12 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
 - **Weak role:** long, multi-requirement tool tasks without staged checkpoints.
   A probe task involved repeated edits, three context compactions, and ended
   with an implementation that failed independent offline acceptance.
+- **Additional sample:** a bounded interactive-shim task ran for about 50 seconds,
+  changed the launcher, and exited 2 before acceptance. It omitted one existing
+  local alias and made an unnecessary interpreter change. The supervisor
+  corrected the two-file scope; four offline tests and two network-isolated
+  manifest checks passed. This is an incomplete worker task, not autonomous
+  completion.
 - **Effective prompt pattern:** short, single-file tasks with one acceptance
   command and a supplied schema. The old suite supports explicit contracts and
   allowed-tool rules; no prompt ablation proves a Qwen-specific benefit.
