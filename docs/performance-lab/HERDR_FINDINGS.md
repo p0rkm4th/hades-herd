@@ -46,11 +46,23 @@ Use non-sensitive task data until broader isolation review is complete.
 
 The same sandbox now accepts a task contract through a separate read-only
 mount, rejects dirty workspaces and Git metadata outside the assigned project,
-and retains the result log, exit status, usage, and bridge audit. Nine offline
-checks cover the workspace boundary, local-only network path, contract mount,
-and captured process exit status. In one observed run, the initial bounded
+and retains a live run status, result log, exit status, usage, and bridge audit.
+Fourteen offline checks cover the workspace boundary, local-only network path,
+contract mount, model selection, node queue checks, and captured process exit
+status. In one observed run, the initial bounded
 output wait expired while the local task was still running; inspection found
 the same process active, and it completed without a duplicate prompt. This
 confirms that a wait timeout must be followed by inspection, not automatic
 resubmission. The task succeeded independently, but the sample is too small to
 estimate reliability.
+
+Automatic selection uses task role, Herd's per-node queues and free slots, exact
+resident model state, and digest verification. Per-node locks prevent this
+sandbox from running two tasks against one node while permitting independent
+nodes. It selects only warm models and uses the local router; it does not retry
+failed work on another model after inference begins. A quick Qwen3.5 task and a
+documentation MiMo task were selected without choosing a model manually. The
+MiMo run exposed a token-accounting gap: chat responses succeeded but its usage
+report contained no token counts. Current task-type classification is a small
+keyword heuristic, and simultaneous multi-node task execution remains
+unverified.

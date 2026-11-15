@@ -24,13 +24,22 @@ returned through a direct, already-resident local node. These short smoke
 requests validate routing only, not model quality or performance gains.
 
 The sandbox now supports one-shot task contracts mounted read-only, clean Git
-workspace enforcement, a host-enforced runtime limit, and retained output,
-usage, status, and route-audit artifacts. A disposable two-file Qwen3.6 35B
-task completed in 79 seconds; independent validation passed all 8 project
-tests. The task used 8 model API calls, 56.9K input tokens, and 2.2K output
-tokens. This is a small supervised sample, not evidence of broad task
-reliability. Nine offline sandbox checks now pass, including output/exit-code
-capture and rejection of dirty or externally rooted Git workspaces.
+workspace enforcement, Hermes filesystem checkpoints, a host-enforced runtime
+limit, and a live `starting`/`running` status file with retained output, usage,
+and route-audit artifacts. Automatic model selection uses task role plus live
+node queues, slots, runner residency, and exact model digest. It selects only
+warm local models, refuses cold loads, and serializes its own tasks per node.
+
+Four bounded tasks across Qwen3.5, Qwen3.6, and MiMo passed independent checks.
+The Qwen3.5 quick coding task took 25.8 seconds and passed all 16 project tests.
+The Qwen3.6 batch API task took 79.2 seconds and passed all 8 project tests.
+The MiMo documentation task completed in 42.1 seconds and passed all 16 tests;
+the supervisor corrected one misleading rounding statement in its README
+draft. This small sample supports bounded use only. The Qwen3.6 task used 56.9K
+input and 2.2K output tokens; the Qwen3.5 task used 38.0K input and 1.5K
+output tokens. The MiMo usage file omitted token counts despite successful
+chat responses, so that run's token cost is unverified. Fourteen offline
+sandbox checks now pass, including queue and model selection behavior.
 
 ## Limits
 
@@ -45,15 +54,16 @@ capture and rejection of dirty or externally rooted Git workspaces.
 - The sandbox boundary passed integration checks but has not been tested
   against a malicious agent. Keep assignments non-sensitive and review outputs.
 - No production route, global service setting, or model default was changed.
-- Model selection remains explicit; automatic task-aware selection and safe
-  local fallback are still unimplemented.
+- Task type comes from a short keyword heuristic. The selector may fall back
+  to another ready local model before a task starts, but it does not rerun
+  failed work. Per-node locks and queue checks support separate idle nodes;
+  concurrent multi-worker execution has not been demonstrated.
 
 ## Next experiment
 
-Implement automatic local model selection using current capacity and observed
-task-role evidence, then demonstrate a moderately complex task with saved
-checkpoints and independent review. Do not rerun general baselines or the
-rejected prefix-cache probe.
+Demonstrate a moderately complex local task with saved checkpoints and
+independent review, then distinct Herdr subtasks on separate local workers.
+Do not rerun general baselines or the rejected prefix-cache probe.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.

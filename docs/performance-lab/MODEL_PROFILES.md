@@ -26,7 +26,11 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
 - **Observed example:** 17m45s, 32 reported edits, 15 reads, 25 script/tool
   runs, one shell command, three context compactions; final probe rejected
   before live use.
-- **Confidence:** moderate for old fixture suite, low for long tool-heavy work.
+- **Additional sample:** an automatically selected quick task added one
+  discount helper and tests; all 16 project tests passed in 25.8 seconds with
+  no correction. This does not remove the observed long-task failure.
+- **Confidence:** low to moderate for small supervised coding; low for
+  long, tool-heavy tasks.
 
 ## MiMo V2.6 9B Q4_K_M
 
@@ -53,6 +57,10 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
   reported missing tests. Supervisor corrections passed synthetic and
   three-file aggregation checks. This is retry-assisted, not autonomous
   acceptance.
+- **Additional sample:** automatic documentation routing selected MiMo for a
+  bounded README task. Independent review corrected one inaccurate rounding
+  statement; all 16 project tests and runnable examples then passed. The run's
+  usage report omitted token counts despite successful chat responses.
 - **Confidence:** moderate for the historical five fixtures; low to moderate
   for this single supervised task.
 
@@ -78,3 +86,18 @@ enough evidence to characterize roles, prompting, or task boundaries.
   in clean, disposable workspaces and independently review all results.
 - **Confidence:** low; two accepted small tasks establish feasibility, not a
   reliability rate.
+
+## Qwen3.8 27B Q4_K_M
+
+- **Best role:** bounded multi-file coding with an exact test contract.
+  Historical HADES tasks include a two-module change passing 7 tests in about
+  117 seconds and a separate context-sensitive task passing 57 tests in about
+  138 seconds.
+- **Weak role:** an identical registry task once made no edit within its
+  150-second cap. Longer local Hermes work is not yet characterized.
+- **Effective prompt pattern:** name affected modules, tests, and syntax
+  invariants. No prompt ablation is available.
+- **Operational limit:** the model is large and currently excluded from
+  automatic selection while unresident; automatic cold loading is disabled.
+- **Confidence:** low to moderate for bounded coding in the historical HADES
+  route; no independent local Hermes sample yet.
