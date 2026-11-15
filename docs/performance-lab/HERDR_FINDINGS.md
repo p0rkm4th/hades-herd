@@ -66,3 +66,12 @@ MiMo run exposed a token-accounting gap: chat responses succeeded but its usage
 report contained no token counts. Current task-type classification is a small
 keyword heuristic, and simultaneous multi-node task execution remains
 unverified.
+
+One later validation-heavy Qwen3.6 task produced 13 local chat-completion
+requests (12 upstream HTTP 200) over 7.4 minutes but no terminal output or
+finalized usage report. The worker created a large draft whose 47-test suite
+had 32 failures. Independent review rejected the result; this is a local-model
+task failure, not evidence of a Herdr submission failure. Do not confuse the
+launcher heartbeat with work progress: the operator view reports heartbeat age
+separately from last worker-output age. A SIGINT exit of `-2` is now normalized
+to terminal state `interrupted` with exit 130.

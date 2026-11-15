@@ -81,11 +81,17 @@ enough evidence to characterize roles, prompting, or task boundaries.
 - **Operational evidence:** one run made 8 inference API calls and used
   56.9K input and 2.2K output tokens. This high input-to-output ratio suggests
   reducing reusable prompt/context overhead before expanding task complexity.
+- **Negative sample:** a validation-heavy status CLI task used 13 local requests
+  (12 successful HTTP responses) over 7.4 minutes and produced an overlarge
+  implementation/test draft. Independent checks found 32/47 tests failed; the
+  draft was rejected. No usage totals were finalized. This is one task-boundary
+  failure, not a reliability rate or backend failure.
 - **Current boundary:** no evidence yet for debugging large systems,
   repositories, long-lived sessions, or multi-worker tasks. Keep assignments
-  in clean, disposable workspaces and independently review all results.
-- **Confidence:** low; two accepted small tasks establish feasibility, not a
-  reliability rate.
+  in clean, disposable workspaces, keep validation cases bounded, and
+  independently review all results.
+- **Confidence:** low; two accepted small tasks and one failed larger task do
+  not establish a reliability rate.
 
 ## Qwen3.8 27B Q4_K_M
 

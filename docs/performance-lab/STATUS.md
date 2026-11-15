@@ -26,7 +26,10 @@ requests validate routing only, not model quality or performance gains.
 The sandbox now supports one-shot task contracts mounted read-only, clean Git
 workspace enforcement, Hermes filesystem checkpoints, a host-enforced runtime
 limit, and a live `starting`/`running` status file with retained output, usage,
-and route-audit artifacts. Automatic model selection uses task role plus live
+and route-audit artifacts. Status now includes a throttled wrapper heartbeat,
+last output time, and output counters. A small redacted CLI distinguishes
+heartbeat from worker activity and reports active/terminal exit codes.
+Automatic model selection uses task role plus live
 node queues, slots, runner residency, and exact model digest. It selects only
 warm local models, refuses cold loads, and serializes its own tasks per node.
 
@@ -40,6 +43,15 @@ input and 2.2K output tokens; the Qwen3.5 task used 38.0K input and 1.5K
 output tokens. The MiMo usage file omitted token counts despite successful
 chat responses, so that run's token cost is unverified. Fourteen offline
 sandbox checks now pass, including queue and model selection behavior.
+
+A separate validation-heavy Qwen3.6 35B task on an already-resident local node
+ran for 7.4 minutes and made 13 local completion requests; 12 returned HTTP
+200. It produced a large status-viewer draft, but independent validation found
+32 failures in 47 worker-authored tests, so the task was interrupted and the
+draft was not integrated. This is one supervised failure sample, not a model
+reliability estimate. The run had no finalized usage totals. A corresponding
+supervisor fix now records SIGINT termination as `interrupted` with shell exit
+130. The combined sandbox and status-viewer suite passes 29 offline tests.
 
 ## Limits
 
@@ -62,8 +74,9 @@ sandbox checks now pass, including queue and model selection behavior.
 ## Next experiment
 
 Demonstrate a moderately complex local task with saved checkpoints and
-independent review, then distinct Herdr subtasks on separate local workers.
-Do not rerun general baselines or the rejected prefix-cache probe.
+independent review using a smaller, bounded contract, then distinct Herdr
+subtasks on separate local workers. Do not rerun general baselines or the
+rejected prefix-cache probe.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.
