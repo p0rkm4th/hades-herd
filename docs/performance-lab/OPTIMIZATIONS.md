@@ -103,3 +103,29 @@ reallocation policy.
 3. Defer KV-cache/Flash Attention, speculative decoding, and engine migration
    until installed-runtime and exact-artifact compatibility are verified in an
    isolated service. No production defaults or routing changed.
+
+## 2026-11-15 structured context correctness check
+
+The same fixed 80-record synthetic aggregation was run at requested 16K and
+65K context with temperature 0, seed 7, JSON output, and model thinking
+disabled. Both responses parsed as JSON and returned the expected record count
+and sentinel, but both had the same five incorrect fields: the checksum and
+four category totals. The 16K run was warm; the 65K diagnostic followed a
+context transition and did not capture visible TTFT, so timing is not
+comparable. No response contents or infrastructure identifiers are included
+in this report.
+
+This is a task-correctness failure at both settings, not evidence of a context
+size effect. The previous recommendation to repeat this prompt is withdrawn.
+The small-sentinel throughput result remains experimental and is not evidence
+of an accepted task-time gain. No production setting changed.
+
+### Next experiments
+
+1. Validate a minimal prefix-reuse probe offline before any live use.
+2. Verify isolated-runtime support and effective settings before measuring
+   Q8 KV cache or Flash Attention.
+3. Inspect existing local artifacts for speculative-decoding compatibility;
+   do not download models or change production defaults.
+4. Revisit context quality only with a workload that has an independent exact
+   checker and verified per-request context allocation.

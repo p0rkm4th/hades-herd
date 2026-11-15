@@ -265,3 +265,14 @@ tok/s; warm 65K medians were 3.938 s and 49.96 tok/s. The response capture was
 only 11 characters, and resident-context metadata reflected the prior setting.
 Treat the result as inconclusive; full answer correctness and effective
 allocation remain unverified. No production settings changed.
+
+## 2026-11-15 context-quality follow-up
+
+A matched synthetic aggregation returned valid JSON at both 16K and 65K, but
+both outputs failed the same checksum and four category totals. This gives no
+evidence that larger context improves correctness, and the runs were not a
+valid latency comparison. The earlier small-sentinel throughput result remains
+experimental and does not establish useful-task performance. No production
+settings changed. Next: qualify isolated-runtime support for KV-cache and
+Flash Attention experiments, and revisit prefix reuse only after its probe
+passes offline acceptance.
