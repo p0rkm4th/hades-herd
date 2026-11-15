@@ -96,7 +96,8 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
   Assign MiMo review tasks as lead generation only; require direct source and
   test verification. Confidence remains low for code review.
 
-In a later bounded task, MiMo/Hecate drafted JSON progress output, then reached
+In a later bounded task, MiMo on Node B drafted JSON progress output, then
+reached
 its iteration limit after 2m55s. Independent acceptance found nine failures;
 supervisor corrections led to 34 passing tests. This is supervisor-assisted,
 not autonomous completion. Primary token totals were unavailable.
@@ -170,7 +171,7 @@ rejected and preserved without a rewrite. Token totals were unavailable.
 Continue limiting assignments to one behavior with explicit fixtures and
 early inspection.
 
-In a later bounded task, Qwen3.6/Tartarus drafted `history --json` for the
+In a later bounded task, Qwen3.6 on Node C drafted `history --json` for the
 operator CLI, then reached its iteration limit after 6m28s before testing.
 The supervisor repaired validation and fixture defects; 25 offline tests
 passed. This is a supervisor-assisted result, not an autonomous success.
@@ -194,7 +195,7 @@ artifact checkpoint and independent acceptance.
 
 ### Qwen3.5 9B
 
-A bounded artifact-locator change on Charon failed independent acceptance after
+A bounded artifact-locator change on Node A failed independent acceptance after
 an exit-2 run: 36 CLI tests produced 9 failures and 2 errors. The draft replaced
 existing command behavior and used unsafe path containment. Luna implemented a
 separate private-lab version and independently passed 69 tool tests and 33 CLI

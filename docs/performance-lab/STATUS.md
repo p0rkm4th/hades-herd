@@ -110,10 +110,30 @@ worker panes were closed, leaving the supervisor pane only.
 
 ## Next experiment
 
-Run a matched task-level 16K/65K comparison with visible structured answers,
-independent correctness, and measured TTFT. The existing warm throughput
-difference alone does not establish a useful optimization. Keep the rejected
-prefix-cache probe deferred.
+The visible-answer follow-up measured 7.2% lower warm TTFT and 8.0% higher
+decode at requested 16K, but the runtime's resident-context report showed the
+opposite setting. Memory and effective allocation for that follow-up are
+therefore unverified. The earlier capped decode/allocation comparison remains
+a separate microbenchmark. Run a matched task-level 16K/65K comparison only
+after effective context and full response capture can be independently
+verified. Keep the rejected prefix-cache probe deferred.
+
+The private lab independently passed its operator CLI suite (40 tests) and
+complete tool suite (74 tests) after narrow supervisor fixes for latest-task
+status and sandbox reader-thread cancellation. These are lab-harness changes,
+not delegated worker successes or production changes. Three additional local
+worker attempts did not pass acceptance: Qwen3.5 produced malformed parser
+code, MiMo left the CLI option unwired, and Qwen3.6 made no change before
+interruption. A workspace-copy oversight also deprived the MiMo attempt of its
+baseline tests. No worker remains active; all child panes were closed after
+evidence and process state were checked.
+
+Cancellation testing reproduced a reader-thread closed-pipe exception. The
+lab fix passed the offline tool suite, including a cancellation-race case.
+Herdr Ctrl+C and a signal to the sandbox parent did not stop a nested worker
+process group in one run; after verifying exact task-owned processes, the
+supervisor stopped that group and confirmed exit. Treat this as a lifecycle
+gap to monitor, not a production incident.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.

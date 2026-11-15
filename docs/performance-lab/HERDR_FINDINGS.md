@@ -126,7 +126,7 @@ a stalled or unknown lifecycle result.
 Independent mock checks reconfirmed the Qwen3.5 prefix probe's privacy,
 ordering, and append defects. The corrected MiMo summarizer passed a synthetic
 offline acceptance check; its completion remains supervisor-assisted. A
-separate Qwen3.6/Tartarus CLI task made three successful local completion
+separate Qwen3.6 on Node C CLI task made three successful local completion
 requests but produced no output or workspace edits. After checking bridge
 activity and preserving run evidence, the supervisor interrupted it at
 281.9 seconds. The sandbox recorded exit 130 and pending acceptance. Cause is
@@ -204,3 +204,20 @@ path limitation, not a model-quality finding. Preserve artifacts before
 interruption and verify all owned descendants have exited. A stalled prompt
 wait, `idle`, or HTTP 200 response alone does not establish delivery failure,
 completion, or useful progress.
+
+## Cancellation race and latest-task status
+
+A later recovery attempt reproduced a reader-thread `ValueError` when the
+child closed its output pipe during cancellation. The narrow lab fix suppresses
+that expected close only after interruption/child exit and forwards unexpected
+reader errors to the supervisor. Focused cancellation-race tests pass within
+the 74-test offline tool suite. In the same checkpoint, a latest-task status
+feature was implemented and passed the 40-test operator CLI suite. These are
+supervisor-implemented lab improvements, not delegated worker completions.
+
+Herdr's pane Ctrl+C and SIGINT to the sandbox parent did not stop one nested
+Hermes process group. The supervisor preserved evidence, verified exact
+task-owned PIDs and group membership, then confirmed termination before
+closing the pane. Do not infer that a timeout stopped a worker; inspect process
+state and artifacts before close. All child panes from that checkpoint were
+closed, leaving the supervisor pane alone.

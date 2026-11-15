@@ -36,12 +36,14 @@ and runner before a request-scoped comparison.
 
 ## Visible-answer context follow-up — inconclusive
 
-At 16K, two warm samples had median TTFT 3.653 s and generation 53.94 tok/s;
+At requested 16K, two warm samples had median TTFT 3.653 s and
+generation 53.94 tok/s;
 at 65K, two warm samples measured 3.938 s and 49.96 tok/s. The 16K warm
 result was about 7% faster to first text and 8% faster in generation. All six
 runs contained the expected marker, but recorded output was only 11 characters.
-The `/api/ps` metadata reported the preceding context setting, so effective
-allocation and memory for this follow-up are unverified. The earlier capped
+The `/api/ps` metadata reported the opposite resident context from the request
+option, so effective allocation and memory for this follow-up are unverified.
+The earlier capped
 microbenchmark separately reported lower 16K runner allocation; it had no
 visible answer and does not establish a quality or task-time benefit.
 
