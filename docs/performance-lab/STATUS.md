@@ -89,9 +89,11 @@ worker panes were closed, leaving the supervisor pane only.
 
 ## Limits
 
-- TTFT was unavailable in all baseline/context runs because no nonempty answer
-  chunks were observed. Token throughput remains measurable, but useful answer
-  latency and correctness do not. A single-token post-restore context run
+- TTFT was unavailable in the three-model baseline and original capped context
+  comparison because those runs produced no nonempty answer chunks. A later
+  short synthetic context follow-up did produce a visible sentinel; it still
+  does not measure engineering-task quality. Token throughput remains
+  measurable in the capped runs. A single-token post-restore context run
   reported an impossible 1,000,000 tokens/s and is excluded.
 - The prefix-cache experiment is rejected until a minimal replacement passes
   offline acceptance.
@@ -188,5 +190,24 @@ The private operator tooling now exposes sanitized JSON history and progress
 views. Independent isolated suites passed after supervisor corrections: 25
 history tests and 34 status-viewer tests. Both workers reached iteration
 limits before acceptance, so these are supervisor-assisted results. The
-combined private tool and CLI suites now pass 69 and 26 tests. Next: compare
+combined private tool and CLI suites now pass 69 and 33 tests. Next: compare
 the same independently accepted engineering task at 16K/65K.
+
+## 2026-11-15 recovery checkpoint
+
+The worker-tool verdicts are now independently reconciled: the Qwen3.5 prefix
+probe fails live-use acceptance and remains unused; the corrected MiMo JSONL
+summarizer passes its offline reporting scope with supervisor assistance. A
+later Qwen3.5 artifact-locator draft also failed independent CLI tests; Luna
+implemented and validated a separate private-lab version (69 tool tests, 33
+CLI tests). A Qwen3.6 cancellation assignment produced no output or edits and
+was safely interrupted; its cause remains unresolved. No child pane remains
+open.
+
+The original capped context microbenchmark had no visible output and cannot
+support TTFT claims. A separate short synthetic answer passed 3/3 at both 16K
+and 65K; warm TTFT/decode gains were 7.2%/8.0%, with two warm samples per tier
+and about 17.3 seconds to switch contexts. This is not engineering-task quality
+evidence. Keep 16K experimental and the next optimization is a matched,
+independently checked engineering task at both sizes. No production setting
+changed.

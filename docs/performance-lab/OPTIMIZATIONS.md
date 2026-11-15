@@ -75,3 +75,15 @@ successful-response counts plus latest-request age; it preserves output age as
 the separate progress signal. The 55-test offline tool suite passes. This
 improves diagnosis only; it is not a model speedup and has not been deployed to
 production infrastructure.
+
+## Context measurement interpretation
+
+The first 128-token context microbenchmark produced zero visible response
+characters. Its server token counters still permit a capped-decode comparison,
+but it cannot support TTFT or useful-answer latency claims. In the separate
+short synthetic sentinel follow-up, all six runs emitted the expected answer;
+there were two warm samples per context, in non-counterbalanced order. Warm
+TTFT was 3.653 s at 16K and 3.938 s at 65K; generation was 53.94 and 49.96
+tok/s. Each context transition cost about 17.3 s. Keep the result experimental:
+it does not establish accepted engineering-task quality or a worthwhile
+reallocation policy.

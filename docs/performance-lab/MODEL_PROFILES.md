@@ -189,3 +189,26 @@ responses but no output or project change; it was interrupted after
 281.9 seconds with acceptance pending. The cause is uncertain and does not
 establish a reasoning failure. Keep the scope to one behavior with an early
 artifact checkpoint and independent acceptance.
+
+## Recovery sample updates — 2026-11-15
+
+### Qwen3.5 9B
+
+A bounded artifact-locator change on Charon failed independent acceptance after
+an exit-2 run: 36 CLI tests produced 9 failures and 2 errors. The draft replaced
+existing command behavior and used unsafe path containment. Luna implemented a
+separate private-lab version and independently passed 69 tool tests and 33 CLI
+tests; this is not worker credit. For now, assign one small behavior in one
+file, state exact allowed paths and stdout/stderr/exit behavior, and inspect the
+diff and focused test early. Confidence is low for filesystem-sensitive work
+and multi-requirement autonomous changes.
+
+### MiMo V2.6 9B
+
+The worker produced an initial JSONL summarizer and README but explicitly left
+testing unfinished. Supervisor-led synthetic acceptance passed after
+correction, so classify this as retry-assisted. Delayed/truncated reporting and
+reads beyond the assigned workspace were observed. Prefer schema-bound offline
+utilities with a supplied fixture and command, and enforce workspace limits at
+the OS layer. Confidence remains low to moderate for supervised, bounded data
+work; workspace discipline and autonomous validation remain low-confidence.

@@ -171,3 +171,24 @@ fixture defects; supervisor corrections then passed 25 history tests and 34
 status-viewer tests. These are supervisor-assisted completions. The existing
 human-readable status output and state exit codes remain available. Both panes
 were closed after their shell returned; workspaces and evidence were retained.
+
+## 2026-11-15 worker recovery additions
+
+A Qwen3.5 bounded artifact-locator task produced a draft that failed independent
+CLI acceptance (9 failures and 2 errors among 36 tests), including a regression
+to an existing command and unsafe path-containment logic. The supervisor built
+a separate implementation in the private lab; its 69 tool tests and 33 CLI
+tests pass. Do not count the supervisor implementation as worker success.
+
+A Qwen3.6 cancellation task produced no output or project edits despite four
+local completion responses. It was interrupted after the three-minute
+no-progress inspection, preserved, and closed after shell return. The cause is
+unknown. These outcomes are task-specific evidence, not a general model
+ranking.
+
+Continue to treat `agent_prompt_stalled` and `idle` as ambiguous: inspect pane
+output, task state, process state, and artifacts before resubmitting or closing.
+A backend HTTP response is not proof of useful progress. Require verified OS
+workspace boundaries; Herdr's working directory alone does not confine file
+access. Keep child panes in a single row below the supervisor, preserve
+artifacts, then close panes after a documented terminal state.
