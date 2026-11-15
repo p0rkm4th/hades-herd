@@ -70,6 +70,11 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
   usage report omitted token counts despite successful chat responses.
 - **Confidence:** moderate for the historical five fixtures; low to moderate
   for this single supervised task.
+- **Additional review sample:** MiMo spent about 9 minutes on a read-only code
+  review and found a real ambiguity between multiple recognized aliases for
+  one field. Several other findings were false or incomplete when reproduced.
+  Assign MiMo review tasks as lead generation only; require direct source and
+  test verification. Confidence remains low for code review.
 
 ## Gemma4 12B
 
@@ -99,6 +104,17 @@ enough evidence to characterize roles, prompting, or task boundaries.
   independently review all results.
 - **Confidence:** low; two accepted small tasks and one failed larger task do
   not establish a reliability rate.
+- **Additional sample:** two isolated Actual CSV import tasks completed in
+  97 seconds and 328 seconds. One added duplicate-header guards; one added
+  mapping-column reuse and mode validation. Both passed independent acceptance
+  in the final snapshot. The worker's second suite had redundant cases, which
+  the supervisor reduced to focused tests. This supports tightly bounded
+  implementation, not unsupervised integration.
+- **Suggested limits:** one behavior per task, up to two named source/test
+  files, explicit acceptance commands, and a three-minute no-progress review.
+  Check artifact changes because terminal output may remain silent while work
+  proceeds.
+
 
 ## Qwen3.8 27B Q4_K_M
 

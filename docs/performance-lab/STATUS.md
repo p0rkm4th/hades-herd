@@ -63,6 +63,21 @@ incorrect expected totals and list-row handling. Supervisor fixes passed the
 same checks, but the worker attempt remains incomplete and is not counted as an
 autonomous success.
 
+An additional isolated Actual CSV import task used local Qwen3.6 35B for two
+bounded implementation steps: duplicate-header handling and mapping-column
+validation. Both completed with independent acceptance; the final focused suite
+passed 10 tests plus the existing import contract. A separate MiMo review took
+about 9 minutes and produced mixed findings: one reproducible alias ambiguity,
+alongside several claims that failed reproduction. Its output was treated as a
+review lead, not authority. The resulting patch is prepared separately and was
+not applied to the source checkout. These samples improve role evidence but do
+not establish a reliability rate.
+
+The one-shot status view now reports a bounded list/count of changed relative
+paths and last change time during silent worker activity; it contains no file
+contents. Forty-two offline tool tests passed after this change. Completed
+worker panes were closed, leaving the supervisor pane only.
+
 ## Limits
 
 - TTFT was unavailable in all baseline/context runs because no nonempty answer
@@ -84,10 +99,10 @@ autonomous success.
 
 ## Next experiment
 
-Demonstrate a moderately complex local task with saved checkpoints and
-independent review using a smaller, bounded contract, then distinct Herdr
-subtasks on separate local workers. Do not rerun general baselines or the
-rejected prefix-cache probe.
+Run a matched task-level 16K/65K comparison with visible structured answers,
+independent correctness, and measured TTFT. The existing warm throughput
+difference alone does not establish a useful optimization. Keep the rejected
+prefix-cache probe deferred.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.

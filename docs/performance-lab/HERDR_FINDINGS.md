@@ -85,3 +85,11 @@ fixture, all 12 tests passed and the source task workspace remained unchanged.
 Inspect after three minutes without an artifact change, stop repeated repair
 loops, checkpoint after two context compactions, and cap corrective retries at
 two. Close finished panes while retaining their workspace and run artifacts.
+
+The one-shot status view originally exposed a heartbeat but no sign of silent
+file edits. It now samples Git's changed-path list on existing heartbeat
+intervals and reports only a bounded set of relative paths, total count, and
+last-change time. It excludes file contents and workspace roots. Offline tests
+cover a silent writer and path redaction. This is evidence of workspace
+activity, not a completion or quality signal; continue checking acceptance
+results and the actual task diff.
