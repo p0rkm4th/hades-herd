@@ -101,3 +101,22 @@ pending because the worker did not exit successfully. The supervisor inspected
 the exact diff, made a small correction, and ran the manifest in an isolated
 networkless snapshot. Treat worker exit and acceptance state as separate
 signals; do not infer successful completion from observed file activity.
+
+## Second bounded engineering pair
+
+Two local workers ran in a single row beneath the supervisor, on separate
+verified local inference nodes and in OS-isolated assigned workspaces. The
+Qwen3.6 classifier worker completed in 185 seconds and its six tests passed;
+independent review found a regression that treated “patch” as implementation
+intent. The supervisor added a narrow fix and regression check; the corrected
+seven-test worker suite and 49-test lab suite passed. The Qwen3.5 natural
+language CLI worker stopped at its 12-turn limit after 163 seconds, before its
+acceptance manifest ran. Its partial implementation failed review and remains
+preserved without a rewrite.
+
+Herdr's generic agent list still reports wrapped Hermes panes as unknown. The
+sandbox status artifact and pane output established terminal state, while the
+heartbeat alone did not. Both panes were closed after preserving evidence and
+confirming terminal states. Continue checking pane output and sandbox status,
+inspect after three minutes without meaningful progress, and do not resubmit on
+a stalled or unknown lifecycle result.

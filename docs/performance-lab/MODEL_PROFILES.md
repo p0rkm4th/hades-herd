@@ -136,3 +136,17 @@ enough evidence to characterize roles, prompting, or task boundaries.
   automatic selection while unresident; automatic cold loading is disabled.
 - **Confidence:** low to moderate for bounded coding in the historical HADES
   route; no independent local Hermes sample yet.
+
+## Additional Qwen3.6 and Qwen3.5 evidence — 2026-11-15
+
+Qwen3.6 completed a focused classifier change in 185 seconds. Its six worker
+tests passed, but independent review found a “patch” noun regression. A narrow
+supervisor correction and regression test passed the focused suite 7/7 and
+combined 49-test lab suite. Count this as supervisor-assisted acceptance.
+
+Qwen3.5's natural-language CLI attempt stopped after 163 seconds at the
+12-turn cap with its acceptance pending. Review found incorrect subprocess
+arguments and status/history handling in the partial implementation; it was
+rejected and preserved without a rewrite. Token totals were unavailable.
+Continue limiting assignments to one behavior with explicit fixtures and
+early inspection.

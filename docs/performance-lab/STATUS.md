@@ -115,3 +115,17 @@ prefix-cache probe deferred.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.
+
+## 2026-11-15 supervised engineering checkpoint
+
+A focused task-classifier update scanned the full bounded task contract rather
+than only its first sentence. A local Qwen3.6 worker completed in 185 seconds;
+independent review found and corrected a regression around “review this patch.”
+The corrected focused suite passed 7/7, and the combined local tool suite now
+passes 49 offline tests. A separate Qwen3.5 CLI assignment stopped at its
+12-turn limit after 163 seconds; its acceptance did not run and review rejected
+the partial implementation. Its workspace was preserved and no replacement
+worker was launched.
+
+Classifier intent remains heuristic; the new full-contract scan has a small
+synthetic acceptance set and is not a general language-understanding result.
