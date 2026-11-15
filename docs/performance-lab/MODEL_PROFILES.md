@@ -44,6 +44,13 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
 - **Confidence:** low for small supervised coding after mixed current samples;
   low for long, tool-heavy tasks. The evidence does not support a reliability
   percentage.
+- **Recovery check:** a fresh mock recheck reproduced prefix disclosure,
+  biased control order, and silent append in the probe. Do not use it live.
+  This is additional evidence from the same tool assignment, not an independent
+  new task sample.
+- **Provisional boundary:** one behavior in one small file, one explicit
+  acceptance command, and an early artifact checkpoint. Stop repeated parser
+  or patch loops; the probe task does not establish a general model limitation.
 
 ## MiMo V2.6 9B Q4_K_M
 
@@ -76,6 +83,13 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
   usage report omitted token counts despite successful chat responses.
 - **Confidence:** moderate for the historical five fixtures; low to moderate
   for this single supervised task.
+- **Recovery check:** the corrected summarizer passed a fresh synthetic check
+  for median/null TTFT, cold/warm loads, empty responses, duplicate rejection,
+  and no-clobber behavior. The worker's original was untested and needed
+  material correction, so acceptance is retry-assisted.
+- **Provisional boundary:** one schema-bound offline utility and a concise
+  README, with an OS-enforced workspace limit. Require independent tests and
+  count workspace excursions as a supervision risk.
 - **Additional review sample:** MiMo spent about 9 minutes on a read-only code
   review and found a real ambiguity between multiple recognized aliases for
   one field. Several other findings were false or incomplete when reproduced.
@@ -150,3 +164,11 @@ arguments and status/history handling in the partial implementation; it was
 rejected and preserved without a rewrite. Token totals were unavailable.
 Continue limiting assignments to one behavior with explicit fixtures and
 early inspection.
+
+## 2026-11-15 stalled CLI follow-up
+
+A bounded Qwen3.6 CLI attempt produced three successful local completion
+responses but no output or project change; it was interrupted after
+281.9 seconds with acceptance pending. The cause is uncertain and does not
+establish a reasoning failure. Keep the scope to one behavior with an early
+artifact checkpoint and independent acceptance.

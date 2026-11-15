@@ -14,7 +14,7 @@ The first Herdr Hermes cohort is independently classified. The Qwen3.5
 prefix-cache probe failed offline acceptance and was not run against a live
 model. MiMo produced an initial summarizer that required material supervisor
 correction; the corrected private tool passed synthetic and live-record checks.
-Both worker panes are idle.
+The first cohort panes were closed after their evidence was preserved.
 
 The local Hermes launch path now has an OS-enforced workspace and network
 boundary. Five offline tests passed, including a denied external connection and
@@ -129,3 +129,19 @@ worker was launched.
 
 Classifier intent remains heuristic; the new full-contract scan has a small
 synthetic acceptance set and is not a general language-understanding result.
+
+## 2026-11-15 worker recovery
+
+Independent loopback-mock checks reconfirmed that the Qwen3.5 prefix probe
+fails live-use acceptance: it leaks prefix text, uses biased control ordering,
+and appends to an existing output file. It remains unused against a live model.
+The corrected MiMo benchmark summarizer passed a fresh synthetic report check
+and is accepted for offline JSONL summaries only; credit is supervisor-assisted.
+A separate Qwen3.6 CLI follow-up made three successful local completion calls
+but produced no output or project edits and was safely interrupted. Its cause
+is unresolved, so it is recorded as incomplete rather than a model-quality
+failure. See HERDR_FINDINGS.md and MODEL_PROFILES.md.
+
+Ollama 0.40.15 source supports `draft_num_predict` handling, and the selected
+Qwen3.6 model-derived options expose value 2. Draft/MTP artifact support and
+effective behavior are still unverified; speculative decoding remains deferred.

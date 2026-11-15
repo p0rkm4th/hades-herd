@@ -120,3 +120,22 @@ heartbeat alone did not. Both panes were closed after preserving evidence and
 confirming terminal states. Continue checking pane output and sandbox status,
 inspect after three minutes without meaningful progress, and do not resubmit on
 a stalled or unknown lifecycle result.
+
+## Worker recovery checkpoint
+
+Independent mock checks reconfirmed the Qwen3.5 prefix probe's privacy,
+ordering, and append defects. The corrected MiMo summarizer passed a synthetic
+offline acceptance check; its completion remains supervisor-assisted. A
+separate Qwen3.6/Tartarus CLI task made three successful local completion
+requests but produced no output or workspace edits. After checking bridge
+activity and preserving run evidence, the supervisor interrupted it at
+281.9 seconds. The sandbox recorded exit 130 and pending acceptance. Cause is
+uncertain; this is not classified as a model failure. The worker pane was
+closed after the process returned to shell, leaving the supervisor alone.
+
+Provisional lifecycle: verify model/digest/capacity/workspace, submit once,
+inspect artifacts after three minutes without meaningful progress, stop
+repeated same-issue edits, checkpoint after two context compactions, and allow
+at most two evidence-backed corrections. Close a pane only after terminal
+state and evidence are preserved. These are starting guardrails, not calibrated
+model timeouts.

@@ -28,9 +28,11 @@ semantics. No live prefix-cache request was made.
 
 ## Speculative decoding feasibility
 
-Read-only metadata inspection of the tested Qwen3.6 artifact exposed no
-draft/MTP metadata. No speculative-decoding run was attempted; compatibility
-remains unproven.
+Ollama 0.40.15 source includes `draft_num_predict` handling, and the tested
+Qwen3.6 model-derived options expose value 2. This does not establish usable
+draft weights or embedded MTP tensors, nor an effective performance change.
+No speculative-decoding run was attempted; qualify the exact local artifact
+and runner before a request-scoped comparison.
 
 ## Other candidates
 
@@ -41,3 +43,11 @@ remains unproven.
   service to test global settings.
 - **Context quality follow-up:** next candidate; require visible structured
   output, correctness, and TTFT at both context sizes.
+
+## Worker tool acceptance checkpoint
+
+The prefix-cache probe remains rejected after a fresh loopback mock reproduced
+prefix disclosure, prefix-first ordering, and silent output append. The
+supervisor-corrected MiMo summarizer independently passed synthetic median,
+null-TTFT, cold/warm, empty-response, duplicate-run, and no-overwrite checks.
+These are tool reliability results, not inference optimization gains.
