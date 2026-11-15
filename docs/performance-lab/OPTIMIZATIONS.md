@@ -129,3 +129,21 @@ of an accepted task-time gain. No production setting changed.
    do not download models or change production defaults.
 4. Revisit context quality only with a workload that has an independent exact
    checker and verified per-request context allocation.
+
+## Shared-prefix reuse — provisional signal, not promoted
+
+One eight-request Qwen3.6 35B run at requested 65,536 context had one
+1,833-token control among otherwise 1,832-token prompts, so the full-run gate
+failed. Excluding that control and the first cold shared-prefix request leaves
+three warm shared-prefix samples and three token-matched unique controls.
+Median prefill was 1.761486 s versus 3.058966 s (42.4% lower), visible TTFT
+1.844859 s versus 3.127293 s (41.0% lower), and client elapsed 1.964133 s
+versus 3.246254 s (39.5% lower). All eight short visible markers were correct;
+that is not a task-quality check. The runtime exposed no explicit cache-hit
+counter, and this is a post-hoc subset from one interleaved run. Treat faster
+prefill as indirect evidence only. Keep experimental and do not promote.
+
+The exact model digest and 65K resident context were independently verified;
+runner allocation was unchanged. No production route or setting changed. A
+replicated, counterbalanced, exactly token-matched run with a real correctness
+contract is required before claiming a reproducible cache benefit.

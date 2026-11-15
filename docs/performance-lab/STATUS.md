@@ -276,3 +276,22 @@ experimental and does not establish useful-task performance. No production
 settings changed. Next: qualify isolated-runtime support for KV-cache and
 Flash Attention experiments, and revisit prefix reuse only after its probe
 passes offline acceptance.
+
+## Prefix-reuse assay checkpoint — 2026-11-15
+
+A new offline-accepted probe completed eight requests on Qwen3.6 35B at
+65,536 context. Its whole-run gate rejected one control with a one-token
+prompt-count mismatch. A post-hoc matched subset (three warm shared-prefix
+requests versus three controls) showed 42.4% lower median prefill, 41.0% lower
+TTFT, and 39.5% lower client elapsed. This is a single-run indirect reuse
+signal, not an accepted optimization: there is no explicit cache-hit counter
+and the short marker does not establish task correctness. Exact digest and
+65K allocation were checked before and after; no service setting changed.
+
+The existing structured context workload failed the same five aggregate
+checks at both requested context sizes, so it provides no evidence of a
+context-quality benefit. Next: read-only Colibri artifact/toolchain
+qualification; no build, import, download, or launch until compatibility and
+an isolated reversible plan are established. If that gate fails, prepare a
+replicated, token-matched prefix-reuse experiment with an independent
+correctness check. No worker remains active.

@@ -55,3 +55,11 @@ being measured; a short sentinel is a smoke check, not an engineering-task
 acceptance test. For agent lifecycle decisions, correlate process state, changed
 artifacts, actual acceptance exit codes, and backend activity. Backend success
 responses alone are not evidence of task progress.
+
+For prefix-reuse comparisons, compare equal prompt-token counts and separate
+the first cold request from warm samples. If the full-run match gate fails,
+any matched-subset calculation must state its exclusions and remain
+exploratory; it cannot be promoted as a successful experiment. Without a
+backend cache-hit counter, prefill/TTFT changes are indirect evidence. Repeat
+with counterbalanced order and an independently checked useful response before
+accepting a benefit.
