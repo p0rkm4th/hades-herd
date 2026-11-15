@@ -22,3 +22,12 @@ A throughput change alone is not a usable-task improvement. A meaningful result 
 ## Context allocation candidate control
 
 The Qwen3.6 35B comparison changed only request context from 65,536 to 16,384. It used the same text, seed, temperature, 128-token cap, model artifact, and runtime. Report the initial context-transition load separately from warm runs, and restore the original runner context after the candidate. A reduced context is unsuitable if the task requires longer context.
+
+
+## Worker acceptance
+
+A worker claim is not acceptance. Use offline mock services to verify CLI
+behavior, digest guards, experiment ordering, metric fields, privacy,
+no-clobber behavior, and error handling. Preserve the initial artifact, record
+supervisor corrections, and classify completion as autonomous,
+retry-assisted, incomplete, or failed.

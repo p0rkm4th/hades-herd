@@ -1,29 +1,62 @@
 # Local model behavior profiles
 
-These summaries use observed Hermes tasks, not public benchmark scores. Task evidence is still limited and should guide supervision, not unattended deployment.
+These observations come from local Hermes engineering tasks and inference
+runs, not public benchmark scores. Evidence is limited; require supervision.
 
 ## Qwen3.5 9B Q4_K_M
 
-- **Observed:** 5/5 independent contracts passed in a five-task bounded coding suite; mean wall time 105.9 s. One debugging run used a different execution tool than requested, so strict tool-path compliance was 4/5.
-- **Best role:** supervised, bounded coding tasks with explicit acceptance checks.
-- **Weak role:** tasks where exact tool-path adherence or low latency is essential without supervision.
-- **Effective prompt pattern:** state allowed tools, changed-file boundaries, and independent acceptance criteria. This was useful in the suite, but no prompt ablation proves a Qwen-specific wording advantage.
-- **Ineffective prompts:** none isolated in the available evidence.
-- **Task boundary and supervision:** one self-contained change per task; use a hard deadline and audit the tool trace.
-- **Confidence:** low to moderate for this narrow fixture suite; low for long-context and repository-scale work.
+- **Best role:** historical bounded coding fixtures with explicit independent
+  contracts; 5/5 contracts passed in one five-task suite.
+- **Weak role:** long, multi-requirement tool tasks without staged checkpoints.
+  A probe task involved repeated edits, three context compactions, and ended
+  with an implementation that failed independent offline acceptance.
+- **Effective prompt pattern:** short, single-file tasks with one acceptance
+  command and a supplied schema. The old suite supports explicit contracts and
+  allowed-tool rules; no prompt ablation proves a Qwen-specific benefit.
+- **Ineffective prompt:** the all-at-once probe assignment led to patch loops
+  and a temporary Python-to-Markdown replacement. This is one task sample.
+- **Task boundary:** one behavior per assignment; keep the script small and
+  separate CLI, request protocol, and reporting changes.
+- **Operational guidance:** inspect after three minutes without progress;
+  checkpoint after two compactions; allow at most two corrections.
+- **Tool restrictions:** enforce workspace writes outside the prompt layer;
+  inspect logs for broad reads and editing outside the assignment.
+- **Supervisor strategy:** confirm artifact changes at checkpoints and run
+  mock acceptance independently; do not treat idle as completion.
+- **Observed example:** 17m45s, 32 reported edits, 15 reads, 25 script/tool
+  runs, one shell command, three context compactions; final probe rejected
+  before live use.
+- **Confidence:** moderate for old fixture suite, low for long tool-heavy work.
 
 ## MiMo V2.6 9B Q4_K_M
 
-- **Observed:** 4/5 independent contracts passed; mean wall time 36.7 s. A multi-file task passed its test suite but failed the independent contract.
-- **Best role:** supervised bounded bug fixes, small features, refactors, and debugging fixtures.
-- **Weak role:** multi-file work without an independent contract and human review.
-- **Effective prompt pattern:** explicit changed-file allowlist, offline test command, and independent acceptance criteria. The evidence does not isolate a model-specific prompt advantage.
-- **Ineffective prompts:** no prompt ablation is available. The failed contract shows that passing tests alone was insufficient.
-- **Task boundary and supervision:** prefer one cohesive change; separately verify every requirement and inspect the diff.
-- **Confidence:** low to moderate for the five synthetic tasks; not evidence of production reliability.
+- **Best role:** historical bounded bug fixes, small features, refactors, and
+  debugging; 4/5 independent contracts passed.
+- **Weak role:** tasks needing unprompted scope control and self-validation.
+  The first summarizer had multiple defects and was not tested by the worker.
+- **Effective prompt pattern:** provide the record schema, one synthetic
+  fixture, output contract, and a small change boundary. No model-specific
+  prompt ablation is available.
+- **Ineffective prompt:** a long instruction to stay in the assigned directory
+  did not prevent reading other lab files; it also did not lead to acceptance
+  testing.
+- **Task boundary:** one stdlib script plus concise documentation and synthetic
+  data.
+- **Operational guidance:** review after three minutes without progress; cap
+  corrections at two. The implementation session lasted about 14 minutes.
+- **Tool restrictions:** use an OS-level workspace boundary and disable
+  unapproved persistent skill creation.
+- **Supervisor strategy:** keep the initial worker version for comparison,
+  inspect every output field, correct only bounded defects, and independently
+  test.
+- **Observed example:** worker wrote a summarizer and README, then honestly
+  reported missing tests. Supervisor corrections passed synthetic and
+  three-file aggregation checks. This is retry-assisted, not autonomous
+  acceptance.
+- **Confidence:** moderate for the historical five fixtures; low to moderate
+  for this single supervised task.
 
 ## Gemma4 12B
 
-One bounded smoke run timed out at 180 seconds without useful tool activity. This single result is insufficient to characterize strengths, prompting, or ideal task scope; keep this model profile provisional.
-
-See [STATUS.md](STATUS.md) for the current live comparison and outstanding evidence.
+A single bounded smoke task timed out without useful tool activity. This is not
+enough evidence to characterize roles, prompting, or task boundaries.
