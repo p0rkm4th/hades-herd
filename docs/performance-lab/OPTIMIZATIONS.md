@@ -34,19 +34,21 @@ draft weights or embedded MTP tensors, nor an effective performance change.
 No speculative-decoding run was attempted; qualify the exact local artifact
 and runner before a request-scoped comparison.
 
-## Visible-answer context follow-up
+## Visible-answer context follow-up — inconclusive
 
 At 16K, two warm samples had median TTFT 3.653 s and generation 53.94 tok/s;
-at 65K, two warm samples measured 3.938 s and 49.96 tok/s. All six runs
-contained the expected synthetic answer. The 16K warm result was about 7%
-faster to first text and 8% faster in generation, with 0.529 GB (2.2%) lower
-runner allocation. Transitioning contexts cost about 17.3 s each direction.
-The 65K block followed the 16K block, so this is not counterbalanced.
+at 65K, two warm samples measured 3.938 s and 49.96 tok/s. The 16K warm
+result was about 7% faster to first text and 8% faster in generation. All six
+runs contained the expected marker, but recorded output was only 11 characters.
+The `/api/ps` metadata reported the preceding context setting, so effective
+allocation and memory for this follow-up are unverified. The earlier capped
+microbenchmark separately reported lower 16K runner allocation; it had no
+visible answer and does not establish a quality or task-time benefit.
 
-**Decision: KEEP EXPERIMENTAL.** The gains are below the 15% target, and
-reallocation dominates the per-request saving. Do not change the default. A
-same-task engineering comparison is still needed to assess correctness and
-task completion.
+**Decision: KEEP EXPERIMENTAL.** The warm gains are below the 15% target, the
+comparison is not counterbalanced, and full answer correctness is unknown. Do
+not change the default. Validate effective allocation and full response capture
+before a matched engineering task comparison.
 
 ## Other candidates
 

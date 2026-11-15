@@ -192,3 +192,15 @@ A backend HTTP response is not proof of useful progress. Require verified OS
 workspace boundaries; Herdr's working directory alone does not confine file
 access. Keep child panes in a single row below the supervisor, preserve
 artifacts, then close panes after a documented terminal state.
+
+
+## Interruption and completion signals
+
+A local Hermes cancellation task remained silent despite successful local
+completion responses. Herdr Ctrl+C did not promptly stop its nested process
+tree; the supervisor inspected exact process IDs/groups, interrupted the
+Hermes group, and verified exit before closing the owned pane. This is a control
+path limitation, not a model-quality finding. Preserve artifacts before
+interruption and verify all owned descendants have exited. A stalled prompt
+wait, `idle`, or HTTP 200 response alone does not establish delivery failure,
+completion, or useful progress.

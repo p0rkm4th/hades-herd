@@ -44,3 +44,14 @@ behavior, digest guards, experiment ordering, metric fields, privacy,
 no-clobber behavior, and error handling. Preserve the initial artifact, record
 supervisor corrections, and classify completion as autonomous,
 retry-assisted, incomplete, or failed.
+
+
+## Context and agent acceptance caveats
+
+Record requested context separately from independently observed effective
+allocation. When those disagree, report allocation and memory results as
+unverified. Preserve complete response output privately when correctness is
+being measured; a short sentinel is a smoke check, not an engineering-task
+acceptance test. For agent lifecycle decisions, correlate process state, changed
+artifacts, actual acceptance exit codes, and backend activity. Backend success
+responses alone are not evidence of task progress.

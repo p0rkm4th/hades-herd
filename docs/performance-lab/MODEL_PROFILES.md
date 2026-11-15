@@ -212,3 +212,22 @@ reads beyond the assigned workspace were observed. Prefer schema-bound offline
 utilities with a supplied fixture and command, and enforce workspace limits at
 the OS layer. Confidence remains low to moderate for supervised, bounded data
 work; workspace discipline and autonomous validation remain low-confidence.
+
+
+## Recovery observations
+
+- **Qwen3.5 9B:** a bounded artifacts-JSON implementation failed independent
+  CLI acceptance after 116 s. Syntax passed, but the focused suite had 7
+  errors and 1 failure; the draft contained undefined status handling and a
+  null-path helper defect. Keep near-term work to one small behavior, one
+  file, and explicit acceptance; inspect early and avoid repeated rewrite
+  prompts. Confidence remains low.
+- **MiMo V2.6 9B:** its summarizer draft was not tested by the worker. The
+  supervisor-corrected version passed synthetic offline reporting checks and
+  is accepted for that scope only. This is retry-assisted evidence. Enforce
+  filesystem boundaries and independently execute acceptance.
+- **Qwen3.6 35B:** a nested process tree required process-group inspection for
+  safe interruption. A short context comparison showed a small warm TTFT and
+  decode improvement at requested 16K, but answer capture was only 11
+  characters and resident context metadata lagged the request. No broad
+  reliability or context-quality claim follows.

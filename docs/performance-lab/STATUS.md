@@ -211,3 +211,20 @@ and about 17.3 seconds to switch contexts. This is not engineering-task quality
 evidence. Keep 16K experimental and the next optimization is a matched,
 independently checked engineering task at both sizes. No production setting
 changed.
+
+
+## Recovery checkpoint update — 2026-11-15
+
+Independent offline acceptance classified the Qwen3.5 prefix-cache probe as
+failed for live use and the MiMo JSONL summarizer as accepted for offline
+reporting after supervisor correction. A later Qwen3.5 CLI draft failed its
+independent suite. A Qwen3.6 cancellation task produced no output or edits;
+its nested process tree required process-group inspection and interruption. No
+worker remained running after cleanup.
+
+A follow-up short-answer comparison emitted an expected marker in all three
+runs at each context setting. Warm 16K medians were 3.653 s TTFT and 53.94
+tok/s; warm 65K medians were 3.938 s and 49.96 tok/s. The response capture was
+only 11 characters, and resident-context metadata reflected the prior setting.
+Treat the result as inconclusive; full answer correctness and effective
+allocation remain unverified. No production settings changed.
