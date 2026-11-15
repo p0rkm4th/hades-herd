@@ -13,3 +13,7 @@ Three local configurations were measured serially on Ollama 0.40.15. Each had th
 Each run reached the 128-token cap, but the harness saw zero nonempty `response` chunks. TTFT therefore remained null; do not interpret client time or token throughput as time to a useful answer. The first two rows include one first-run cold load, while the client-time median is warm-dominated. No matched peak-memory sample or task-correctness check was taken.
 
 The exact public synthetic workload and capture controls are in [METHODOLOGY.md](METHODOLOGY.md). Model digests and raw telemetry are deliberately kept private.
+
+## Context allocation comparison
+
+Node C ran the same model and workload at 16,384 context in three additional serial runs, then returned to 65,536 context. The median of the two warm 16K runs was 2.608 s client time and 51.12 tokens/s; the 65K baseline medians were 3.268 s and 40.80 tokens/s. The first context transition required a 17.304 s runner reallocation. Runner VRAM allocation after warm runs was 23.576 GB at 65K and 23.047 GB at 16K. A single aggregate GPU memory sample fell 4.4%; this is not a peak-memory measurement. Output remained unavailable and correctness was not tested. See [OPTIMIZATIONS.md](OPTIMIZATIONS.md) for interpretation.

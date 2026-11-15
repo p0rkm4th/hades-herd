@@ -18,3 +18,7 @@ The harness observed no nonempty answer chunks in these runs, despite reaching t
 Use matched model artifact, runtime, context, workload, and contention conditions. Preserve repeated raw counters privately. Report medians and run variability, cold/warm state, peak resource use where available, and independent correctness. Separate infrastructure/backend failures from prompting, tool-use, and reasoning failures. Report negative results and uncertainty.
 
 A throughput change alone is not a usable-task improvement. A meaningful result should show a material reduction in task time, more usable context/concurrency, lower memory without substantial quality regression, improved independently verified completion, or fewer tool errors. No production route/default changes are part of this research branch.
+
+## Context allocation candidate control
+
+The Qwen3.6 35B comparison changed only request context from 65,536 to 16,384. It used the same text, seed, temperature, 128-token cap, model artifact, and runtime. Report the initial context-transition load separately from warm runs, and restore the original runner context after the candidate. A reduced context is unsuitable if the task requires longer context.
