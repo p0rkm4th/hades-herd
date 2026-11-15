@@ -307,3 +307,12 @@ Luna corrected test fixtures, added timeout/state guards, and independently
 validated it. Count this as supervisor-assisted usability work, not autonomous
 worker completion. A separate Qwen3.5 report enhancement did not pass
 acceptance and was not integrated.
+
+## Redacted acceptance summaries — 2026-11-15
+
+The local operator report now shows passed/total independent acceptance checks
+when its status artifact is valid and belongs to the task workspace. Missing,
+malformed, symlinked, or out-of-scope artifacts are reported as unavailable;
+paths and logs are never printed. A networkless acceptance snapshot passed 84
+CLI tests plus syntax and help checks. The worker drafts were incomplete, so
+this is supervisor-completed usability work, not autonomous worker completion.
