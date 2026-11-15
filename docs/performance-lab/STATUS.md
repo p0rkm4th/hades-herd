@@ -16,23 +16,33 @@ model. MiMo produced an initial summarizer that required material supervisor
 correction; the corrected private tool passed synthetic and live-record checks.
 Both worker panes are idle.
 
+The local Hermes launch path now has an OS-enforced workspace and network
+boundary. Five offline tests passed, including a denied external connection and
+successful use of a local mock inference API. A Qwen3.6 35B no-tools smoke
+request returned its exact response through the configured local route; another
+returned through a direct, already-resident local node. These short smoke
+requests validate routing only, not model quality or performance gains.
+
 ## Limits
 
 - TTFT was unavailable in all baseline/context runs because no nonempty answer
   chunks were observed. Token throughput remains measurable, but useful answer
   latency and correctness do not.
-- The prefix-cache experiment is pending a new minimal probe that passes
+- The prefix-cache experiment is rejected until a minimal replacement passes
   offline acceptance.
 - Herdr prompt waits and lifecycle states did not consistently reflect worker
-  activity. Workspace cwd did not prevent workers from reading outside their
-  assignments.
+  activity. Wrapped Hermes still appears `unknown`; inspect pane output and
+  artifacts instead of treating a stalled prompt wait as a failed submission.
+- The sandbox boundary passed integration checks but has not been tested
+  against a malicious agent. Keep assignments non-sensitive and review outputs.
 - No production route, global service setting, or model default was changed.
 
 ## Next experiment
 
 Evaluate the 16K context candidate using a visible structured answer and an
 independent correctness contract, with TTFT and context-transition load
-reported separately. See METHODOLOGY.md before running it.
+reported separately. See METHODOLOGY.md before running it. Do not run the
+rejected prefix-cache probe until a replacement passes offline review.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.

@@ -24,3 +24,20 @@ progress, checkpoint after two compactions, and allow no more than two
 corrective retries. Interrupt an unproductive active task with the documented
 agent Ctrl+C control while preserving its pane and files. Both current workers
 are idle; no worker task remains active.
+
+## Wrapped Hermes route isolation
+
+Herdr does not yet recognize the bubblewrap-wrapped Hermes process as a normal
+agent: its pane is `unknown`. For these sessions, the supervisor verified the
+pane's foreground process and input prompt, submitted one task once through the
+pane, and checked both response output and post-run audit evidence. A stalled
+prompt wait was not used as a reason to resubmit.
+
+The local launcher now hides the host home, makes only the assigned task
+workspace writable, and disables network egress in a separate network
+namespace. A loopback-only alias forwards into a Unix-socket bridge that allows
+only the selected local model catalog and chat-completions routes. Five offline
+integration tests passed; no-tools Qwen3.6 smoke requests succeeded on the
+configured local route and an already-resident local inference node. This is
+route evidence, not a malicious-agent security audit or a model-quality result.
+Use non-sensitive task data until broader isolation review is complete.
