@@ -91,3 +91,15 @@ TTFT was 3.653 s at 16K and 3.938 s at 65K; generation was 53.94 and 49.96
 tok/s. Each context transition cost about 17.3 s. Keep the result experimental:
 it does not establish accepted engineering-task quality or a worthwhile
 reallocation policy.
+
+## Next experiment ranking
+
+1. Verify effective context allocation per request, then compare full
+   structured-answer correctness and cold/warm costs at 16K and 65K. Existing
+   warm gains are small and current response/allocation evidence is
+   inconclusive.
+2. Revisit prefix caching only after a minimal probe passes offline privacy,
+   ordering, stream-metric, append-protection, and failure-preservation tests.
+3. Defer KV-cache/Flash Attention, speculative decoding, and engine migration
+   until installed-runtime and exact-artifact compatibility are verified in an
+   isolated service. No production defaults or routing changed.

@@ -215,6 +215,23 @@ the OS layer. Confidence remains low to moderate for supervised, bounded data
 work; workspace discipline and autonomous validation remain low-confidence.
 
 
+## Additional bounded-task evidence — 2026-11-15
+
+**Qwen3.6 35B:** a narrowly scoped local CLI-report feature completed in
+185.6 seconds. Focused acceptance and the then-current CLI suite passed; the
+supervisor added malformed-metadata guards, after which integrated CLI and
+tool suites passed. Treat this as accepted with a small supervisor hardening
+correction, with low-to-moderate confidence for this task size.
+
+**MiMo V2.6 9B:** a context-evidence documentation task ran for 358.6 seconds
+and made a single-file draft, but authoritative task status was exit 2 with
+acceptance pending. Its final response claimed success, while review found
+conflated preference/allocation evidence and treated missing measurements as
+unsupported configurations. Keep this as a failed worker sample. Luna
+corrected the private matrix and independently passed its fixture; that
+correction is not worker completion. Prefer short, source-bound documentation
+tasks with acceptance executed by the supervisor.
+
 ## Recovery observations
 
 - **Qwen3.5 9B:** a bounded artifacts-JSON implementation failed independent

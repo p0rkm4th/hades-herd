@@ -194,6 +194,17 @@ access. Keep child panes in a single row below the supervisor, preserve
 artifacts, then close panes after a documented terminal state.
 
 
+## Recovery checkpoint — 2026-11-15
+
+One worker task's final message claimed a successful check while its preserved
+runner status recorded exit 2 and acceptance pending. Inspect both the runner
+status and pane foreground process before classifying completion. A pane with
+an unrecognized lifecycle state may already have returned to its shell; close
+it only after preserving task output and confirming no worker process is
+active. In this checkpoint, its workspace was retained and pane closed after
+process inspection. Neither a final claim nor an `unknown` state is sufficient
+acceptance evidence.
+
 ## Interruption and completion signals
 
 A local Hermes cancellation task remained silent despite successful local

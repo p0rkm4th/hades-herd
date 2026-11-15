@@ -87,6 +87,23 @@ paths and last change time during silent worker activity; it contains no file
 contents. Forty-two offline tool tests passed after this change. Completed
 worker panes were closed, leaving the supervisor pane only.
 
+## Recovery checkpoint — 2026-11-15
+
+A bounded Qwen3.6 local CLI-report task completed in 185.6 seconds and passed
+independent acceptance, with one small supervisor hardening change. A MiMo
+context-documentation task ran 358.6 seconds but exited 2 with acceptance
+pending; review found semantic errors despite its completion claim. The
+supervisor corrected the private matrix and its independent fixture passed.
+These are task-specific observations, not a model ranking. The remaining
+worker pane was confirmed to be an idle shell and closed after its status and
+artifacts were preserved.
+
+The context comparison remains inconclusive: warm 16K medians showed 7.2%
+lower TTFT and 8.0% higher decode than 65K, but the response capture was only
+11 characters and resident-context metadata contradicted request options.
+The next experiment is a full structured answer with verified effective
+allocation and correctness checks. Keep 16K experimental; change no defaults.
+
 ## Limits
 
 - TTFT was unavailable in the three-model baseline and original capped context
