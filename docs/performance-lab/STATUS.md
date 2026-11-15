@@ -169,9 +169,24 @@ productive output age, so inference activity cannot mask a stalled task. The
 updated offline suite passes 55 tests. This is a private orchestration-tool
 improvement; it does not change production inference routing or settings.
 
-The earlier Qwen3.6 16K/65K comparison remains a throughput-only candidate:
-the runs emitted no visible answer text, so useful-answer latency and
-correctness are still unmeasured. The next inference experiment is a matched
-visible-answer comparison with independent correctness and TTFT. Colibri is
-now a documented upstream Qwen3.6 engine candidate, but no HADES runtime or
-artifact compatibility test has been performed.
+The earlier Qwen3.6 16K/65K comparison emitted no visible answer text. A later
+synthetic sentinel comparison measured visible TTFT and exact output at both
+contexts but did not test engineering-task quality. Colibri is a documented
+upstream Qwen3.6 candidate, but no HADES runtime or artifact compatibility
+test has been performed.
+
+## Verified visible-answer and operator CLI checkpoint
+
+A synthetic fixed-answer follow-up produced the expected output at both 16K
+and 65K. Warm 16K TTFT and client time were about 7% lower, generation was 8%
+faster, and runner allocation was 2.2% lower. Context reallocation cost about
+17.3 seconds, and the comparison used only two warm samples per setting in a
+non-counterbalanced order. Keep this experimental; task-level correctness and
+engineering benefit remain unmeasured.
+
+The private operator tooling now exposes sanitized JSON history and progress
+views. Independent isolated suites passed after supervisor corrections: 25
+history tests and 34 status-viewer tests. Both workers reached iteration
+limits before acceptance, so these are supervisor-assisted results. The
+combined private tool and CLI suites now pass 69 and 26 tests. Next: compare
+the same independently accepted engineering task at 16K/65K.

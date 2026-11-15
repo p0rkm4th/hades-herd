@@ -34,6 +34,20 @@ draft weights or embedded MTP tensors, nor an effective performance change.
 No speculative-decoding run was attempted; qualify the exact local artifact
 and runner before a request-scoped comparison.
 
+## Visible-answer context follow-up
+
+At 16K, two warm samples had median TTFT 3.653 s and generation 53.94 tok/s;
+at 65K, two warm samples measured 3.938 s and 49.96 tok/s. All six runs
+contained the expected synthetic answer. The 16K warm result was about 7%
+faster to first text and 8% faster in generation, with 0.529 GB (2.2%) lower
+runner allocation. Transitioning contexts cost about 17.3 s each direction.
+The 65K block followed the 16K block, so this is not counterbalanced.
+
+**Decision: KEEP EXPERIMENTAL.** The gains are below the 15% target, and
+reallocation dominates the per-request saving. Do not change the default. A
+same-task engineering comparison is still needed to assess correctness and
+task completion.
+
 ## Other candidates
 
 - **Prompt-prefix reuse:** blocked on a new minimal probe passing offline
@@ -41,8 +55,8 @@ and runner before a request-scoped comparison.
 - **KV-cache quantization and Flash Attention:** pending proof of an isolated
   reversible runtime and effective-setting logs. Do not change a shared
   service to test global settings.
-- **Context quality follow-up:** next candidate; require visible structured
-  output, correctness, and TTFT at both context sizes.
+- **Context quality follow-up:** next candidate; require an accepted
+  engineering task, correctness, and TTFT at both context sizes.
 
 ## Worker tool acceptance checkpoint
 

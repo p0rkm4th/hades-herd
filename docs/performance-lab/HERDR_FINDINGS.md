@@ -161,3 +161,13 @@ passed all five project tests and confirmed the test file was unchanged. The
 task history stores redacted metadata and the task contract separately. This
 validates only this bounded path. Partial-task continuation is manual, and
 live cancellation behavior has not yet been validated end to end.
+
+## Structured operator output
+
+Two local workers separately implemented JSON-safe task-history and
+progress-status output in isolated workspaces. Both reached their iteration
+limits before acceptance. Independent review found compatibility and test
+fixture defects; supervisor corrections then passed 25 history tests and 34
+status-viewer tests. These are supervisor-assisted completions. The existing
+human-readable status output and state exit codes remain available. Both panes
+were closed after their shell returned; workspaces and evidence were retained.

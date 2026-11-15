@@ -96,6 +96,11 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
   Assign MiMo review tasks as lead generation only; require direct source and
   test verification. Confidence remains low for code review.
 
+In a later bounded task, MiMo/Hecate drafted JSON progress output, then reached
+its iteration limit after 2m55s. Independent acceptance found nine failures;
+supervisor corrections led to 34 passing tests. This is supervisor-assisted,
+not autonomous completion. Primary token totals were unavailable.
+
 ## Gemma4 12B
 
 A single bounded smoke task timed out without useful tool activity. This is not
@@ -164,6 +169,12 @@ arguments and status/history handling in the partial implementation; it was
 rejected and preserved without a rewrite. Token totals were unavailable.
 Continue limiting assignments to one behavior with explicit fixtures and
 early inspection.
+
+In a later bounded task, Qwen3.6/Tartarus drafted `history --json` for the
+operator CLI, then reached its iteration limit after 6m28s before testing.
+The supervisor repaired validation and fixture defects; 25 offline tests
+passed. This is a supervisor-assisted result, not an autonomous success.
+Primary token totals were unavailable.
 
 The lab operator CLI later completed one small synthetic Qwen3.5 task in
 about 29 seconds. Its acceptance manifest and an independent five-test project

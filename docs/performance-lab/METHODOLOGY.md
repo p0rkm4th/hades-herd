@@ -17,6 +17,19 @@ The harness observed no nonempty answer chunks in these runs, despite reaching t
 
 Use matched model artifact, runtime, context, workload, and contention conditions. Preserve repeated raw counters privately. Report medians and run variability, cold/warm state, peak resource use where available, and independent correctness. Separate infrastructure/backend failures from prompting, tool-use, and reasoning failures. Report negative results and uncertainty.
 
+For synthetic fixed-answer workloads, the stream harness can check an expected
+answer fragment across chunk boundaries and store only a match boolean. It
+does not store the fragment or response. This is a narrow visible-output gate;
+it does not replace independent acceptance of an engineering task.
+
+The 16K/65K visibility prompt was: “Do not reason aloud or use tools. Return
+exactly this literal marker, with no punctuation or other text:
+`HADES_OK_42`.” The expected fragment was `HADES_OK_42`; all other inference
+settings matched, including temperature 0, seed 7, and a 256-token output
+budget. Three runs were collected in a 16K block followed by a 65K block. The
+first context-transition sample in each block is reported separately; warm
+medians use the remaining two samples. The order was not counterbalanced.
+
 A throughput change alone is not a usable-task improvement. A meaningful result should show a material reduction in task time, more usable context/concurrency, lower memory without substantial quality regression, improved independently verified completion, or fewer tool errors. No production route/default changes are part of this research branch.
 
 ## Context allocation candidate control
