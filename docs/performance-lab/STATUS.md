@@ -295,3 +295,15 @@ qualification; no build, import, download, or launch until compatibility and
 an isolated reversible plan are established. If that gate fails, prepare a
 replicated, token-matched prefix-reuse experiment with an independent
 correctness check. No worker remains active.
+
+## Operator wait command — 2026-11-15
+
+The local lab CLI now provides `hades-agent wait TASK_ID` (or `--latest`) for
+bounded waiting on a task record. It prints a redacted terminal summary,
+returns a distinct timeout code, and never cancels work on timeout. Independent
+networkless acceptance passed 78 CLI tests plus syntax and help checks. The
+Qwen3.6 worker drafted the feature but reached its turn cap before acceptance;
+Luna corrected test fixtures, added timeout/state guards, and independently
+validated it. Count this as supervisor-assisted usability work, not autonomous
+worker completion. A separate Qwen3.5 report enhancement did not pass
+acceptance and was not integrated.
