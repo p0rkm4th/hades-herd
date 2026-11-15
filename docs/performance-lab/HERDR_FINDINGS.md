@@ -152,3 +152,12 @@ does not reset the productive-output staleness clock; acceptance and workspace
 changes remain the completion signals. Fifty-five offline tests pass for the
 private harness implementation. Do not treat queue counters, heartbeats, or
 request activity alone as proof of task progress.
+
+## Local operator CLI dogfood
+
+One bounded synthetic Qwen3.5 task ran through the lab's local operator CLI in
+about 29 seconds. The CLI acceptance manifest passed 1/1; independent review
+passed all five project tests and confirmed the test file was unchanged. The
+task history stores redacted metadata and the task contract separately. This
+validates only this bounded path. Partial-task continuation is manual, and
+live cancellation behavior has not yet been validated end to end.

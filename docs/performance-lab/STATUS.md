@@ -116,6 +116,15 @@ prefix-cache probe deferred.
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.
 
+## Bounded CLI dogfood checkpoint
+
+The private lab's local operator CLI completed one synthetic Qwen3.5 task in
+about 29 seconds. Its acceptance manifest passed, and an independent review
+passed all five project tests. This is one narrow, supervised validation of
+the operator path, not a general worker reliability estimate. No production
+settings changed. Automatic continuation and end-to-end cancellation remain
+unverified.
+
 ## 2026-11-15 supervised engineering checkpoint
 
 A focused task-classifier update scanned the full bounded task contract rather

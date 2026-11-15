@@ -165,6 +165,12 @@ rejected and preserved without a rewrite. Token totals were unavailable.
 Continue limiting assignments to one behavior with explicit fixtures and
 early inspection.
 
+The lab operator CLI later completed one small synthetic Qwen3.5 task in
+about 29 seconds. Its acceptance manifest and an independent five-test project
+run passed. Treat this as one bounded success; the model's broader tool-heavy
+reliability remains low-confidence. Prefer one behavior in one source file,
+explicit acceptance commands, changed-path inspection, and independent review.
+
 ## 2026-11-15 stalled CLI follow-up
 
 A bounded Qwen3.6 CLI attempt produced three successful local completion
