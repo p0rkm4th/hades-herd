@@ -98,6 +98,17 @@ These are task-specific observations, not a model ranking. The remaining
 worker pane was confirmed to be an idle shell and closed after its status and
 artifacts were preserved.
 
+## Prefix-reuse experiment — exploratory result
+
+A fresh-content, interleaved eight-request run matched all prompt lengths and
+visible markers. Warm shared-prefix median prefill was 2.805 s versus 26.105 s
+for unique controls; TTFT was 2.943 s versus 26.215 s. This is a promising
+single-run signal, not a confirmed cache hit or useful-task improvement: the
+runtime exposed no explicit cache counter and the correctness check was a
+short marker. No production settings changed. Next is an independent fresh
+epoch with a nontrivial deterministic answer check; see
+[OPTIMIZATIONS.md](OPTIMIZATIONS.md).
+
 The context comparison remains inconclusive: warm 16K medians showed 7.2%
 lower TTFT and 8.0% higher decode than 65K, but the response capture was only
 11 characters and resident-context metadata contradicted request options.

@@ -147,3 +147,19 @@ The exact model digest and 65K resident context were independently verified;
 runner allocation was unchanged. No production route or setting changed. A
 replicated, counterbalanced, exactly token-matched run with a real correctness
 contract is required before claiming a reproducible cache benefit.
+
+## Fresh-content shared-prefix assay — exploratory
+
+An interleaved eight-request comparison of Qwen3.6 35B on generic Node C used
+a new synthetic prompt epoch and the same model digest and 65,536 context
+throughout. All requests had 12,846 prompt tokens and returned the expected
+short marker. After excluding the first shared-prefix request, three warm
+shared requests had 2.805 s median prompt evaluation and 2.943 s median time
+to first token; four
+unique controls had 26.105 s and 26.215 s. That is 89.26% lower median prefill
+and 88.78% lower median TTFT in this run. Reported runner VRAM was unchanged.
+
+This single small-sample result is consistent with prompt-prefix reuse, but the
+runtime exposed no explicit cache-hit counter and the marker check does not
+establish useful-task correctness. Keep it experimental; replicate with a new
+payload and counterbalanced order before considering any production change.
