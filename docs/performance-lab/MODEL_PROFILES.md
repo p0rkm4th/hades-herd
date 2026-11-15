@@ -60,3 +60,21 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
 
 A single bounded smoke task timed out without useful tool activity. This is not
 enough evidence to characterize roles, prompting, or task boundaries.
+
+## Qwen3.6 35B
+
+- **Best role:** tightly bounded Python implementation with an exact task
+  contract and independent acceptance command. Two small disposable tasks
+  passed their independent test suites without correction.
+- **Observed task:** a two-file batch API change completed in 79 seconds. The
+  diff stayed within the allowed files and all 8 project tests passed.
+- **Prompt pattern:** specify accepted input forms, reuse of existing
+  validation, allowed files, required tests, and the final evidence to report.
+- **Operational evidence:** one run made 8 inference API calls and used
+  56.9K input and 2.2K output tokens. This high input-to-output ratio suggests
+  reducing reusable prompt/context overhead before expanding task complexity.
+- **Current boundary:** no evidence yet for debugging large systems,
+  repositories, long-lived sessions, or multi-worker tasks. Keep assignments
+  in clean, disposable workspaces and independently review all results.
+- **Confidence:** low; two accepted small tasks establish feasibility, not a
+  reliability rate.

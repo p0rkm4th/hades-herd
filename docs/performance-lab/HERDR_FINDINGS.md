@@ -41,3 +41,16 @@ integration tests passed; no-tools Qwen3.6 smoke requests succeeded on the
 configured local route and an already-resident local inference node. This is
 route evidence, not a malicious-agent security audit or a model-quality result.
 Use non-sensitive task data until broader isolation review is complete.
+
+## One-shot task lifecycle
+
+The same sandbox now accepts a task contract through a separate read-only
+mount, rejects dirty workspaces and Git metadata outside the assigned project,
+and retains the result log, exit status, usage, and bridge audit. Nine offline
+checks cover the workspace boundary, local-only network path, contract mount,
+and captured process exit status. In one observed run, the initial bounded
+output wait expired while the local task was still running; inspection found
+the same process active, and it completed without a duplicate prompt. This
+confirms that a wait timeout must be followed by inspection, not automatic
+resubmission. The task succeeded independently, but the sample is too small to
+estimate reliability.

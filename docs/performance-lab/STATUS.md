@@ -23,6 +23,15 @@ request returned its exact response through the configured local route; another
 returned through a direct, already-resident local node. These short smoke
 requests validate routing only, not model quality or performance gains.
 
+The sandbox now supports one-shot task contracts mounted read-only, clean Git
+workspace enforcement, a host-enforced runtime limit, and retained output,
+usage, status, and route-audit artifacts. A disposable two-file Qwen3.6 35B
+task completed in 79 seconds; independent validation passed all 8 project
+tests. The task used 8 model API calls, 56.9K input tokens, and 2.2K output
+tokens. This is a small supervised sample, not evidence of broad task
+reliability. Nine offline sandbox checks now pass, including output/exit-code
+capture and rejection of dirty or externally rooted Git workspaces.
+
 ## Limits
 
 - TTFT was unavailable in all baseline/context runs because no nonempty answer
@@ -36,13 +45,15 @@ requests validate routing only, not model quality or performance gains.
 - The sandbox boundary passed integration checks but has not been tested
   against a malicious agent. Keep assignments non-sensitive and review outputs.
 - No production route, global service setting, or model default was changed.
+- Model selection remains explicit; automatic task-aware selection and safe
+  local fallback are still unimplemented.
 
 ## Next experiment
 
-Evaluate the 16K context candidate using a visible structured answer and an
-independent correctness contract, with TTFT and context-transition load
-reported separately. See METHODOLOGY.md before running it. Do not run the
-rejected prefix-cache probe until a replacement passes offline review.
+Implement automatic local model selection using current capacity and observed
+task-role evidence, then demonstrate a moderately complex task with saved
+checkpoints and independent review. Do not rerun general baselines or the
+rejected prefix-cache probe.
 
 This repository is a reviewable research checkpoint, not a live monitoring
 feed.
