@@ -15,6 +15,8 @@ The runner was restored to 65K after measurement. All runs reached the
 token throughput or allocation observations, but no useful-answer latency,
 correctness, or task-time gain is established. This is a candidate result, not
 an accepted optimization or a basis for a production default change.
+The later one-run restore check generated one token and reported 1,000,000
+tokens/s; it is an invalid rate and is excluded from the comparison.
 
 ## Prefix-cache probe — rejected before live use
 

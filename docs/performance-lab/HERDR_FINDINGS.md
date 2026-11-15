@@ -75,3 +75,13 @@ task failure, not evidence of a Herdr submission failure. Do not confuse the
 launcher heartbeat with work progress: the operator view reports heartbeat age
 separately from last worker-output age. A SIGINT exit of `-2` is now normalized
 to terminal state `interrupted` with exit 130.
+
+## Acceptance and intervention
+
+One-shot tasks can carry a strict manifest of bounded argv commands. Checks
+run only after the worker exits successfully, in a copied workspace with
+network access disabled; status shows each check as it runs. On the tested
+fixture, all 12 tests passed and the source task workspace remained unchanged.
+Inspect after three minutes without an artifact change, stop repeated repair
+loops, checkpoint after two context compactions, and cap corrective retries at
+two. Close finished panes while retaining their workspace and run artifacts.

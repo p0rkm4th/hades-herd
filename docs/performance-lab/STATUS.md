@@ -53,11 +53,22 @@ reliability estimate. The run had no finalized usage totals. A corresponding
 supervisor fix now records SIGINT termination as `interrupted` with shell exit
 130. The combined sandbox and status-viewer suite passes 29 offline tests.
 
+The one-shot runner now accepts a bounded JSON acceptance manifest. After a
+successful worker exit it runs argv-only checks in a network-isolated copy of
+the task workspace, records per-check status, and leaves the worker tree
+unchanged. The combined offline suite now passes 40 tests. A direct fixture
+run passed 12 tests in the isolated copy. A second bounded Qwen3.5 coding task
+was independently rejected: the worker exited 2 after 68 seconds with
+incorrect expected totals and list-row handling. Supervisor fixes passed the
+same checks, but the worker attempt remains incomplete and is not counted as an
+autonomous success.
+
 ## Limits
 
 - TTFT was unavailable in all baseline/context runs because no nonempty answer
   chunks were observed. Token throughput remains measurable, but useful answer
-  latency and correctness do not.
+  latency and correctness do not. A single-token post-restore context run
+  reported an impossible 1,000,000 tokens/s and is excluded.
 - The prefix-cache experiment is rejected until a minimal replacement passes
   offline acceptance.
 - Herdr prompt waits and lifecycle states did not consistently reflect worker

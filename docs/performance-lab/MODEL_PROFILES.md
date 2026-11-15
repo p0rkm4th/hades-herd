@@ -29,8 +29,15 @@ runs, not public benchmark scores. Evidence is limited; require supervision.
 - **Additional sample:** an automatically selected quick task added one
   discount helper and tests; all 16 project tests passed in 25.8 seconds with
   no correction. This does not remove the observed long-task failure.
-- **Confidence:** low to moderate for small supervised coding; low for
-  long, tool-heavy tasks.
+- **Additional failure sample:** a bounded two-file tax-bucket feature ran for
+  68 seconds and exited 2. Independent checks found wrong expected totals and
+  rejection of valid list rows; the worker's attempted repair did not land.
+  Supervisor corrections passed the fixture's 12 tests in the isolated
+  acceptance runner. Count this as an incomplete worker task, not autonomous
+  completion.
+- **Confidence:** low for small supervised coding after mixed current samples;
+  low for long, tool-heavy tasks. The evidence does not support a reliability
+  percentage.
 
 ## MiMo V2.6 9B Q4_K_M
 
