@@ -316,3 +316,14 @@ malformed, symlinked, or out-of-scope artifacts are reported as unavailable;
 paths and logs are never printed. A networkless acceptance snapshot passed 84
 CLI tests plus syntax and help checks. The worker drafts were incomplete, so
 this is supervisor-completed usability work, not autonomous worker completion.
+
+## Prefix-reuse rerun disposition — 2026-11-15
+
+A second eight-request run reused the first run's exact controls. All visible
+markers passed and the exact model/context remained resident, but one control
+again differed by one prompt token and the run exited 2. The matched subset
+showed controls at about 80 ms prefill versus about 1.75 s for shared-prefix
+requests. This is not a valid A/B result: the controls had already been
+submitted and were not fresh. The initial cache signal remains experimental
+and unconfirmed. Any follow-up needs novel per-run synthetic content and exact
+token-matched samples. No production setting changed.
