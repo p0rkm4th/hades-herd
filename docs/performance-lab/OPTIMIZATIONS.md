@@ -51,3 +51,13 @@ prefix disclosure, prefix-first ordering, and silent output append. The
 supervisor-corrected MiMo summarizer independently passed synthetic median,
 null-TTFT, cold/warm, empty-response, duplicate-run, and no-overwrite checks.
 These are tool reliability results, not inference optimization gains.
+
+## Status observability — accepted in the isolated lab harness
+
+The supervisor added content-free aggregate local inference activity to worker
+status after independent inspection of two incomplete Herdr runs exposed a gap
+between queue counters and actual serving requests. The view reports call and
+successful-response counts plus latest-request age; it preserves output age as
+the separate progress signal. The 55-test offline tool suite passes. This
+improves diagnosis only; it is not a model speedup and has not been deployed to
+production infrastructure.

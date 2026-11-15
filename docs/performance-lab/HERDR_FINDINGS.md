@@ -139,3 +139,16 @@ repeated same-issue edits, checkpoint after two context compactions, and allow
 at most two evidence-backed corrections. Close a pane only after terminal
 state and evidence are preserved. These are starting guardrails, not calibrated
 model timeouts.
+
+## Inference activity versus task progress
+
+Two wrapped Hermes runs showed a mismatch between Herdr/Herd in-flight counts
+and serving-runtime active-request telemetry. The sandbox bridge audit
+confirmed that local completion requests had occurred, but its event log was
+only finalized at task end. The lab status tool now exposes aggregate local
+completion and upstream-response counts plus age of the latest request. It
+never includes prompts, responses, endpoints, or raw event data. Request age
+does not reset the productive-output staleness clock; acceptance and workspace
+changes remain the completion signals. Fifty-five offline tests pass for the
+private harness implementation. Do not treat queue counters, heartbeats, or
+request activity alone as proof of task progress.

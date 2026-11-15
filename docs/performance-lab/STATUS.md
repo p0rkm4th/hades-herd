@@ -145,3 +145,24 @@ failure. See HERDR_FINDINGS.md and MODEL_PROFILES.md.
 Ollama 0.40.15 source supports `draft_num_predict` handling, and the selected
 Qwen3.6 model-derived options expose value 2. Draft/MTP artifact support and
 effective behavior are still unverified; speculative decoding remains deferred.
+
+## 2026-11-15 activity-observability recovery
+
+Two additional local Hermes tasks were inspected rather than duplicated. A
+MiMo CLI task timed out after five local completion responses and produced no
+accepted edit. A Qwen3.6 status-activity task reached its iteration limit after
+partial instrumentation; its viewer integration and acceptance remained
+incomplete. Neither outcome establishes a general model-quality failure.
+
+The supervisor completed the aggregate-only activity view in the isolated lab
+harness. It reports local request counts and last-request age separately from
+productive output age, so inference activity cannot mask a stalled task. The
+updated offline suite passes 55 tests. This is a private orchestration-tool
+improvement; it does not change production inference routing or settings.
+
+The earlier Qwen3.6 16K/65K comparison remains a throughput-only candidate:
+the runs emitted no visible answer text, so useful-answer latency and
+correctness are still unmeasured. The next inference experiment is a matched
+visible-answer comparison with independent correctness and TTFT. Colibri is
+now a documented upstream Qwen3.6 engine candidate, but no HADES runtime or
+artifact compatibility test has been performed.
