@@ -58,8 +58,8 @@ reliable coding agent.
 
 Current implementation and evaluation limits are in [`docs/STATUS.md`](docs/STATUS.md).
 The deployment migration and canonical-source strategy are in
-[`docs/SOURCE_OF_TRUTH.md`](docs/SOURCE_OF_TRUTH.md). No open-source license is
-granted yet; see [`SECURITY.md`](SECURITY.md) for security guidance.
+[`docs/SOURCE_OF_TRUTH.md`](docs/SOURCE_OF_TRUTH.md). Licensed under the Apache License, Version 2.0 — see [`LICENSE`](LICENSE).
+For security guidance, see [`SECURITY.md`](SECURITY.md).
 
 ## Development
 
