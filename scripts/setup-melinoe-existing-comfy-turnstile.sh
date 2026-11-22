@@ -34,7 +34,7 @@ clean() {
     systemctl daemon-reload || true
     systemctl restart ollama || true
     for i in $(seq 1 25); do
-      if curl -fsS --max-time 2 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+      if curl --noproxy '*' -fsS --max-time 2 "$ORIGINAL_URL/api/tags" >/dev/null 2>&1; then
         log 'Rollback verified: Ollama available again on port 11434.'
         break
       fi
@@ -51,10 +51,23 @@ trap clean EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-# Existing services must both be healthy. ComfyUI must be on localhost:8188.
-curl -fsS --max-time 4 http://127.0.0.1:11434/api/tags > "$TEMP/models-before.json" ||
-  die 'Ollama :11434 health check failed.'
-curl -fsS --max-time 4 http://127.0.0.1:8188/system_stats > "$TEMP/comfy-stats.json" ||
+# Discover the original listen address before probing; it may be LAN-only.
+# Preserve EXACTLY that bind for existing clients when proxy takes over.
+ORIG_BIND="$(ss -H -ltn '( sport = :11434 )' | awk 'NR==1 {print $4}')"
+case "$ORIG_BIND" in
+  0.0.0.0:11434|'*:11434') LISTENER=':11434'; ORIGINAL_URL='http://127.0.0.1:11434' ;;
+  127.0.0.1:11434) LISTENER="$ORIG_BIND"; ORIGINAL_URL="http://$ORIG_BIND" ;;
+  *) if [[ "$ORIG_BIND" =~ ^([0-9]{1,3}\\.){3}[0-9]{1,3}:11434$ ]]; then
+       LISTENER="$ORIG_BIND"
+       ORIGINAL_URL="http://$ORIG_BIND"
+     else
+       die "Unsupported Ollama listen address '$ORIG_BIND'; no changes made."
+     fi ;;
+esac
+log "Detected original Ollama bind: $ORIG_BIND"
+curl --noproxy '*' -fsS --max-time 4 "$ORIGINAL_URL/api/tags" > "$TEMP/models-before.json" ||
+  die "Ollama $ORIGINAL_URL health check failed."
+curl --noproxy '*' -fsS --max-time 4 http://127.0.0.1:8188/system_stats > "$TEMP/comfy-stats.json" ||
   die 'Existing ComfyUI :8188 health check failed.'
 python3 - "$TEMP/comfy-stats.json" <<'PY'
 import json, sys
@@ -65,13 +78,6 @@ if 'system' not in info or 'comfyui_version' not in info['system']:
 print('[Melinoe] Existing ComfyUI version:', info['system']['comfyui_version'])
 PY
 
-# Mirror original Ollama listener scope; never broaden a loopback-only service.
-ORIG_BIND="$(ss -H -ltn '( sport = :11434 )' | awk 'NR==1 {print $4}')"
-case "$ORIG_BIND" in
-  0.0.0.0:11434|'*:11434') LISTENER=':11434' ;;
-  127.0.0.1:11434) LISTENER='127.0.0.1:11434' ;;
-  *) die "Unsupported Ollama listen address '$ORIG_BIND'; no changes made." ;;
-esac
 
 log 'Downloading verified GPU Turnstile v1.6.0. Existing inference remains online.'
 BASE=https://git.rambossek.at/PUBLIC/gpu-turnstile/releases/download/v1.6.0
@@ -119,21 +125,21 @@ CUTOVER=1
 systemctl daemon-reload
 systemctl restart ollama
 for i in $(seq 1 25); do
-  curl -fsS --max-time 2 http://127.0.0.1:11435/api/tags >/dev/null 2>&1 && break
+  curl --noproxy '*' -fsS --max-time 2 http://127.0.0.1:11435/api/tags >/dev/null 2>&1 && break
   sleep 1
 done
-curl -fsS --max-time 5 http://127.0.0.1:11435/api/tags >/dev/null ||
+curl --noproxy '*' -fsS --max-time 5 http://127.0.0.1:11435/api/tags >/dev/null ||
   die 'Ollama backend not responding.'
 
 # The upstream installer creates the sandboxed systemd service and starts it.
 "$TEMP/gpu-turnstile-linux-amd64" --install-service
 for i in $(seq 1 30); do
-  curl -fsS --max-time 2 http://127.0.0.1:11434/api/tags > "$TEMP/models-after.json" 2>/dev/null && break
+  curl --noproxy '*' -fsS --max-time 2 "$ORIGINAL_URL/api/tags" > "$TEMP/models-after.json" 2>/dev/null && break
   sleep 1
 done
-curl -fsS --max-time 5 http://127.0.0.1:11434/api/tags > "$TEMP/models-after.json" ||
+curl --noproxy '*' -fsS --max-time 5 "$ORIGINAL_URL/api/tags" > "$TEMP/models-after.json" ||
   die 'Ollama proxy health check failed.'
-curl -fsS --max-time 5 http://127.0.0.1:8189/system_stats > /dev/null ||
+curl --noproxy '*' -fsS --max-time 5 http://127.0.0.1:8189/system_stats > /dev/null ||
   die 'Existing ComfyUI is not reachable through proxy.'
 python3 - "$TEMP/models-before.json" "$TEMP/models-after.json" <<'PY'
 import json, sys
