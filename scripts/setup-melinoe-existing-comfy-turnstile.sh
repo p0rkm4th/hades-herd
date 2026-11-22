@@ -57,7 +57,7 @@ ORIG_BIND="$(ss -H -ltn '( sport = :11434 )' | awk 'NR==1 {print $4}')"
 case "$ORIG_BIND" in
   0.0.0.0:11434|'*:11434') LISTENER=':11434'; ORIGINAL_URL='http://127.0.0.1:11434' ;;
   127.0.0.1:11434) LISTENER="$ORIG_BIND"; ORIGINAL_URL="http://$ORIG_BIND" ;;
-  *) if [[ "$ORIG_BIND" =~ ^([0-9]{1,3}\\.){3}[0-9]{1,3}:11434$ ]]; then
+  *) if [[ "$ORIG_BIND" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}:11434$ ]]; then
        LISTENER="$ORIG_BIND"
        ORIGINAL_URL="http://$ORIG_BIND"
      else
