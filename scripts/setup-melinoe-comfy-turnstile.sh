@@ -5,7 +5,7 @@
 set -Eeuo pipefail
 log() { printf '\n[melinoe] %s\n' "$*"; }
 die() { printf '\n[melinoe] ABORT: %s\n' "$*" >&2; exit 1; }
-[[ \${EUID} -eq 0 ]] || die 'Run as root: curl ... | sudo bash'
+[[ $EUID -eq 0 ]] || die 'Run as root: curl ... | sudo bash'
 command -v systemctl >/dev/null || die 'systemd is required.'
 command -v apt-get >/dev/null || die 'This installer supports Debian/Ubuntu only.'
 command -v nvidia-smi >/dev/null || die 'NVIDIA driver missing.'
@@ -19,6 +19,7 @@ VERSION=v1.6.0
 ROOT_URL="https://git.rambossek.at/PUBLIC/gpu-turnstile/releases/download/$VERSION"
 CUTOVER=0
 COMPLETE=0
+CREATED_CFG=0
 TMP=$(mktemp -d)
 cleanup() {
   local rc=$?
@@ -36,6 +37,8 @@ cleanup() {
       fi
       sleep 1
     done
+  elif [[ "$CREATED_CFG" == 1 && "$COMPLETE" != 1 ]]; then
+    rm -f -- "$CFG"
   fi
   rm -rf -- "$TMP"
   exit "$rc"
@@ -129,6 +132,7 @@ llm:
 update:
   auto: false
 EOF
+CREATED_CFG=1
 "$TMP/gpu-turnstile-linux-amd64" config check -config "$CFG" || die 'Invalid proxy config; Ollama unchanged.'
 cat > "$DROPIN" <<'EOF'
 [Service]
