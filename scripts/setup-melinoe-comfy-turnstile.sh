@@ -11,7 +11,7 @@ command -v apt-get >/dev/null || die 'This installer supports Debian/Ubuntu only
 command -v nvidia-smi >/dev/null || die 'NVIDIA driver missing.'
 for c in curl ss sha256sum; do command -v "$c" >/dev/null || die "Required command missing: $c"; done
 
-COMFY_DIR=/opt/melinoe-comfyui
+COMFY_DIR=/var/lib/gpu-turnstile/comfyui
 DROPIN_DIR=/etc/systemd/system/ollama.service.d
 DROPIN="$DROPIN_DIR/zz-melinoe-gpu-turnstile.conf"
 CFG=/etc/gpu-turnstile/gpu-turnstile.yaml
@@ -64,8 +64,8 @@ else die "NVIDIA driver $DRIVER is too old for automated CUDA install; Ollama un
 fi
 GPU=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
 log "GPU: $GPU, driver: $DRIVER, CUDA wheel: $TORCH_CUDA."
-FREE_KB=$(df -Pk /opt | awk 'END {print $4}')
-(( FREE_KB >= 23 * 1024 * 1024 )) || die 'Need 23 GiB free on /opt.'
+FREE_KB=$(df -Pk /var | awk 'END {print $4}')
+(( FREE_KB >= 23 * 1024 * 1024 )) || die 'Need 23 GiB free on /var.'
 log 'Installing ComfyUI and models. Ollama is still serving existing clients.'
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
